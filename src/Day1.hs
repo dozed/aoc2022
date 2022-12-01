@@ -1,11 +1,9 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Day1 where
+module Day1 (day1) where
 
-import Data.List (groupBy, sort, take)
+import Data.List (groupBy, sort)
 import Text.RawString.QQ
-
-import Util (readFileText)
 
 testInput1 :: String
 testInput1 = [r|1000
@@ -25,7 +23,7 @@ testInput1 = [r|1000
 |]
 
 testInput2 :: IO String
-testInput2 = readFileText "input/Day1.txt"
+testInput2 = readFile "input/Day1.txt"
 
 type ElfCaloriesDetailed = [Int]
 type ElfCaloriesSummed = Int

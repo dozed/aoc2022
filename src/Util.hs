@@ -1,18 +1,17 @@
-module Util where
+module Util (
+  readFileLines,
+  count,
+  windows,
+  deleteAt,
+  maxIndex
+) where
 
 import Data.Foldable (toList)
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
-import System.IO (readFile)
-
-readFileText :: String -> IO String
-readFileText filename = readFile filename
 
 readFileLines :: String -> IO [String]
-readFileLines filename = do
-  content <- readFileText filename
-  let xs = words content
-  pure xs
+readFileLines filename = lines <$> readFile filename
 
 count :: Eq a => a -> [a] -> Int
 count x xs = length . filter (x ==) $ xs

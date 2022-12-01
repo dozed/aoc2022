@@ -27,10 +27,10 @@ testInput1 = [r|1000
 testInput2 :: IO String
 testInput2 = readFileText "input/Day1.txt"
 
-type ElvesCaloriesDetailed = [[Int]]
-type ElvesCaloriesSummed = [Int]
+type ElfCaloriesDetailed = [Int]
+type ElfCaloriesSummed = Int
 
-parseElvesCaloriesDetailed :: String -> ElvesCaloriesDetailed
+parseElvesCaloriesDetailed :: String -> [ElfCaloriesDetailed]
 parseElvesCaloriesDetailed str =
   let lined = lines str
       grouped = groupBy (\s1 s2 -> (not . null $ s1)  && (not . null $ s2)) lined
@@ -38,10 +38,10 @@ parseElvesCaloriesDetailed str =
       mapped = map (map (\x -> read x :: Int)) filtered
   in mapped
 
-sumCalories :: ElvesCaloriesDetailed -> ElvesCaloriesSummed
+sumCalories :: [ElfCaloriesDetailed] -> [ElfCaloriesSummed]
 sumCalories = map sum
 
-findNMaxCalories :: Int -> ElvesCaloriesSummed -> [Int]
+findNMaxCalories :: Int -> [ElfCaloriesSummed] -> [ElfCaloriesSummed]
 findNMaxCalories n ecs = take n . reverse . sort $ ecs
 
 day1 :: IO ()

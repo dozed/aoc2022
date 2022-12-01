@@ -3,14 +3,10 @@ module Util where
 import Data.Foldable (toList)
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
-import System.IO
+import System.IO (readFile)
 
 readFileText :: String -> IO String
-readFileText filename = do
-  handle <- openFile filename ReadMode
-  content <- hGetContents handle
-  -- hClose handle
-  pure content
+readFileText filename = readFile filename
 
 readFileLines :: String -> IO [String]
 readFileLines filename = do

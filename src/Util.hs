@@ -3,12 +3,16 @@ module Util (
   count,
   windows,
   deleteAt,
-  maxIndex
+  maxIndex,
+  regularParse
 ) where
 
 import Data.Foldable (toList)
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
+import Text.Parsec (ParseError)
+import Text.ParserCombinators.Parsec (parse)
+import Text.Parsec.String (Parser)
 
 readFileLines :: String -> IO [String]
 readFileLines filename = lines <$> readFile filename
@@ -34,3 +38,6 @@ deleteAt idx xs = lft ++ rgt
 
 maxIndex :: Ord b => [b] -> Int
 maxIndex xs = head $ filter ((== maximum xs) . (xs !!)) [0..]
+
+regularParse :: Parser a -> String -> Either ParseError a
+regularParse p = parse p ""

@@ -2,6 +2,7 @@
 
 module Day2b (day2b) where
 
+import Control.Monad (void)
 import Text.RawString.QQ
 import Text.Parsec
 import Text.ParserCombinators.Parsec
@@ -63,7 +64,7 @@ line = do
   part1 <- firstPart
   spaces
   part2 <- secondPart
-  _ <- char '\n'
+  void $ char '\n'
   pure (part1, part2)
 
 firstPart :: Parser Shape

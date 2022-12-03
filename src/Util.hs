@@ -4,10 +4,12 @@ module Util (
   windows,
   deleteAt,
   maxIndex,
-  regularParse
+  regularParse,
+  intersect
 ) where
 
 import Data.Foldable (toList)
+import Data.List (sort)
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
 import Text.Parsec (ParseError)
@@ -34,10 +36,20 @@ windows n0 = go 0 Seq.empty
 
 deleteAt :: Int -> [a] -> [a]
 deleteAt idx xs = lft ++ rgt
-  where (lft, (_:rgt)) = splitAt idx xs
+  where (lft, _:rgt) = splitAt idx xs
 
 maxIndex :: Ord b => [b] -> Int
 maxIndex xs = head $ filter ((== maximum xs) . (xs !!)) [0..]
 
 regularParse :: Parser a -> String -> Either ParseError a
 regularParse p = parse p ""
+
+intersectSorted :: Ord a => [a] -> [a] -> [a]
+intersectSorted (x:xs) (y:ys)
+  | x == y = x : intersectSorted xs ys
+  | x < y = intersectSorted xs (y:ys)
+  | x > y = intersectSorted (x:xs) ys
+intersectSorted _ _ = []
+
+intersect :: Ord a => [a] -> [a] -> [a]
+intersect xs ys = intersectSorted (sort xs) (sort ys)

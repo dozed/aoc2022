@@ -29,9 +29,11 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
+  - combinatorial
   - containers
   - parsec
   - raw-strings-qq
+  - split
 
 executables:
   aoc2022-exe:

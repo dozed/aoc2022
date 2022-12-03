@@ -3,8 +3,8 @@
 module Day3 where
 
 import Combinatorics (tuples)
-import Control.Monad (forM_, join)
-import Data.List (sort, sortBy, nub)
+import Control.Monad (forM_)
+import Data.List (sort, nub)
 import Data.List.Split (chunksOf)
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -77,19 +77,20 @@ getCommonItemTypes' xs =
 
 day3 :: IO ()
 day3 = do
+  inputText <- testInput2
+
   -- part a
   -- let inputA = parseInput testInput1
-  inputText <- testInput2
-  let input = parseInput inputText
+  let inputA = parseInput inputText
 
   -- debug output
-  forM_ input $ \(x, y) -> do
+  forM_ inputA $ \(x, y) -> do
     print (sort x, sort y)
     let commons = getCommonItemTypes (x, y)
     print commons
   print "---"
 
-  let totalPriority = sum . map getItemTypePriority . concatMap getCommonItemTypes $ input
+  let totalPriority = sum . map getItemTypePriority . concatMap getCommonItemTypes $ inputA
   print totalPriority
 
   -- part b
@@ -97,5 +98,5 @@ day3 = do
   forM_ inputB print
   print "---"
 
-  let totalScore = sum . map (getItemTypePriority . getCommonItemTypes') $ inputB
-  print totalScore
+  let totalBadgePriority = sum . map (getItemTypePriority . getCommonItemTypes') $ inputB
+  print totalBadgePriority

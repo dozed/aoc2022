@@ -62,8 +62,8 @@ getCommonBadgeItemType :: ElfGroup -> ItemType
 getCommonBadgeItemType xs =
   let pairs = tuples 2 xs
       commonInPairs = map (\x -> head x `intersect` head (tail x)) pairs
-      commonInTriple = head commonInPairs `intersect` head (tail commonInPairs)
-  in head commonInTriple
+      commonInTriple = head $ head commonInPairs `intersect` head (tail commonInPairs)
+  in commonInTriple
 
 day3 :: IO ()
 day3 = do

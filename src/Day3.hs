@@ -22,16 +22,6 @@ ttgJtRGJQctTZtZT
 CrZsJsPPZsGzwwsLwLmpwMDw
 |]
 
-testInput1b :: String
-testInput1b = [r|
-vJrwpWtwJgWrhcsFMMfFFhFp
-jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-PmmdzqPrVvPwwTWBwg
-wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw
-|]
-
 testInput2 :: IO String
 testInput2 = readFile "input/Day3.txt"
 
@@ -77,10 +67,10 @@ getCommonItemTypes' xs =
 
 day3 :: IO ()
 day3 = do
+  -- let inputText = testInput1
   inputText <- testInput2
 
   -- part a
-  -- let inputA = parseInput testInput1
   let inputA = parseInput inputText
 
   -- debug output

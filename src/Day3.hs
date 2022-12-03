@@ -58,8 +58,8 @@ getItemTypePriority c = itemTypePriorities Map.! c
 getCommonItemTypes :: ElfRucksackPartitioned -> [ItemType]
 getCommonItemTypes (xs, ys) = nub $ intersect xs ys
 
-getCommonBadgeItemTypes :: ElfGroup -> ItemType
-getCommonBadgeItemTypes xs =
+getCommonBadgeItemType :: ElfGroup -> ItemType
+getCommonBadgeItemType xs =
   let pairs = tuples 2 xs
       commonInPairs = map (\x -> head x `intersect` head (tail x)) pairs
       commonInTriple = head commonInPairs `intersect` head (tail commonInPairs)
@@ -88,5 +88,5 @@ day3 = do
   forM_ inputB print
   print "---"
 
-  let totalBadgePriority = sum . map (getItemTypePriority . getCommonBadgeItemTypes) $ inputB
+  let totalBadgePriority = sum . map (getItemTypePriority . getCommonBadgeItemType) $ inputB
   print totalBadgePriority

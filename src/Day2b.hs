@@ -85,26 +85,26 @@ secondPart = do
     'Z' -> pure Win
     _ -> parserFail $ "invalid part2: " <> [c]
 
-chooseMove :: Outcome -> Shape -> Shape
-chooseMove Loss Rock = Scissors
-chooseMove Loss Paper = Rock
-chooseMove Loss Scissors = Paper
-chooseMove Draw x = x
-chooseMove Win Rock = Paper
-chooseMove Win Paper = Scissors
-chooseMove Win Scissors = Rock
+chooseShape :: Outcome -> Shape -> Shape
+chooseShape Loss Rock = Scissors
+chooseShape Loss Paper = Rock
+chooseShape Loss Scissors = Paper
+chooseShape Draw x = x
+chooseShape Win Rock = Paper
+chooseShape Win Paper = Scissors
+chooseShape Win Scissors = Rock
 
 day2b :: IO ()
 day2b = do
   -- let txt = testInput1
   txt <- testInput2
 
-  situations <- case regularParse situationParser txt of
-    Right as -> pure as
+  (otherShapes, outcomes) <- case regularParse situationParser txt of
+    Right as -> pure $ unzip as
     Left b -> fail $ show b
 
-  let outcomes = map (\(other, outcome) -> (chooseMove outcome other, getOutcome (chooseMove outcome other) other)) situations
-      scores = map (uncurry getScore) outcomes
+  let ownShapes = zipWith chooseShape outcomes otherShapes
+      scores = zipWith getScore ownShapes outcomes
       totalScore = sum scores
 
   print totalScore

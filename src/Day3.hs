@@ -82,9 +82,12 @@ day3 = do
 
   let totalPriority = sum . map getItemTypePriority . concatMap getCommonItemTypes $ inputA
   print totalPriority
+  print "---"
 
   -- part b
   let inputB = parseElfGroups inputText
+
+  -- debug output
   forM_ inputB print
   print "---"
 

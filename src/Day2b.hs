@@ -100,8 +100,8 @@ day2b = do
   txt <- testInput2
 
   (otherShapes, outcomes) <- case regularParse situationParser txt of
-    Right as -> pure $ unzip as
     Left b -> fail $ show b
+    Right as -> pure $ unzip as
 
   let ownShapes = zipWith chooseShape outcomes otherShapes
       scores = zipWith getScore ownShapes outcomes

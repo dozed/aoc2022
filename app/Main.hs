@@ -4,6 +4,7 @@ import Day1
 import Day2a
 import Day2b
 import Day3
+import Day4
 
 main :: IO ()
-main = day3
+main = day4

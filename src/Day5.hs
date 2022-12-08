@@ -4,23 +4,25 @@ module Day5 where
 
 import Control.Monad (void)
 import Data.List (transpose)
-import Data.Maybe (isJust, catMaybes)
+import Data.Maybe (catMaybes)
 import Text.Parsec
-import Text.ParserCombinators.Parsec
+import Text.Parsec.String
 import Text.RawString.QQ
 
 import Util (regularParse, replaceAtIndex)
 
 testInput1 :: String
 testInput1 = [r|
-    [G] [R]                 [P]
-    [H] [W]     [T] [P]     [H]
-    [F] [T] [P] [B] [D]     [N]
-[L] [T] [M] [Q] [L] [C]     [Z]
-[C] [C] [N] [V] [S] [H]     [V] [G]
-[G] [L] [F] [D] [M] [V] [T] [J] [H]
-[M] [D] [J] [F] [F] [N] [C] [S] [F]
-[Q] [R] [V] [J] [N] [R] [H] [G] [Z]|]
+    [D]
+[N] [C]
+[Z] [M] [P]
+ 1   2   3
+
+move 1 from 2 to 1
+move 3 from 1 to 3
+move 2 from 2 to 1
+move 1 from 1 to 2
+|]
 
 type Item = Maybe Char
 
@@ -37,13 +39,18 @@ filledItemParser = do
 itemParser :: Parser Item
 itemParser = emptyItemParser <|> filledItemParser
 
-lineParser :: Parser [Item]
-lineParser = sepBy1 itemParser $ char ' '
+itemsParser :: Parser [Item]
+itemsParser = sepBy1 itemParser $ char ' '
 
 inputParser :: Parser [[Item]]
 inputParser = do
   void endOfLine
-  sepBy1 lineParser endOfLine
+  items <- try $ sepBy1 itemsParser endOfLine
+  endOfLine
+  many1 anyChar
+  endOfLine
+  endOfLine
+  return items
 
 type Crate = Char
 type Stack = [Crate]
@@ -52,21 +59,29 @@ type Stacks = [Stack]
 toStacks :: [[Item]] -> Stacks
 toStacks = map catMaybes
 
-moveCrates :: Int -> Int -> Int -> Stacks -> Stacks
-moveCrates num from to stacks =
-  let fromStack = (stacks !! from)
-      toStack = (stacks !! to)
+data MoveSpec = MoveSpec {
+  num :: Int,
+  from :: Int,
+  to :: Int
+}
+
+moveCrates :: MoveSpec -> Stacks -> Stacks
+moveCrates (MoveSpec num from to) stacks =
+  let from' = from - 1
+      to' = to - 1
+      fromStack = (stacks !! from')
+      toStack = (stacks !! to')
       popped = reverse . take num $ fromStack
       fromStack' = drop num fromStack
       toStack' = popped ++ toStack
-      stacks' = replaceAtIndex from fromStack' stacks
-      stacks'' = replaceAtIndex to toStack' stacks'
+      stacks' = replaceAtIndex from' fromStack' stacks
+      stacks'' = replaceAtIndex to' toStack' stacks'
   in stacks''
 
 day5 :: IO ()
 day5 = do
   print "day5"
-  print $ regularParse lineParser "    [G] [R]                 [P]    "
+  print $ regularParse itemsParser "    [G] [R]                 [P]    "
   print $ regularParse inputParser testInput1
 
   let arr = [[Nothing,Just 'G',Just 'R',Nothing,Nothing,Nothing,Nothing,Just 'P'],[Nothing,Just 'H',Just 'W',Nothing,Just 'T',Just 'P',Nothing,Just 'H'],[Nothing,Just 'F',Just 'T',Just 'P',Just 'B',Just 'D',Nothing,Just 'N'],[Just 'L',Just 'T',Just 'M',Just 'Q',Just 'L',Just 'C',Nothing,Just 'Z'],[Just 'C',Just 'C',Just 'N',Just 'V',Just 'S',Just 'H',Nothing,Just 'V',Just 'G'],[Just 'G',Just 'L',Just 'F',Just 'D',Just 'M',Just 'V',Just 'T',Just 'J',Just 'H'],[Just 'M',Just 'D',Just 'J',Just 'F',Just 'F',Just 'N',Just 'C',Just 'S',Just 'F'],[Just 'Q',Just 'R',Just 'V',Just 'J',Just 'N',Just 'R',Just 'H',Just 'G',Just 'Z']]
@@ -74,7 +89,8 @@ day5 = do
   print arr
   print $ transpose arr
   print $ toStacks $ transpose arr
-  
+
   let stacks = ["LCGMQ","GHFTCLDR","RWTMNFJV","PQVDFJ","TBLSMFN","PDCHVNR","TCH","PHNZVJSG","GHFZ"]
   print stacks
+  print $ moveCrates (MoveSpec { num = 2, from = 1, to = 2 }) stacks
 

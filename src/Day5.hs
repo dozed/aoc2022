@@ -13,10 +13,10 @@ import Util (regularParse, replaceAtIndex)
 
 testInput1 :: String
 testInput1 = [r|
-    [D]
-[N] [C]
+    [D]    
+[N] [C]    
 [Z] [M] [P]
- 1   2   3
+ 1   2   3 
 
 move 1 from 2 to 1
 move 3 from 1 to 3
@@ -82,6 +82,8 @@ day5 :: IO ()
 day5 = do
   print "day5"
   print $ regularParse itemsParser "    [G] [R]                 [P]    "
+  print $ regularParse itemsParser "    [D]    "
+  print $ regularParse itemsParser "[N] [C]    "
   print $ regularParse inputParser testInput1
 
   let arr = [[Nothing,Just 'G',Just 'R',Nothing,Nothing,Nothing,Nothing,Just 'P'],[Nothing,Just 'H',Just 'W',Nothing,Just 'T',Just 'P',Nothing,Just 'H'],[Nothing,Just 'F',Just 'T',Just 'P',Just 'B',Just 'D',Nothing,Just 'N'],[Just 'L',Just 'T',Just 'M',Just 'Q',Just 'L',Just 'C',Nothing,Just 'Z'],[Just 'C',Just 'C',Just 'N',Just 'V',Just 'S',Just 'H',Nothing,Just 'V',Just 'G'],[Just 'G',Just 'L',Just 'F',Just 'D',Just 'M',Just 'V',Just 'T',Just 'J',Just 'H'],[Just 'M',Just 'D',Just 'J',Just 'F',Just 'F',Just 'N',Just 'C',Just 'S',Just 'F'],[Just 'Q',Just 'R',Just 'V',Just 'J',Just 'N',Just 'R',Just 'H',Just 'G',Just 'Z']]

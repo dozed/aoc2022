@@ -5,7 +5,8 @@ module Util (
   deleteAt,
   maxIndex,
   regularParse,
-  intersect
+  intersect,
+  replaceAtIndex
 ) where
 
 import Data.Foldable (toList)
@@ -53,3 +54,6 @@ intersectSorted _ _ = []
 
 intersect :: Ord a => [a] -> [a] -> [a]
 intersect xs ys = intersectSorted (sort xs) (sort ys)
+
+replaceAtIndex :: Int -> a -> [a] -> [a]
+replaceAtIndex i x xs = take i xs ++ [x] ++ drop (i+1) xs

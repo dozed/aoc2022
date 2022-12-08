@@ -13,8 +13,7 @@ import Data.Foldable (toList)
 import Data.List (sort)
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
-import Text.Parsec (ParseError)
-import Text.ParserCombinators.Parsec (parse)
+import Text.Parsec (ParseError, parse)
 import Text.Parsec.String (Parser)
 
 readFileLines :: String -> IO [String]

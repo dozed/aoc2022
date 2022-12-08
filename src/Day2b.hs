@@ -5,7 +5,7 @@ module Day2b (day2b) where
 import Control.Monad (void)
 import Text.RawString.QQ
 import Text.Parsec
-import Text.ParserCombinators.Parsec
+import Text.Parsec.String
 
 import Util (regularParse)
 

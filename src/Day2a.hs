@@ -4,7 +4,7 @@ module Day2a (day2a) where
 
 import Text.RawString.QQ
 import Text.Parsec
-import Text.ParserCombinators.Parsec
+import Text.Parsec.String
 
 import Util (regularParse)
 

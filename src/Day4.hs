@@ -4,7 +4,7 @@ module Day4 where
 
 import Control.Monad (forM_, void)
 import Text.Parsec
-import Text.ParserCombinators.Parsec
+import Text.Parsec.String
 import Text.RawString.QQ
 
 import Util (regularParse)

@@ -86,13 +86,15 @@ inputParser = do
   let items' = toStacks $ transpose items
   return (items', idxs, specs)
 
-moveCrates :: MoveSpec -> Stacks -> Stacks
-moveCrates (MoveSpec num from to) stacks =
+data Order = Reverse | Keep deriving Eq
+
+moveCrates :: Order -> MoveSpec -> Stacks -> Stacks
+moveCrates order (MoveSpec num from to) stacks =
   let from' = from - 1
       to' = to - 1
       fromStack = (stacks !! from')
       toStack = (stacks !! to')
-      popped = reverse . take num $ fromStack
+      popped = (if order == Reverse then reverse else id) . take num $ fromStack
       fromStack' = drop num fromStack
       toStack' = popped ++ toStack
       stacks' = replaceAtIndex from' fromStack' stacks
@@ -110,7 +112,15 @@ day5 = do
 
   print (stacks, moveSpecs)
 
-  let res = foldl (flip moveCrates) stacks moveSpecs
+  -- part 1
+  let res = foldl (flip (moveCrates Reverse)) stacks moveSpecs
+  print res
+
+  let tops = map head res
+  print tops
+
+  -- part 2
+  let res = foldl (flip (moveCrates Keep)) stacks moveSpecs
   print res
 
   let tops = map head res

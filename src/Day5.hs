@@ -24,6 +24,19 @@ move 2 from 2 to 1
 move 1 from 1 to 2
 |]
 
+type Crate = Char
+type Stack = [Crate]
+type Stacks = [Stack]
+
+toStacks :: [[Item]] -> Stacks
+toStacks = map catMaybes
+
+data MoveSpec = MoveSpec {
+  num :: Int,
+  from :: Int,
+  to :: Int
+} deriving Show
+
 type Item = Maybe Char
 
 emptyItemParser :: Parser Item
@@ -62,7 +75,7 @@ moveSpecParser = do
   to <- read <$> many1 digit
   return MoveSpec { num = num, from = from, to = to }
 
-inputParser :: Parser ([[Item]], [Int], [MoveSpec])
+inputParser :: Parser (Stacks, [Int], [MoveSpec])
 inputParser = do
   void endOfLine
   items <- endBy1 itemsParser endOfLine
@@ -70,20 +83,8 @@ inputParser = do
   void endOfLine
   void endOfLine
   specs <- endBy1 moveSpecParser endOfLine
-  return (items, idxs, specs)
-
-type Crate = Char
-type Stack = [Crate]
-type Stacks = [Stack]
-
-toStacks :: [[Item]] -> Stacks
-toStacks = map catMaybes
-
-data MoveSpec = MoveSpec {
-  num :: Int,
-  from :: Int,
-  to :: Int
-} deriving Show
+  let items' = toStacks $ transpose items
+  return (items', idxs, specs)
 
 moveCrates :: MoveSpec -> Stacks -> Stacks
 moveCrates (MoveSpec num from to) stacks =
@@ -100,21 +101,17 @@ moveCrates (MoveSpec num from to) stacks =
 
 day5 :: IO ()
 day5 = do
-  print "day5"
-  print $ regularParse itemsParser "    [G] [R]                 [P]    "
-  print $ regularParse itemsParser "    [D]    "
-  print $ regularParse itemsParser "[N] [C]    "
+  -- let txt = testInput1
+  txt <- readFile "input/Day5.txt"
   
-  print "testInput1"
-  print $ regularParse inputParser testInput1
+  (stacks, moveSpecs) <- case regularParse inputParser txt of
+    Left e -> fail $ show e
+    Right (stacks, _, moveSpecs) -> pure (stacks, moveSpecs)
 
-  let arr = [[Nothing,Just 'G',Just 'R',Nothing,Nothing,Nothing,Nothing,Just 'P'],[Nothing,Just 'H',Just 'W',Nothing,Just 'T',Just 'P',Nothing,Just 'H'],[Nothing,Just 'F',Just 'T',Just 'P',Just 'B',Just 'D',Nothing,Just 'N'],[Just 'L',Just 'T',Just 'M',Just 'Q',Just 'L',Just 'C',Nothing,Just 'Z'],[Just 'C',Just 'C',Just 'N',Just 'V',Just 'S',Just 'H',Nothing,Just 'V',Just 'G'],[Just 'G',Just 'L',Just 'F',Just 'D',Just 'M',Just 'V',Just 'T',Just 'J',Just 'H'],[Just 'M',Just 'D',Just 'J',Just 'F',Just 'F',Just 'N',Just 'C',Just 'S',Just 'F'],[Just 'Q',Just 'R',Just 'V',Just 'J',Just 'N',Just 'R',Just 'H',Just 'G',Just 'Z']]
+  print (stacks, moveSpecs)
 
-  print arr
-  print $ transpose arr
-  print $ toStacks $ transpose arr
+  let res = foldl (flip moveCrates) stacks moveSpecs
+  print res
 
-  let stacks = ["LCGMQ","GHFTCLDR","RWTMNFJV","PQVDFJ","TBLSMFN","PDCHVNR","TCH","PHNZVJSG","GHFZ"]
-  print stacks
-  print $ moveCrates (MoveSpec { num = 2, from = 1, to = 2 }) stacks
-
+  let tops = map head res
+  print tops

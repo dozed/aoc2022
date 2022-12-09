@@ -86,7 +86,7 @@ inputParser = do
   let items' = toStacks $ transpose items
   return (items', idxs, specs)
 
-data Order = Reverse | Keep deriving Eq
+data Order = Reverse | Straight deriving Eq
 
 moveCrates :: Order -> MoveSpec -> Stacks -> Stacks
 moveCrates order (MoveSpec num from to) stacks =
@@ -120,7 +120,7 @@ day5 = do
   print tops
 
   -- part 2
-  let res = foldl (flip (moveCrates Keep)) stacks moveSpecs
+  let res = foldl (flip (moveCrates Straight)) stacks moveSpecs
   print res
 
   let tops = map head res

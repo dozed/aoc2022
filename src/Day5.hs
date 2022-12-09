@@ -28,6 +28,8 @@ type Crate = Char
 type Stack = [Crate]
 type Stacks = [Stack]
 
+type Item = Maybe Char
+
 toStacks :: [[Item]] -> Stacks
 toStacks = map catMaybes
 
@@ -36,8 +38,6 @@ data MoveSpec = MoveSpec {
   from :: Int,
   to :: Int
 } deriving Show
-
-type Item = Maybe Char
 
 emptyItemParser :: Parser Item
 emptyItemParser = Nothing <$ try (string "   ")
@@ -103,7 +103,7 @@ day5 :: IO ()
 day5 = do
   -- let txt = testInput1
   txt <- readFile "input/Day5.txt"
-  
+
   (stacks, moveSpecs) <- case regularParse inputParser txt of
     Left e -> fail $ show e
     Right (stacks, _, moveSpecs) -> pure (stacks, moveSpecs)

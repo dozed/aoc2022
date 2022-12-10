@@ -10,8 +10,7 @@ import Text.RawString.QQ
 import Util (regularParse)
 
 testInput1 :: String
-testInput1 = [r|
-$ cd /
+testInput1 = [r|$ cd /
 $ ls
 dir a
 14848514 b.txt
@@ -42,7 +41,7 @@ chdirUpParser = ChdirUp <$ try (string "$ cd ..")
 chdirParser :: Parser Input
 chdirParser = do
   void $ try (string "$ cd ")
-  str <- many1 $ oneOf ['a'..'z']
+  str <- many1 $ oneOf $ ['a'..'z'] ++ ['/']
   return $ Chdir str
 
 lsParser :: Parser Input
@@ -52,17 +51,20 @@ dirParser :: Parser Input
 dirParser = do
   void $ try (string "dir ")
   str <- many1 $ oneOf ['a'..'z']
-  return $ Dir str  
+  return $ Dir str
 
 fileParser :: Parser Input
 fileParser = do
   size <- read <$> many1 digit
   void $ char ' '
   name <- many1 $ oneOf $ ['a'..'z'] ++ ['.']
-  return $ File size name  
+  return $ File size name
 
-inputParser :: Parser Input
-inputParser = chdirUpParser <|> chdirParser <|> lsParser <|> dirParser <|> fileParser
+inputItemParser :: Parser Input
+inputItemParser = chdirUpParser <|> chdirParser <|> lsParser <|> dirParser <|> fileParser
+
+inputParser :: Parser [Input]
+inputParser = endBy1 inputItemParser endOfLine
 
 data Input = Chdir String
            | ChdirUp
@@ -73,10 +75,12 @@ data Input = Chdir String
 
 day7 :: IO ()
 day7 = do
-  print "day7"
+  let input = testInput1
 
-  print $ regularParse inputParser "$ cd .."
-  print $ regularParse inputParser "$ cd abc"
-  print $ regularParse inputParser "$ ls"
-  print $ regularParse inputParser "dir d"
-  print $ regularParse inputParser "8033020 d.log"
+  print $ regularParse inputItemParser "$ cd .."
+  print $ regularParse inputItemParser "$ cd abc"
+  print $ regularParse inputItemParser "$ ls"
+  print $ regularParse inputItemParser "dir d"
+  print $ regularParse inputItemParser "8033020 d.log"
+
+  print $ regularParse inputParser input

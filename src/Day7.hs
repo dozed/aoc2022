@@ -79,8 +79,10 @@ logItemParser = chdirUpParser <|> chdirParser <|> lsParser <|> dirParser <|> fil
 logItemsParser :: Parser [LogItem]
 logItemsParser = endBy1 logItemParser endOfLine
 
-data FileItem = FileItem String Int
-  deriving Show
+data FileItem = FileItem {
+  fileItemName :: String,
+  fileItemSize :: Int
+} deriving Show
 
 data Directory = Directory {
   dirName :: String,
@@ -115,20 +117,29 @@ handleRootLogItem ((Chdir "/") : xs) =
     _ -> undefined
 handleRootLogItem _ = undefined
 
+directorySize :: Directory -> Int
+directorySize dir =
+  let currentSize = sum . map fileItemSize . dirFiles $ dir
+      recSize = sum . map directorySize . dirDirs $ dir
+      totalSize = currentSize + recSize
+  in totalSize
+
+flattenDirectory :: Directory -> [Directory]
+flattenDirectory dir = dir : (concatMap flattenDirectory . dirDirs $ dir)
+
 day7 :: IO ()
 day7 = do
-  let input = testInput1
+  -- let input = testInput1
+  input <- readFile "input/Day7.txt"
 
-  print $ regularParse logItemParser "$ cd .."
-  print $ regularParse logItemParser "$ cd abc"
-  print $ regularParse logItemParser "$ ls"
-  print $ regularParse logItemParser "dir d"
-  print $ regularParse logItemParser "8033020 d.log"
+  logItems <- case regularParse logItemsParser input of
+    Left e -> fail $ show e
+    Right xs -> pure xs
 
-  print $ regularParse logItemsParser input
+  let rootDir = handleRootLogItem logItems
+  let dirs = filter (\(_, s) -> s <= 100000) . map (\d -> (d, directorySize d)) . flattenDirectory $ rootDir
 
-  let xs = [Chdir "/",Ls,Dir "a",File "b.txt" 14848514,File "c.dat" 8504156,Dir "d",Chdir "a",Ls,Dir "e",File "f" 29116,File "g" 2557,File "h.lst" 62596,Chdir "e",Ls,File "i" 584,ChdirUp,ChdirUp,Chdir "d",Ls,File "j" 4060174,File "d.log" 8033020,File "d.ext" 5626152,File "k" 7214296]
-  let res = handleRootLogItem xs
-  print res
-  prettyPrintDirectory res ""
+  forM_ dirs $ \(d, s) -> do
+    print (d, s)
 
+  print $ sum . map snd $ dirs

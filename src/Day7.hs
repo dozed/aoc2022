@@ -97,16 +97,16 @@ prettyPrintDirectory (Directory name dirs files) pad = do
 handleDirectory' :: Directory -> [LogItem] -> (Directory, [LogItem])
 handleDirectory' dir [] = (dir, [])
 handleDirectory' dir (ChdirUp : others) = (dir, others)
-handleDirectory' dir ((Chdir dirName) : others) =
-  let (innerDir, others') = handleDirectory' (Directory dirName [] []) others
-      dir' = dir { dirDirs = dirDirs dir <> [innerDir] }
-  in handleDirectory' dir' others'
+handleDirectory' dir (Ls : others) = handleDirectory' dir others
 handleDirectory' dir ((Dir _) : others) = handleDirectory' dir others
 handleDirectory' dir ((File fileName size) : others) =
   let fileItem = FileItem fileName size
       dir' = dir { dirFiles = dirFiles dir <> [fileItem] }
   in handleDirectory' dir' others
-handleDirectory' dir (Ls : others) = handleDirectory' dir others
+handleDirectory' dir ((Chdir dirName) : others) =
+  let (innerDir, others') = handleDirectory' (Directory dirName [] []) others
+      dir' = dir { dirDirs = dirDirs dir <> [innerDir] }
+  in handleDirectory' dir' others'
 
 handleRootLogItem :: [LogItem] -> Directory
 handleRootLogItem ((Chdir "/") : xs) =

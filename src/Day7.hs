@@ -3,7 +3,8 @@
 module Day7 where
 
 import Control.Monad (forM_, void)
-import Data.List (intercalate)
+import Data.Function (on)
+import Data.List (intercalate, minimumBy)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -140,9 +141,30 @@ day7 = do
     Left e -> fail e
     Right dir -> pure dir
 
-  let smallDirs = filter (\(_, s) -> s <= 100000) . map (\d -> (d, directorySize d)) . flattenDirectory $ rootDir
+  let dirsWithSize = map (\d -> (d, directorySize d)) . flattenDirectory $ rootDir
+
+  -- part 1
+  let smallDirs = filter (\(_, s) -> s <= 100000) dirsWithSize
 
   forM_ smallDirs $ \(d, s) -> do
     print (d, s)
 
   print $ sum . map snd $ smallDirs
+
+  -- part 2
+  let totalDiskSpace = 70000000
+      requiredSpace = 30000000
+      usedSpace = directorySize rootDir
+      unusedSpace = totalDiskSpace - usedSpace
+      minToDeleteSpace = requiredSpace - unusedSpace
+
+  putStrLn $ "usedSpace: " <> show usedSpace
+  putStrLn $ "unusedSpace: " <> show unusedSpace
+  putStrLn $ "minToDeleteSpace: " <> show minToDeleteSpace
+
+  let largeDirs = filter (\(_, s) -> s >= minToDeleteSpace) dirsWithSize
+      (toDeleteDir, toDeleteDirSize) = minimumBy (compare `on` snd) largeDirs
+
+  print toDeleteDir
+  print toDeleteDirSize
+

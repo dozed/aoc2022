@@ -120,12 +120,12 @@ handleDirectory dir ((Chdir dirName) : others) =
       dir' = dir { dirDirs = dirDirs dir <> [innerDir] }
   in handleDirectory dir' others'
 
-handleRootLogItem :: [LogItem] -> IO Directory
+handleRootLogItem :: [LogItem] -> Either String Directory
 handleRootLogItem ((Chdir "/") : xs) =
   case handleDirectory (Directory "/" [] []) xs of
-    (dir, []) -> pure dir
-    _ -> fail "stream of log items could not be consumed fully"
-handleRootLogItem _ = fail "stream of log items does not start with (Chdir \"/\")"
+    (dir, []) -> Right dir
+    _ -> Left "stream of log items could not be consumed fully"
+handleRootLogItem _ = Left "stream of log items does not start with (Chdir \"/\")"
 
 day7 :: IO ()
 day7 = do
@@ -136,7 +136,10 @@ day7 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  rootDir <- handleRootLogItem logItems
+  rootDir <- case handleRootLogItem logItems of
+    Left e -> fail e
+    Right dir -> pure dir
+
   let dirs = filter (\(_, s) -> s <= 100000) . map (\d -> (d, directorySize d)) . flattenDirectory $ rootDir
 
   forM_ dirs $ \(d, s) -> do

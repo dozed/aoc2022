@@ -94,23 +94,23 @@ prettyPrintDirectory (Directory name dirs files) pad = do
   forM_ dirs $ \d -> do
     prettyPrintDirectory d (pad <> "  ")
 
-handleDirectory' :: Directory -> [LogItem] -> (Directory, [LogItem])
-handleDirectory' dir [] = (dir, [])
-handleDirectory' dir (ChdirUp : others) = (dir, others)
-handleDirectory' dir (Ls : others) = handleDirectory' dir others
-handleDirectory' dir ((Dir _) : others) = handleDirectory' dir others
-handleDirectory' dir ((File fileName size) : others) =
+handleDirectory :: Directory -> [LogItem] -> (Directory, [LogItem])
+handleDirectory dir [] = (dir, [])
+handleDirectory dir (ChdirUp : others) = (dir, others)
+handleDirectory dir (Ls : others) = handleDirectory dir others
+handleDirectory dir ((Dir _) : others) = handleDirectory dir others
+handleDirectory dir ((File fileName size) : others) =
   let fileItem = FileItem fileName size
       dir' = dir { dirFiles = dirFiles dir <> [fileItem] }
-  in handleDirectory' dir' others
-handleDirectory' dir ((Chdir dirName) : others) =
-  let (innerDir, others') = handleDirectory' (Directory dirName [] []) others
+  in handleDirectory dir' others
+handleDirectory dir ((Chdir dirName) : others) =
+  let (innerDir, others') = handleDirectory (Directory dirName [] []) others
       dir' = dir { dirDirs = dirDirs dir <> [innerDir] }
-  in handleDirectory' dir' others'
+  in handleDirectory dir' others'
 
 handleRootLogItem :: [LogItem] -> Directory
 handleRootLogItem ((Chdir "/") : xs) =
-  case handleDirectory' (Directory "/" [] []) xs of
+  case handleDirectory (Directory "/" [] []) xs of
     (dir, []) -> dir
     _ -> undefined
 handleRootLogItem _ = undefined
@@ -131,4 +131,4 @@ day7 = do
   let res = handleRootLogItem xs
   print res
   prettyPrintDirectory res ""
-  
+

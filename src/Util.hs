@@ -7,7 +7,8 @@ module Util (
   regularParse,
   intersect,
   replaceAtIndex,
-  strip
+  strip,
+  takeUntil
 ) where
 
 import Data.Foldable (toList)
@@ -91,3 +92,9 @@ lstrip s = case s of
 -- | Same as 'strip', but applies only to the right side of the string.
 rstrip :: String -> String
 rstrip = reverse . lstrip . reverse
+
+-- https://stackoverflow.com/a/22472610/1590415
+takeUntil :: (a -> Bool) -> [a] -> [a]
+takeUntil _ [] = []
+takeUntil p (x:xs) = x : if p x then takeUntil p xs
+                         else []

@@ -4,7 +4,7 @@ module Day8 where
 
 import Text.RawString.QQ
 
-import Util (strip)
+import Util (strip, takeUntil)
 
 testInput :: String
 testInput = [r|
@@ -46,7 +46,7 @@ getCell (row, col) field = (field !! row) !! col
 getCells :: (CellIndex -> FieldSize -> [CellIndex]) -> CellIndex -> Field -> [CellValue]
 getCells cellIdxsGen cellIdx field =
   let fieldSize = getSize field
-      cellIdxs = cellIdxsGen cellIdx fieldSize 
+      cellIdxs = cellIdxsGen cellIdx fieldSize
       cellValues = map (`getCell` field) cellIdxs
   in cellValues
 
@@ -54,10 +54,10 @@ getDownCells :: CellIndex -> Field -> [CellValue]
 getDownCells = getCells (\(row, col) (rows, cols) -> [(row+1)..(rows-1)] `zip` repeat col)
 
 getUpCells :: CellIndex -> Field -> [CellValue]
-getUpCells = getCells (\(row, col) (rows, cols) -> [0..(row-1)] `zip` repeat col)
+getUpCells = getCells (\(row, col) (rows, cols) -> reverse [0..(row-1)] `zip` repeat col)
 
 getLeftCells :: CellIndex -> Field -> [CellValue]
-getLeftCells = getCells (\(row, col) (rows, cols) -> repeat row `zip` [0..(col-1)])
+getLeftCells = getCells (\(row, col) (rows, cols) -> repeat row `zip` reverse [0..(col-1)])
 
 getRightCells :: CellIndex -> Field -> [CellValue]
 getRightCells = getCells (\(row, col) (rows, cols) -> repeat row `zip` [(col+1)..(cols-1)])
@@ -76,6 +76,20 @@ isVisible cellIdx field =
       visible = visibleDown || visibleUp || visibleLeft || visibleRight
   in visible
 
+getScenicScore :: CellIndex -> Field -> Int
+getScenicScore cellIdx field =
+  let cellValue = getCell cellIdx field
+      downCells = getDownCells cellIdx field
+      upCells = getUpCells cellIdx field
+      leftCells = getLeftCells cellIdx field
+      rightCells = getRightCells cellIdx field
+      unblockedDownCells = length . takeUntil (< cellValue) $ downCells
+      unblockedUpCells = length . takeUntil (< cellValue) $ upCells
+      unblockedLeftCells = length . takeUntil (< cellValue) $ leftCells
+      unblockedRightCells = length . takeUntil (< cellValue) $ rightCells
+      scenicScore = unblockedDownCells * unblockedUpCells * unblockedLeftCells * unblockedRightCells
+  in scenicScore
+
 day8 :: IO ()
 day8 = do
   -- let input = testInput
@@ -85,5 +99,8 @@ day8 = do
 
   -- part 1
   let numVisibles = length . filter (`isVisible` field) . getCellIndices $ field
-
   print numVisibles
+
+  -- part 2
+  let maxScenicScore = maximum . map (`getScenicScore` field) . getCellIndices $ field
+  print maxScenicScore

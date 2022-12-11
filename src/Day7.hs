@@ -140,9 +140,9 @@ day7 = do
     Left e -> fail e
     Right dir -> pure dir
 
-  let dirs = filter (\(_, s) -> s <= 100000) . map (\d -> (d, directorySize d)) . flattenDirectory $ rootDir
+  let smallDirs = filter (\(_, s) -> s <= 100000) . map (\d -> (d, directorySize d)) . flattenDirectory $ rootDir
 
-  forM_ dirs $ \(d, s) -> do
+  forM_ smallDirs $ \(d, s) -> do
     print (d, s)
 
-  print $ sum . map snd $ dirs
+  print $ sum . map snd $ smallDirs

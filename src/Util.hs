@@ -1,14 +1,14 @@
 module Util (
-  readFileLines,
   count,
-  windows,
   deleteAt,
-  maxIndex,
-  regularParse,
   intersect,
+  maxIndex,
+  readFileLines,
+  regularParse,
   replaceAtIndex,
   strip,
-  takeUntil
+  takeUntil,
+  windows
 ) where
 
 import Data.Foldable (toList)

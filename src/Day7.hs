@@ -90,6 +90,16 @@ data Directory = Directory {
   dirFiles :: [FileItem]
 } deriving Show
 
+flattenDirectory :: Directory -> [Directory]
+flattenDirectory dir = dir : (concatMap flattenDirectory . dirDirs $ dir)
+
+directorySize :: Directory -> Int
+directorySize dir =
+  let currentSize = sum . map fileItemSize . dirFiles $ dir
+      recSize = sum . map directorySize . dirDirs $ dir
+      totalSize = currentSize + recSize
+  in totalSize
+
 prettyPrintDirectory :: Directory -> String -> IO ()
 prettyPrintDirectory (Directory name dirs files) pad = do
   putStrLn $ pad <> "Directory " <> name <> " [" <> (intercalate ", " . map show $ files) <> "]"
@@ -110,22 +120,12 @@ handleDirectory dir ((Chdir dirName) : others) =
       dir' = dir { dirDirs = dirDirs dir <> [innerDir] }
   in handleDirectory dir' others'
 
-handleRootLogItem :: [LogItem] -> Directory
+handleRootLogItem :: [LogItem] -> IO Directory
 handleRootLogItem ((Chdir "/") : xs) =
   case handleDirectory (Directory "/" [] []) xs of
-    (dir, []) -> dir
-    _ -> undefined
-handleRootLogItem _ = undefined
-
-directorySize :: Directory -> Int
-directorySize dir =
-  let currentSize = sum . map fileItemSize . dirFiles $ dir
-      recSize = sum . map directorySize . dirDirs $ dir
-      totalSize = currentSize + recSize
-  in totalSize
-
-flattenDirectory :: Directory -> [Directory]
-flattenDirectory dir = dir : (concatMap flattenDirectory . dirDirs $ dir)
+    (dir, []) -> pure dir
+    _ -> fail "stream of log items could not be consumed fully"
+handleRootLogItem _ = fail "stream of log items does not start with (Chdir \"/\")"
 
 day7 :: IO ()
 day7 = do
@@ -136,7 +136,7 @@ day7 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  let rootDir = handleRootLogItem logItems
+  rootDir <- handleRootLogItem logItems
   let dirs = filter (\(_, s) -> s <= 100000) . map (\d -> (d, directorySize d)) . flattenDirectory $ rootDir
 
   forM_ dirs $ \(d, s) -> do

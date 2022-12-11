@@ -6,7 +6,8 @@ module Util (
   maxIndex,
   regularParse,
   intersect,
-  replaceAtIndex
+  replaceAtIndex,
+  strip
 ) where
 
 import Data.Foldable (toList)
@@ -56,3 +57,37 @@ intersect xs ys = intersectSorted (sort xs) (sort ys)
 
 replaceAtIndex :: Int -> a -> [a] -> [a]
 replaceAtIndex i x xs = take i xs ++ [x] ++ drop (i+1) xs
+
+-- https://hackage.haskell.org/package/MissingH-1.0.0/docs/Data-String-Utils.html
+wschars :: String
+wschars = " \t\r\n"
+
+{- | Removes any whitespace characters that are present at the start
+or end of a string. Does not alter the internal contents of a
+string. If no whitespace characters are present at the start or end
+of a string, returns the original string unmodified. Safe to use on
+any string.
+
+Note that this may differ from some other similar
+functions from other authors in that:
+
+1. If multiple whitespace
+characters are present all in a row, they are all removed;
+
+2. If no
+whitespace characters are present, nothing is done.
+-}
+strip :: String -> String
+strip = lstrip . rstrip
+
+-- | Same as 'strip', but applies only to the left side of the string.
+lstrip :: String -> String
+lstrip s = case s of
+                  [] -> []
+                  (x:xs) -> if x `elem` wschars
+                            then lstrip xs
+                            else s
+
+-- | Same as 'strip', but applies only to the right side of the string.
+rstrip :: String -> String
+rstrip = reverse . lstrip . reverse

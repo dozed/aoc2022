@@ -43,37 +43,24 @@ getCellIndices field =
 getCell :: CellIndex -> Field -> CellValue
 getCell (row, col) field = (field !! row) !! col
 
-getDownCells :: CellIndex -> Field -> [CellValue]
-getDownCells (row, col) field =
-  let (rows, cols) = getSize field
-      colIdx = col
-      rowIdxs = [(row+1)..(rows-1)]
-      cellValues = map (\rowIdx -> getCell (rowIdx, colIdx) field) rowIdxs
+getCells :: (CellIndex -> FieldSize -> [CellIndex]) -> CellIndex -> Field -> [CellValue]
+getCells cellIdxsGen cellIdx field =
+  let fieldSize = getSize field
+      cellIdxs = cellIdxsGen cellIdx fieldSize 
+      cellValues = map (`getCell` field) cellIdxs
   in cellValues
+
+getDownCells :: CellIndex -> Field -> [CellValue]
+getDownCells = getCells (\(row, col) (rows, cols) -> [(row+1)..(rows-1)] `zip` repeat col)
 
 getUpCells :: CellIndex -> Field -> [CellValue]
-getUpCells (row, col) field =
-  let (rows, cols) = getSize field
-      colIdx = col
-      rowIdxs = [0..(row-1)]
-      cellValues = map (\rowIdx -> getCell (rowIdx, colIdx) field) rowIdxs
-  in cellValues
+getUpCells = getCells (\(row, col) (rows, cols) -> [0..(row-1)] `zip` repeat col)
 
 getLeftCells :: CellIndex -> Field -> [CellValue]
-getLeftCells (row, col) field =
-  let (rows, cols) = getSize field
-      colIdxs = [0..(col-1)]
-      rowIdx = row
-      cellValues = map (\colIdx -> getCell (rowIdx, colIdx) field) colIdxs
-  in cellValues
+getLeftCells = getCells (\(row, col) (rows, cols) -> repeat row `zip` [0..(col-1)])
 
 getRightCells :: CellIndex -> Field -> [CellValue]
-getRightCells (row, col) field =
-  let (rows, cols) = getSize field
-      colIdxs = [(col+1)..(cols-1)]
-      rowIdx = row
-      cellValues = map (\colIdx -> getCell (rowIdx, colIdx) field) colIdxs
-  in cellValues
+getRightCells = getCells (\(row, col) (rows, cols) -> repeat row `zip` [(col+1)..(cols-1)])
 
 isVisible :: CellIndex -> Field -> Bool
 isVisible cellIdx field =

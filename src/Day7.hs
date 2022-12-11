@@ -2,7 +2,8 @@
 
 module Day7 where
 
-import Control.Monad (void)
+import Control.Monad (forM_, void)
+import Data.List (intercalate)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -35,52 +36,99 @@ $ ls
 7214296 k
 |]
 
-chdirUpParser :: Parser Input
+data LogItem = Chdir String
+             | ChdirUp
+             | Ls
+             | Dir String
+             | File String Int
+             deriving (Eq, Show)
+
+isChdirOrChdirUp :: LogItem -> Bool
+isChdirOrChdirUp (Chdir _) = True
+isChdirOrChdirUp ChdirUp = True
+isChdirOrChdirUp _ = False
+
+chdirUpParser :: Parser LogItem
 chdirUpParser = ChdirUp <$ try (string "$ cd ..")
 
-chdirParser :: Parser Input
+chdirParser :: Parser LogItem
 chdirParser = do
   void $ try (string "$ cd ")
   str <- many1 $ oneOf $ ['a'..'z'] ++ ['/']
   return $ Chdir str
 
-lsParser :: Parser Input
+lsParser :: Parser LogItem
 lsParser = Ls <$ try (string "$ ls")
 
-dirParser :: Parser Input
+dirParser :: Parser LogItem
 dirParser = do
   void $ try (string "dir ")
   str <- many1 $ oneOf ['a'..'z']
   return $ Dir str
 
-fileParser :: Parser Input
+fileParser :: Parser LogItem
 fileParser = do
   size <- read <$> many1 digit
   void $ char ' '
   name <- many1 $ oneOf $ ['a'..'z'] ++ ['.']
-  return $ File size name
+  return $ File name size
 
-inputItemParser :: Parser Input
-inputItemParser = chdirUpParser <|> chdirParser <|> lsParser <|> dirParser <|> fileParser
+logItemParser :: Parser LogItem
+logItemParser = chdirUpParser <|> chdirParser <|> lsParser <|> dirParser <|> fileParser
 
-inputParser :: Parser [Input]
-inputParser = endBy1 inputItemParser endOfLine
+logItemsParser :: Parser [LogItem]
+logItemsParser = endBy1 logItemParser endOfLine
 
-data Input = Chdir String
-           | ChdirUp
-           | Ls
-           | Dir String
-           | File Int String
-           deriving Show
+data FileItem = FileItem String Int
+  deriving Show
+
+data Directory = Directory {
+  dirName :: String,
+  dirDirs :: [Directory],
+  dirFiles :: [FileItem]
+} deriving Show
+
+prettyPrintDirectory :: Directory -> String -> IO ()
+prettyPrintDirectory (Directory name dirs files) pad = do
+  putStrLn $ pad <> "Directory " <> name <> " [" <> (intercalate ", " . map show $ files) <> "]"
+  forM_ dirs $ \d -> do
+    prettyPrintDirectory d (pad <> "  ")
+
+handleDirectory' :: Directory -> [LogItem] -> (Directory, [LogItem])
+handleDirectory' dir [] = (dir, [])
+handleDirectory' dir (ChdirUp : others) = (dir, others)
+handleDirectory' dir ((Chdir dirName) : others) =
+  let (innerDir, others') = handleDirectory' (Directory dirName [] []) others
+      dir' = dir { dirDirs = dirDirs dir <> [innerDir] }
+  in handleDirectory' dir' others'
+handleDirectory' dir ((Dir _) : others) = handleDirectory' dir others
+handleDirectory' dir ((File fileName size) : others) =
+  let fileItem = FileItem fileName size
+      dir' = dir { dirFiles = dirFiles dir <> [fileItem] }
+  in handleDirectory' dir' others
+handleDirectory' dir (Ls : others) = handleDirectory' dir others
+
+handleRootLogItem :: [LogItem] -> Directory
+handleRootLogItem ((Chdir "/") : xs) =
+  case handleDirectory' (Directory "/" [] []) xs of
+    (dir, []) -> dir
+    _ -> undefined
+handleRootLogItem _ = undefined
 
 day7 :: IO ()
 day7 = do
   let input = testInput1
 
-  print $ regularParse inputItemParser "$ cd .."
-  print $ regularParse inputItemParser "$ cd abc"
-  print $ regularParse inputItemParser "$ ls"
-  print $ regularParse inputItemParser "dir d"
-  print $ regularParse inputItemParser "8033020 d.log"
+  print $ regularParse logItemParser "$ cd .."
+  print $ regularParse logItemParser "$ cd abc"
+  print $ regularParse logItemParser "$ ls"
+  print $ regularParse logItemParser "dir d"
+  print $ regularParse logItemParser "8033020 d.log"
 
-  print $ regularParse inputParser input
+  print $ regularParse logItemsParser input
+
+  let xs = [Chdir "/",Ls,Dir "a",File "b.txt" 14848514,File "c.dat" 8504156,Dir "d",Chdir "a",Ls,Dir "e",File "f" 29116,File "g" 2557,File "h.lst" 62596,Chdir "e",Ls,File "i" 584,ChdirUp,ChdirUp,Chdir "d",Ls,File "j" 4060174,File "d.log" 8033020,File "d.ext" 5626152,File "k" 7214296]
+  let res = handleRootLogItem xs
+  print res
+  prettyPrintDirectory res ""
+  

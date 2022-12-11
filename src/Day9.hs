@@ -69,8 +69,8 @@ applyMove (x, y) MoveDownRight = (x+1, y-1)
 applyMove (x, y) MoveDownLeft = (x-1, y-1)
 applyMove (x, y) MoveUpLeft = (x-1, y+1)
 
-mkMoveTail :: Pos -> Pos -> Maybe Move
-mkMoveTail headPos@(hx, hy) tailPos@(tx, ty)
+getMoveForTail :: Pos -> Pos -> Maybe Move
+getMoveForTail headPos@(hx, hy) tailPos@(tx, ty)
   | isAdjacent headPos tailPos = Nothing
   | hy == ty = if hx < tx then Just MoveLeft else Just MoveRight
   | hx == tx = if hy < ty then Just MoveDown else Just MoveUp
@@ -82,7 +82,7 @@ mkMoveTail headPos@(hx, hy) tailPos@(tx, ty)
 applyMoveToHeadAndTail :: Pos -> Pos -> Move -> (Pos, Pos)
 applyMoveToHeadAndTail headPos tailPos moveHead =
   let headPos' = applyMove headPos moveHead
-      moveTail = mkMoveTail headPos' tailPos
+      moveTail = getMoveForTail headPos' tailPos
       tailPos' = maybe tailPos (applyMove tailPos) moveTail
   in (headPos', tailPos')
 
@@ -103,7 +103,7 @@ day9 = do
   -- part 1
   let posHead = mkPos 0 0
   let posTail = mkPos 0 0
-  
+
   let positions = scanl (\(hp, tp) x -> applyMoveToHeadAndTail hp tp x) (posHead, posTail) moves
   let (headPositions, tailPositions) = unzip positions
   print headPositions

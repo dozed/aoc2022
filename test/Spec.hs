@@ -25,19 +25,19 @@ day9Spec = do
 
   describe "mkMoveTail" $ do
     it "should compute tail moves" $ do
-      mkMoveTail (0, 0) (0, 0) `shouldBe` Nothing
-      mkMoveTail (2, 0) (0, 0) `shouldBe` Just MoveRight
-      mkMoveTail (0, 2) (0, 0) `shouldBe` Just MoveUp
-      mkMoveTail (-2, 0) (0, 0) `shouldBe` Just MoveLeft
-      mkMoveTail (0, -2) (0, 0) `shouldBe` Just MoveDown
-      mkMoveTail (2, 1) (0, 0) `shouldBe` Just MoveUpRight
-      mkMoveTail (1, 2) (0, 0) `shouldBe` Just MoveUpRight
-      mkMoveTail (-1, 2) (0, 0) `shouldBe` Just MoveUpLeft
-      mkMoveTail (-2, 1) (0, 0) `shouldBe` Just MoveUpLeft
-      mkMoveTail (-2, -1) (0, 0) `shouldBe` Just MoveDownLeft
-      mkMoveTail (-1, -2) (0, 0) `shouldBe` Just MoveDownLeft
-      mkMoveTail (1, -2) (0, 0) `shouldBe` Just MoveDownRight
-      mkMoveTail (2, -1) (0, 0) `shouldBe` Just MoveDownRight
+      getMoveForTail (0, 0) (0, 0) `shouldBe` Nothing
+      getMoveForTail (2, 0) (0, 0) `shouldBe` Just MoveRight
+      getMoveForTail (0, 2) (0, 0) `shouldBe` Just MoveUp
+      getMoveForTail (-2, 0) (0, 0) `shouldBe` Just MoveLeft
+      getMoveForTail (0, -2) (0, 0) `shouldBe` Just MoveDown
+      getMoveForTail (2, 1) (0, 0) `shouldBe` Just MoveUpRight
+      getMoveForTail (1, 2) (0, 0) `shouldBe` Just MoveUpRight
+      getMoveForTail (-1, 2) (0, 0) `shouldBe` Just MoveUpLeft
+      getMoveForTail (-2, 1) (0, 0) `shouldBe` Just MoveUpLeft
+      getMoveForTail (-2, -1) (0, 0) `shouldBe` Just MoveDownLeft
+      getMoveForTail (-1, -2) (0, 0) `shouldBe` Just MoveDownLeft
+      getMoveForTail (1, -2) (0, 0) `shouldBe` Just MoveDownRight
+      getMoveForTail (2, -1) (0, 0) `shouldBe` Just MoveDownRight
 
   describe "applyMove" $ do
     it "should compute correct position" $ do

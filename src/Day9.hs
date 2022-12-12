@@ -101,12 +101,12 @@ applyMoveToHeadAndTail headPos tailPos headMove =
   in (headPos', tailPos')
 
 updateKnotPositions :: Move -> [Pos] -> [Pos]
-updateKnotPositions headMove [] = []
+updateKnotPositions _ [] = []
+updateKnotPositions headMove [headPos] = [applyMove headPos headMove]
 updateKnotPositions headMove (headPos : tailPos : otherPos) =
   let headPos' = applyMove headPos headMove
       moveTail = getMoveForTail headPos' tailPos
   in headPos' : updateKnotPositions moveTail (tailPos : otherPos)
-updateKnotPositions headMove (headPos : []) = [applyMove headPos headMove]
 
 drawMoves :: [Pos] -> String
 drawMoves positions =

@@ -2,7 +2,8 @@
 
 module Day9 where
 
-import Data.List (nub, transpose)
+import Data.List (intercalate, nub, transpose)
+import Data.Set (fromList, member)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -107,6 +108,16 @@ updateKnotPositions headMove (headPos : tailPos : otherPos) =
   in headPos' : updateKnotPositions moveTail (tailPos : otherPos)
 updateKnotPositions headMove (headPos : []) = [applyMove headPos headMove]
 
+drawMoves :: [Pos] -> String
+drawMoves positions =
+  let maxWidth = maximum . map fst $ positions
+      maxHeight = maximum . map snd $ positions
+      minWidth = minimum . map fst $ positions
+      minHeight = minimum . map snd $ positions
+      positions' = fromList positions
+      field = reverse $ intercalate "\n" [reverse [if (x, y) `member` positions' then 'x' else '.' | x <- [minWidth..maxWidth]] | y <- [minHeight..maxHeight]]
+  in field
+
 day9 :: IO ()
 day9 = do
   -- let input = testInput1
@@ -139,7 +150,8 @@ day9 = do
 
   let updatedPositions = scanl (flip updateKnotPositions) positions moves
   let tailPositions = (!! 9) . transpose $ updatedPositions
-  
-  print $ tailPositions
-  print $ nub tailPositions
+
+  putStrLn $ drawMoves tailPositions
+  -- print $ tailPositions
+  -- print $ nub tailPositions
   print $ length . nub $ tailPositions

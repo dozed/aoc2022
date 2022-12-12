@@ -2,8 +2,10 @@
 
 module Day10 where
 
-import Control.Monad (void)
+import Control.Concurrent (threadDelay)
+import Control.Monad (void, when)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Data.List.Split (chunksOf)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -87,11 +89,25 @@ type Probe = (Cycle, IntState)
 makeProbesRef :: IO (IORef [Probe])
 makeProbesRef = newIORef []
 
+type Pixel = Char
+
+showDisplay :: [Pixel] -> String
+showDisplay xs =
+  let chunks = chunksOf 40 xs
+      display = unlines chunks
+  in display
+
+makeDisplayRef :: IO (IORef [Pixel])
+makeDisplayRef = newIORef []
+
+clear :: IO ()
+clear = putStr "\ESC[2J"
+
 day10 :: IO ()
 day10 = do
   -- let input = testInput1
-  -- input <- readFile "input/Day10Test.txt"
-  input <- readFile "input/Day10.txt"
+  input <- readFile "input/Day10Test.txt"
+  -- input <- readFile "input/Day10.txt"
 
   ops <- case regularParse opsParser input of
     Left e -> fail $ show e
@@ -99,20 +115,40 @@ day10 = do
 
   print ops
 
+  let initialState = 1
+  let initialCycle = 1
+
+  -- part 1
   probesRef <- makeProbesRef
 
-  let handleState c s = if c == 20 || (c - 20) `mod` 40 == 0 then do
+  let probeDevice c s = if c == 20 || (c - 20) `mod` 40 == 0 then do
                           putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
                           probes <- readIORef probesRef
                           writeIORef probesRef ((c, s) : probes)
                         else pure ()
-  -- let handleState c s = putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
-  let initialState = 1
+  -- let debugDevice c s = putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
 
-  runOps (tail ops) (head ops) (getNumCycles $ head ops) 1 initialState handleState
-
+  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState probeDevice
   arr <- readIORef probesRef
 
   let signalStrengths = map (uncurry (*)) arr
-
   print $ sum signalStrengths
+
+  -- part 2
+  displayRef <- makeDisplayRef
+
+  let drawDevice c s = do
+        clear
+        pixels <- readIORef displayRef
+        let ch = if c >= s - 1 && c <= s + 1 then '#' else '.'
+        writeIORef displayRef (ch : pixels)
+        let display = showDisplay (reverse pixels)
+        putStrLn display
+        threadDelay 10000
+
+        when (c `mod` 240 == 0) $ do
+          threadDelay 10000
+          writeIORef displayRef []
+
+  clear
+  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState drawDevice

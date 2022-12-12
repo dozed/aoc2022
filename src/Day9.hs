@@ -108,8 +108,8 @@ updateKnotPositions headMove (headPos : tailPos : otherPos) =
       tailMove = getTailMove headPos' tailPos
   in headPos' : updateKnotPositions tailMove (tailPos : otherPos)
 
-drawMoves :: [Pos] -> String
-drawMoves positions =
+drawPositions :: [Pos] -> String
+drawPositions positions =
   let maxWidth = maximum . map fst $ positions
       maxHeight = maximum . map snd $ positions
       minWidth = minimum . map fst $ positions
@@ -150,7 +150,7 @@ day9 = do
   let updatedPositions = scanl (flip updateKnotPositions) positions moves
   let tailPositions = (!! 9) . transpose $ updatedPositions
 
-  putStrLn $ drawMoves tailPositions
+  putStrLn $ drawPositions tailPositions
   -- print $ tailPositions
   -- print $ nub tailPositions
   print $ length . nub $ tailPositions

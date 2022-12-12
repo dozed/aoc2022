@@ -50,11 +50,10 @@ day9Spec = do
       let moves = [MoveUp, MoveUp, MoveRight, MoveRight, MoveRight]
           posHead = mkPos 0 0
           posTail = mkPos 0 0
-          positions = [posHead, posTail]
 
       let (headPositions, tailPositions) = unzip $ scanl (\(hp, tp) x -> applyMoveToHeadAndTail hp tp x) (posHead, posTail) moves
 
-      let updatedPositions = transpose $ scanl (flip updateKnotPositions) positions moves
+      let updatedPositions = transpose $ scanl (flip updateKnotPositions) [posHead, posTail] moves
       let headPositions' = updatedPositions !! 0
       let tailPositions' = updatedPositions !! 1
 

@@ -115,7 +115,8 @@ drawMoves positions =
       minWidth = minimum . map fst $ positions
       minHeight = minimum . map snd $ positions
       positions' = fromList positions
-      field = reverse $ intercalate "\n" [reverse [if (x, y) `member` positions' then 'x' else '.' | x <- [minWidth..maxWidth]] | y <- [minHeight..maxHeight]]
+      mkLine y = reverse [if (x, y) `member` positions' then 'x' else '.' | x <- [minWidth..maxWidth]]
+      field = reverse $ intercalate "\n" [mkLine y | y <- [minHeight..maxHeight]]
   in field
 
 day9 :: IO ()

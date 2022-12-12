@@ -64,26 +64,28 @@ runOp Noop i = i
 runOp (AddX x) i = i + x
 
 -- -- | loop nextOps currentOp busy cyc state
-loop :: [Op] -> Op -> Busy -> Cycle -> IntState -> (Cycle -> IntState -> IO()) -> IO ()
-loop [] currentOp 0 cyc state handleState = do
+runOps :: [Op] -> Op -> Busy -> Cycle -> IntState -> (Cycle -> IntState -> IO()) -> IO ()
+runOps [] currentOp 0 cyc state handleState = do
   -- putStrLn $ "[after " <> show (cyc-1) <> "] Op " <> show currentOp <> " finished"
   let newState = runOp currentOp state
   handleState cyc newState
   -- putStrLn $ "[after " <> show (cyc-1) <> "] program finished"
-loop (nextOp:otherOps) currentOp 0 cyc state handleState = do
+runOps (nextOp:otherOps) currentOp 0 cyc state handleState = do
   -- putStrLn $ "[after " <> show (cyc-1) <> "] Op " <> show currentOp <> " finished"
   let newState = runOp currentOp state
   handleState cyc newState
   let n = getNumCycles nextOp
   -- putStrLn $ "[begin " <> show cyc <> "] Started next op " <> show nextOp <> " with cycle length " <> show n
-  loop otherOps nextOp (n-1) (cyc+1) newState handleState
-loop nextOps currentOp busy cyc state handleState = do
+  runOps otherOps nextOp (n-1) (cyc+1) newState handleState
+runOps nextOps currentOp busy cyc state handleState = do
   -- putStrLn $ "[while " <> show cyc <> "] Still running op " <> show currentOp
   handleState cyc state
-  loop nextOps currentOp (busy-1) (cyc+1) state handleState
+  runOps nextOps currentOp (busy-1) (cyc+1) state handleState
 
-makeArrRef :: IO (IORef [(Cycle, IntState)])
-makeArrRef = newIORef []
+type Probe = (Cycle, IntState)
+
+makeProbesRef :: IO (IORef [Probe])
+makeProbesRef = newIORef []
 
 day10 :: IO ()
 day10 = do
@@ -97,20 +99,20 @@ day10 = do
 
   print ops
 
-  arrRef <- makeArrRef
+  probesRef <- makeProbesRef
 
   let handleState c s = if c == 20 || (c - 20) `mod` 40 == 0 then do
                           putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
-                          arr <- readIORef arrRef
-                          writeIORef arrRef ((c, s) : arr)
+                          probes <- readIORef probesRef
+                          writeIORef probesRef ((c, s) : probes)
                         else pure ()
   -- let handleState c s = putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
   let initialState = 1
 
-  loop (tail ops) (head ops) (getNumCycles $ head ops) 1 initialState handleState
-  
-  arr <- readIORef arrRef
-  
+  runOps (tail ops) (head ops) (getNumCycles $ head ops) 1 initialState handleState
+
+  arr <- readIORef probesRef
+
   let signalStrengths = map (uncurry (*)) arr
-  
+
   print $ sum signalStrengths

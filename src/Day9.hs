@@ -137,12 +137,6 @@ day9 = do
   let positions = map (\_ -> mkPos 0 0) [0..9]
   let headMove = head moves
 
-  -- for each move:
-  -- - apply move to head
-  -- - for each pair p in [(0, 1), (1, 2), ..., (8, 9)]
-  --   - generate move based on new position of predecessor knot and old position of current knot
-  --   - apply moves to pairs
-  -- let updatedPositions = updateKnotPositions headMove positions
   let updatedPositions = scanl (flip updateKnotPositions) positions moves
   let tailPositions = (!! 9) . transpose $ updatedPositions
   

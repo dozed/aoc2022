@@ -1,5 +1,7 @@
 import Test.Hspec
 
+import Data.List (transpose)
+
 import Day9
 import Util (regularParse)
 
@@ -25,23 +27,40 @@ day9Spec = do
 
   describe "mkMoveTail" $ do
     it "should compute tail moves" $ do
-      getMoveForTail (0, 0) (0, 0) `shouldBe` Nothing
-      getMoveForTail (2, 0) (0, 0) `shouldBe` Just MoveRight
-      getMoveForTail (0, 2) (0, 0) `shouldBe` Just MoveUp
-      getMoveForTail (-2, 0) (0, 0) `shouldBe` Just MoveLeft
-      getMoveForTail (0, -2) (0, 0) `shouldBe` Just MoveDown
-      getMoveForTail (2, 1) (0, 0) `shouldBe` Just MoveUpRight
-      getMoveForTail (1, 2) (0, 0) `shouldBe` Just MoveUpRight
-      getMoveForTail (-1, 2) (0, 0) `shouldBe` Just MoveUpLeft
-      getMoveForTail (-2, 1) (0, 0) `shouldBe` Just MoveUpLeft
-      getMoveForTail (-2, -1) (0, 0) `shouldBe` Just MoveDownLeft
-      getMoveForTail (-1, -2) (0, 0) `shouldBe` Just MoveDownLeft
-      getMoveForTail (1, -2) (0, 0) `shouldBe` Just MoveDownRight
-      getMoveForTail (2, -1) (0, 0) `shouldBe` Just MoveDownRight
+      getMoveForTail (0, 0) (0, 0) `shouldBe` Stay
+      getMoveForTail (2, 0) (0, 0) `shouldBe` MoveRight
+      getMoveForTail (0, 2) (0, 0) `shouldBe` MoveUp
+      getMoveForTail (-2, 0) (0, 0) `shouldBe` MoveLeft
+      getMoveForTail (0, -2) (0, 0) `shouldBe` MoveDown
+      getMoveForTail (2, 1) (0, 0) `shouldBe` MoveUpRight
+      getMoveForTail (1, 2) (0, 0) `shouldBe` MoveUpRight
+      getMoveForTail (-1, 2) (0, 0) `shouldBe` MoveUpLeft
+      getMoveForTail (-2, 1) (0, 0) `shouldBe` MoveUpLeft
+      getMoveForTail (-2, -1) (0, 0) `shouldBe` MoveDownLeft
+      getMoveForTail (-1, -2) (0, 0) `shouldBe` MoveDownLeft
+      getMoveForTail (1, -2) (0, 0) `shouldBe` MoveDownRight
+      getMoveForTail (2, -1) (0, 0) `shouldBe` MoveDownRight
 
   describe "applyMove" $ do
     it "should compute correct position" $ do
       applyMove (0, 0) MoveDownRight `shouldBe` (1, -1)
+
+  describe "applyMoveToHeadAndTail" $ do
+    it "should produce the same result as updateKnotPositions" $ do
+      let moves = [MoveUp, MoveUp, MoveRight, MoveRight, MoveRight]
+          posHead = mkPos 0 0
+          posTail = mkPos 0 0
+          positions = [posHead, posTail]
+
+      let updatedPositions = scanl (\(hp, tp) x -> applyMoveToHeadAndTail hp tp x) (posHead, posTail) moves
+      let (headPositions, tailPositions) = unzip updatedPositions
+
+      let updatedPositions = transpose $ scanl (flip updateKnotPositions) positions moves
+      let headPositions' = updatedPositions !! 0
+      let tailPositions' = updatedPositions !! 1
+
+      headPositions `shouldBe` headPositions'
+      tailPositions `shouldBe` tailPositions'
 
 main :: IO ()
 main = hspec $ do

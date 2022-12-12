@@ -27,19 +27,19 @@ day9Spec = do
 
   describe "mkMoveTail" $ do
     it "should compute tail moves" $ do
-      getMoveForTail (0, 0) (0, 0) `shouldBe` Stay
-      getMoveForTail (2, 0) (0, 0) `shouldBe` MoveRight
-      getMoveForTail (0, 2) (0, 0) `shouldBe` MoveUp
-      getMoveForTail (-2, 0) (0, 0) `shouldBe` MoveLeft
-      getMoveForTail (0, -2) (0, 0) `shouldBe` MoveDown
-      getMoveForTail (2, 1) (0, 0) `shouldBe` MoveUpRight
-      getMoveForTail (1, 2) (0, 0) `shouldBe` MoveUpRight
-      getMoveForTail (-1, 2) (0, 0) `shouldBe` MoveUpLeft
-      getMoveForTail (-2, 1) (0, 0) `shouldBe` MoveUpLeft
-      getMoveForTail (-2, -1) (0, 0) `shouldBe` MoveDownLeft
-      getMoveForTail (-1, -2) (0, 0) `shouldBe` MoveDownLeft
-      getMoveForTail (1, -2) (0, 0) `shouldBe` MoveDownRight
-      getMoveForTail (2, -1) (0, 0) `shouldBe` MoveDownRight
+      getTailMove (0, 0) (0, 0) `shouldBe` Stay
+      getTailMove (2, 0) (0, 0) `shouldBe` MoveRight
+      getTailMove (0, 2) (0, 0) `shouldBe` MoveUp
+      getTailMove (-2, 0) (0, 0) `shouldBe` MoveLeft
+      getTailMove (0, -2) (0, 0) `shouldBe` MoveDown
+      getTailMove (2, 1) (0, 0) `shouldBe` MoveUpRight
+      getTailMove (1, 2) (0, 0) `shouldBe` MoveUpRight
+      getTailMove (-1, 2) (0, 0) `shouldBe` MoveUpLeft
+      getTailMove (-2, 1) (0, 0) `shouldBe` MoveUpLeft
+      getTailMove (-2, -1) (0, 0) `shouldBe` MoveDownLeft
+      getTailMove (-1, -2) (0, 0) `shouldBe` MoveDownLeft
+      getTailMove (1, -2) (0, 0) `shouldBe` MoveDownRight
+      getTailMove (2, -1) (0, 0) `shouldBe` MoveDownRight
 
   describe "applyMove" $ do
     it "should compute correct position" $ do
@@ -48,12 +48,12 @@ day9Spec = do
   describe "applyMoveToHeadAndTail" $ do
     it "should produce the same result as updateKnotPositions" $ do
       let moves = [MoveUp, MoveUp, MoveRight, MoveRight, MoveRight]
-          posHead = mkPos 0 0
-          posTail = mkPos 0 0
+          headPos = mkPos 0 0
+          tailPos = mkPos 0 0
 
-      let (headPositions, tailPositions) = unzip $ scanl (\(hp, tp) x -> applyMoveToHeadAndTail hp tp x) (posHead, posTail) moves
+      let (headPositions, tailPositions) = unzip $ scanl (\(hp, tp) x -> applyMoveToHeadAndTail hp tp x) (headPos, tailPos) moves
 
-      let updatedPositions = transpose $ scanl (flip updateKnotPositions) [posHead, posTail] moves
+      let updatedPositions = transpose $ scanl (flip updateKnotPositions) [headPos, tailPos] moves
       let headPositions' = updatedPositions !! 0
       let tailPositions' = updatedPositions !! 1
 

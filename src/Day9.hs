@@ -83,8 +83,8 @@ applyMove (x, y) MoveDownRight = (x+1, y-1)
 applyMove (x, y) MoveDownLeft = (x-1, y-1)
 applyMove (x, y) MoveUpLeft = (x-1, y+1)
 
-getMoveForTail :: Pos -> Pos -> Move
-getMoveForTail headPos@(hx, hy) tailPos@(tx, ty)
+getTailMove :: Pos -> Pos -> Move
+getTailMove headPos@(hx, hy) tailPos@(tx, ty)
   | isAdjacent headPos tailPos = Stay
   | hy == ty = if hx < tx then MoveLeft else MoveRight
   | hx == tx = if hy < ty then MoveDown else MoveUp
@@ -96,8 +96,8 @@ getMoveForTail headPos@(hx, hy) tailPos@(tx, ty)
 applyMoveToHeadAndTail :: Pos -> Pos -> Move -> (Pos, Pos)
 applyMoveToHeadAndTail headPos tailPos headMove =
   let headPos' = applyMove headPos headMove
-      moveTail = getMoveForTail headPos' tailPos
-      tailPos' = applyMove tailPos moveTail
+      tailMove = getTailMove headPos' tailPos
+      tailPos' = applyMove tailPos tailMove
   in (headPos', tailPos')
 
 updateKnotPositions :: Move -> [Pos] -> [Pos]
@@ -105,8 +105,8 @@ updateKnotPositions _ [] = []
 updateKnotPositions headMove [headPos] = [applyMove headPos headMove]
 updateKnotPositions headMove (headPos : tailPos : otherPos) =
   let headPos' = applyMove headPos headMove
-      moveTail = getMoveForTail headPos' tailPos
-  in headPos' : updateKnotPositions moveTail (tailPos : otherPos)
+      tailMove = getTailMove headPos' tailPos
+  in headPos' : updateKnotPositions tailMove (tailPos : otherPos)
 
 drawMoves :: [Pos] -> String
 drawMoves positions =
@@ -135,10 +135,10 @@ day9 = do
   print moves
 
   -- part 1
-  let posHead = mkPos 0 0
-  let posTail = mkPos 0 0
+  let headPos = mkPos 0 0
+  let tailPos = mkPos 0 0
 
-  let positions = scanl (\(hp, tp) x -> applyMoveToHeadAndTail hp tp x) (posHead, posTail) moves
+  let positions = scanl (\(hp, tp) x -> applyMoveToHeadAndTail hp tp x) (headPos, tailPos) moves
   let (headPositions, tailPositions) = unzip positions
   print headPositions
   print tailPositions

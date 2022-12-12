@@ -60,6 +60,17 @@ mkPos x y = (x, y)
 isAdjacent :: Pos -> Pos -> Bool
 isAdjacent (x1, y1) (x2, y2) = abs (x1 - x2) <= 1 && abs (y1 - y2) <= 1
 
+drawPositions :: [Pos] -> String
+drawPositions positions =
+  let maxWidth = maximum . map fst $ positions
+      maxHeight = maximum . map snd $ positions
+      minWidth = minimum . map fst $ positions
+      minHeight = minimum . map snd $ positions
+      positions' = fromList positions
+      mkLine y = reverse [if (x, y) `member` positions' then 'x' else '.' | x <- [minWidth..maxWidth]]
+      field = reverse $ intercalate "\n" [mkLine y | y <- [minHeight..maxHeight]]
+  in field
+
 data Move = MoveUp | MoveDown | MoveLeft | MoveRight
           | MoveUpRight | MoveDownRight | MoveDownLeft | MoveUpLeft
           | Stay
@@ -107,17 +118,6 @@ updateKnotPositions headMove (headPos : tailPos : otherPos) =
   let headPos' = applyMove headPos headMove
       tailMove = getTailMove headPos' tailPos
   in headPos' : updateKnotPositions tailMove (tailPos : otherPos)
-
-drawPositions :: [Pos] -> String
-drawPositions positions =
-  let maxWidth = maximum . map fst $ positions
-      maxHeight = maximum . map snd $ positions
-      minWidth = minimum . map fst $ positions
-      minHeight = minimum . map snd $ positions
-      positions' = fromList positions
-      mkLine y = reverse [if (x, y) `member` positions' then 'x' else '.' | x <- [minWidth..maxWidth]]
-      field = reverse $ intercalate "\n" [mkLine y | y <- [minHeight..maxHeight]]
-  in field
 
 day9 :: IO ()
 day9 = do

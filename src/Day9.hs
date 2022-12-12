@@ -146,8 +146,6 @@ day9 = do
 
   -- part 2
   let positions = map (\_ -> mkPos 0 0) [0..9]
-  let headMove = head moves
-
   let updatedPositions = scanl (flip updateKnotPositions) positions moves
   let tailPositions = (!! 9) . transpose $ updatedPositions
 

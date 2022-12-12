@@ -143,7 +143,7 @@ day9 = do
   --   - generate move based on new position of predecessor knot and old position of current knot
   --   - apply moves to pairs
   -- let updatedPositions = updateKnotPositions headMove positions
-  let updatedPositions = scanl (\pos headMove -> updateKnotPositions headMove pos) positions moves
+  let updatedPositions = scanl (flip updateKnotPositions) positions moves
   let tailPositions = (!! 9) . transpose $ updatedPositions
   
   print $ tailPositions

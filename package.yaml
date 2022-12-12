@@ -56,4 +56,5 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - hspec
+      - raw-strings-qq
       - aoc2022

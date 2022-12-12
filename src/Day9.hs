@@ -38,17 +38,17 @@ data MoveSpec = MoveUpSpec Int
               | MoveRightSpec Int
               deriving (Eq, Show)
 
-parseMoveSpec' :: (Int -> MoveSpec) -> Char -> Parser MoveSpec
-parseMoveSpec' mkMove c = mkMove . read <$> (char c >> char ' ' >> many1 digit)
+mkMoveSpecParser :: (Int -> MoveSpec) -> Char -> Parser MoveSpec
+mkMoveSpecParser mkMove c = mkMove . read <$> (char c >> char ' ' >> many1 digit)
 
-parseMoveSpec :: Parser MoveSpec
-parseMoveSpec = parseMoveSpec' MoveUpSpec 'U'
-              <|> parseMoveSpec' MoveDownSpec 'D'
-              <|> parseMoveSpec' MoveLeftSpec 'L'
-              <|> parseMoveSpec' MoveRightSpec 'R'
+moveSpecParser :: Parser MoveSpec
+moveSpecParser = mkMoveSpecParser MoveUpSpec 'U'
+              <|> mkMoveSpecParser MoveDownSpec 'D'
+              <|> mkMoveSpecParser MoveLeftSpec 'L'
+              <|> mkMoveSpecParser MoveRightSpec 'R'
 
-parseMoveSpecs :: Parser [MoveSpec]
-parseMoveSpecs = endBy1 parseMoveSpec endOfLine
+moveSpecsParser :: Parser [MoveSpec]
+moveSpecsParser = endBy1 moveSpecParser endOfLine
 
 type X = Int
 type Y = Int
@@ -125,7 +125,7 @@ day9 = do
   -- let input = testInput2
   input <- readFile "input/Day9.txt"
 
-  moveSpecs <- case regularParse parseMoveSpecs input of
+  moveSpecs <- case regularParse moveSpecsParser input of
     Left e -> fail $ show e
     Right xs -> pure xs
 

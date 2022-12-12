@@ -25,6 +25,7 @@ source-repository head
 library
   exposed-modules:
       Day1
+      Day10
       Day2a
       Day2b
       Day3
@@ -65,6 +66,8 @@ test-suite aoc2022-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Day10Spec
+      Day9Spec
       Paths_aoc2022
   hs-source-dirs:
       test
@@ -73,4 +76,5 @@ test-suite aoc2022-test
       aoc2022
     , base >=4.7 && <5
     , hspec
+    , raw-strings-qq
   default-language: Haskell2010

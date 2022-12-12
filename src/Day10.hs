@@ -3,6 +3,7 @@
 module Day10 where
 
 import Control.Monad (void)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -45,12 +46,71 @@ opParser = noopParser <|> addXParser
 opsParser :: Parser [Op]
 opsParser = endBy1 opParser endOfLine
 
+getNumCycles :: Op -> Int
+getNumCycles (AddX _) = 2
+getNumCycles Noop = 1
+
+data OpPhase = OpPhase Op Int
+
+mkOpPhase :: Op -> OpPhase
+mkOpPhase op = OpPhase op (getNumCycles op)
+
+type Busy = Int
+type Cycle = Int
+type IntState = Int
+
+runOp :: Op -> IntState -> IntState
+runOp Noop i = i
+runOp (AddX x) i = i + x
+
+-- -- | loop nextOps currentOp busy cyc state
+loop :: [Op] -> Op -> Busy -> Cycle -> IntState -> (Cycle -> IntState -> IO()) -> IO ()
+loop [] currentOp 0 cyc state handleState = do
+  -- putStrLn $ "[after " <> show (cyc-1) <> "] Op " <> show currentOp <> " finished"
+  let newState = runOp currentOp state
+  handleState cyc newState
+  -- putStrLn $ "[after " <> show (cyc-1) <> "] program finished"
+loop (nextOp:otherOps) currentOp 0 cyc state handleState = do
+  -- putStrLn $ "[after " <> show (cyc-1) <> "] Op " <> show currentOp <> " finished"
+  let newState = runOp currentOp state
+  handleState cyc newState
+  let n = getNumCycles nextOp
+  -- putStrLn $ "[begin " <> show cyc <> "] Started next op " <> show nextOp <> " with cycle length " <> show n
+  loop otherOps nextOp (n-1) (cyc+1) newState handleState
+loop nextOps currentOp busy cyc state handleState = do
+  -- putStrLn $ "[while " <> show cyc <> "] Still running op " <> show currentOp
+  handleState cyc state
+  loop nextOps currentOp (busy-1) (cyc+1) state handleState
+
+makeArrRef :: IO (IORef [(Cycle, IntState)])
+makeArrRef = newIORef []
+
 day10 :: IO ()
 day10 = do
-  let input = testInput1
+  -- let input = testInput1
+  -- input <- readFile "input/Day10Test.txt"
+  input <- readFile "input/Day10.txt"
 
   ops <- case regularParse opsParser input of
     Left e -> fail $ show e
     Right xs -> pure xs
 
   print ops
+
+  arrRef <- makeArrRef
+
+  let handleState c s = if c == 20 || (c - 20) `mod` 40 == 0 then do
+                          putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
+                          arr <- readIORef arrRef
+                          writeIORef arrRef ((c, s) : arr)
+                        else pure ()
+  -- let handleState c s = putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
+  let initialState = 1
+
+  loop (tail ops) (head ops) (getNumCycles $ head ops) 1 initialState handleState
+  
+  arr <- readIORef arrRef
+  
+  let signalStrengths = map (uncurry (*)) arr
+  
+  print $ sum signalStrengths

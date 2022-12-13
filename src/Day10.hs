@@ -53,11 +53,6 @@ getNumCycles :: Op -> Int
 getNumCycles (AddX _) = 2
 getNumCycles Noop = 1
 
-data OpPhase = OpPhase Op Int
-
-mkOpPhase :: Op -> OpPhase
-mkOpPhase op = OpPhase op (getNumCycles op)
-
 type Busy = Int
 type Cycle = Int
 type IntState = Int

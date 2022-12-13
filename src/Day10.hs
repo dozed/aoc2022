@@ -108,8 +108,9 @@ getPixel col spritePos = if col >= spritePos - 1 && col <= spritePos + 1 then '#
 makeDisplayRef :: IO (IORef [Pixel])
 makeDisplayRef = newIORef []
 
-clear :: IO ()
-clear = putStr "\ESC[2J"
+clearScreen :: IO ()
+clearScreen = putStr "\ESCc"
+-- clear = putStr "\ESC[2J"
 
 drawDevice :: IORef [Pixel] -> Cycle -> IntState -> IO ()
 drawDevice displayRef c s = do
@@ -124,7 +125,7 @@ drawDevice displayRef c s = do
   writeIORef displayRef pixels'
 
   -- draw pixels
-  clear
+  clearScreen
   let display = displayPixels (reverse pixels')
   putStrLn display
   threadDelay 10000
@@ -163,5 +164,5 @@ day10 = do
 
   -- part 2
   displayRef <- makeDisplayRef
-  clear
+  clearScreen
   runOps tailOps headOp headOpNumCycles initialCycle initialState (drawDevice displayRef)

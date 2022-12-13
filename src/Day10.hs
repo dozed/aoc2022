@@ -152,12 +152,15 @@ day10 = do
   print ops
 
   let initialState = 1
-  let initialCycle = 1
+      initialCycle = 1
+      headOp = head ops
+      headOpNumCycles = getNumCycles headOp
+      tailOps = tail ops
 
   -- part 1
   probesRef <- makeProbesRef
   -- let debugDevice c s = putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
-  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState (probeDevice probesRef)
+  runOps tailOps headOp headOpNumCycles initialCycle initialState (probeDevice probesRef)
   arr <- readIORef probesRef
 
   let signalStrengths = map (uncurry (*)) arr
@@ -166,4 +169,4 @@ day10 = do
   -- part 2
   displayRef <- makeDisplayRef
   clear
-  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState (drawDevice displayRef)
+  runOps tailOps headOp headOpNumCycles initialCycle initialState (drawDevice displayRef)

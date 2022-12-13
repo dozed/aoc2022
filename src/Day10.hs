@@ -157,9 +157,9 @@ day10 = do
   probesRef <- makeProbesRef
   -- let debugDevice c s = putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
   runOps tailOps headOp headOpNumCycles initialCycle initialState (probeDevice probesRef)
-  arr <- readIORef probesRef
+  probes <- readIORef probesRef
 
-  let signalStrengths = map (uncurry (*)) arr
+  let signalStrengths = map (uncurry (*)) probes
   print $ sum signalStrengths
 
   -- part 2

@@ -26,3 +26,13 @@ day10Spec = do
     it "should parse more Ops" $ do
       txt <- liftIO $ readFile "input/Day10.txt"
       regularParse opsParser txt `shouldSatisfy` isRight
+
+  describe "getPixel" $ do
+    it "should compute dark pixel" $ do
+      getPixel 8 10 `shouldBe` '.' 
+      getPixel 12 10 `shouldBe` '.' 
+
+    it "should compute lit pixel" $ do
+      getPixel 9 10 `shouldBe` '#' 
+      getPixel 10 10 `shouldBe` '#' 
+      getPixel 11 10 `shouldBe` '#' 

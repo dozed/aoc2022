@@ -5,6 +5,7 @@ module Day10 where
 import Control.Concurrent (threadDelay)
 import Control.Monad (void, when)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Data.List (intercalate)
 import Data.List.Split (chunksOf)
 import Text.Parsec
 import Text.Parsec.String
@@ -89,13 +90,25 @@ type Probe = (Cycle, IntState)
 makeProbesRef :: IO (IORef [Probe])
 makeProbesRef = newIORef []
 
-type Pixel = Char
+probeDevice :: IORef [Probe] -> Cycle -> IntState -> IO ()
+probeDevice probesRef c s =
+  if c == 20 || (c - 20) `mod` 40 == 0 then do
+    putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
+    probes <- readIORef probesRef
+    writeIORef probesRef ((c, s) : probes)
+  else pure ()
 
-showDisplay :: [Pixel] -> String
-showDisplay xs =
+type Pixel = Char
+type Col = Int
+
+displayPixels :: [Pixel] -> String
+displayPixels xs =
   let chunks = chunksOf 40 xs
-      display = unlines chunks
+      display = intercalate "\n" chunks
   in display
+
+getPixel :: Col -> IntState -> Pixel
+getPixel col spritePos = if col >= spritePos - 1 && col <= spritePos + 1 then '#' else '.'
 
 makeDisplayRef :: IO (IORef [Pixel])
 makeDisplayRef = newIORef []
@@ -103,11 +116,34 @@ makeDisplayRef = newIORef []
 clear :: IO ()
 clear = putStr "\ESC[2J"
 
+drawDevice :: IORef [Pixel] -> Cycle -> IntState -> IO ()
+drawDevice displayRef c s = do
+  -- create new pixel
+  let pixelNum = c - 1
+  let pixelCol = pixelNum `mod` 40
+  let pixel = getPixel pixelCol s
+
+  -- add pixel to display
+  pixels <- readIORef displayRef
+  let pixels' = pixel : pixels
+  writeIORef displayRef pixels'
+
+  -- draw pixels
+  clear
+  let display = displayPixels (reverse pixels')
+  putStrLn display
+  threadDelay 10000
+
+  -- reset display
+  when (pixelNum == 240) $ do
+    threadDelay 10000
+    writeIORef displayRef []
+
 day10 :: IO ()
 day10 = do
   -- let input = testInput1
-  input <- readFile "input/Day10Test.txt"
-  -- input <- readFile "input/Day10.txt"
+  -- input <- readFile "input/Day10Test.txt"
+  input <- readFile "input/Day10.txt"
 
   ops <- case regularParse opsParser input of
     Left e -> fail $ show e
@@ -120,15 +156,8 @@ day10 = do
 
   -- part 1
   probesRef <- makeProbesRef
-
-  let probeDevice c s = if c == 20 || (c - 20) `mod` 40 == 0 then do
-                          putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
-                          probes <- readIORef probesRef
-                          writeIORef probesRef ((c, s) : probes)
-                        else pure ()
   -- let debugDevice c s = putStrLn $ "[debug] cycle " <> show c <> " state: " <> show s
-
-  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState probeDevice
+  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState (probeDevice probesRef)
   arr <- readIORef probesRef
 
   let signalStrengths = map (uncurry (*)) arr
@@ -136,19 +165,5 @@ day10 = do
 
   -- part 2
   displayRef <- makeDisplayRef
-
-  let drawDevice c s = do
-        clear
-        pixels <- readIORef displayRef
-        let ch = if c >= s - 1 && c <= s + 1 then '#' else '.'
-        writeIORef displayRef (ch : pixels)
-        let display = showDisplay (reverse pixels)
-        putStrLn display
-        threadDelay 10000
-
-        when (c `mod` 240 == 0) $ do
-          threadDelay 10000
-          writeIORef displayRef []
-
   clear
-  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState drawDevice
+  runOps (tail ops) (head ops) (getNumCycles $ head ops) initialCycle initialState (drawDevice displayRef)

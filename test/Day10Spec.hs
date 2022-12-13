@@ -27,6 +27,14 @@ day10Spec = do
       txt <- liftIO $ readFile "input/Day10.txt"
       regularParse opsParser txt `shouldSatisfy` isRight
 
+  describe "runOp" $ do
+    it "should keep state for Noop" $ do
+      runOp Noop 10 `shouldBe` 10
+
+    it "should modify state for AddX" $ do
+      runOp (AddX 2) 10 `shouldBe` 12
+      runOp (AddX (-3)) 10 `shouldBe` 7
+
   describe "getPixel" $ do
     it "should compute dark pixel" $ do
       getPixel 8 10 `shouldBe` '.' 

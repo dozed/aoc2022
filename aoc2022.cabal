@@ -68,6 +68,7 @@ test-suite aoc2022-test
   main-is: Spec.hs
   other-modules:
       Day10Spec
+      Day11Spec
       Day9Spec
       Paths_aoc2022
   hs-source-dirs:

@@ -12,7 +12,7 @@ import Util (regularParse)
 data Operation = MulWith Int
                | MulWithOld
                | AddWith Int
-               deriving Show
+               deriving (Eq, Show)
 
 data Monkey = Monkey {
   idx :: Int,
@@ -21,7 +21,7 @@ data Monkey = Monkey {
   testDivisor :: Int,
   trueThrowTo :: Int,
   falseThrowTo :: Int
-} deriving Show
+} deriving (Eq, Show)
 
 numberListParser :: Parser [Int]
 numberListParser = sepBy1 (read <$> many1 digit) (string ", ")

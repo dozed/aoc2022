@@ -40,9 +40,14 @@ Monkey 3:
 |]
 
 data Operation = MulWith Int
-               | MulWithOld
+               | SquareOld
                | AddWith Int
                deriving (Eq, Show)
+
+applyOperation :: Operation -> Int -> Int
+applyOperation (MulWith x) old = old * x
+applyOperation SquareOld old = old * old
+applyOperation (AddWith x) old = old + x
 
 data Monkey = Monkey {
   idx :: Int,
@@ -58,7 +63,7 @@ numberListParser = sepBy1 (read <$> many1 digit) (string ", ")
 
 operationParser :: Parser Operation
 operationParser =
-      try (MulWithOld <$ (char '*' >> char ' ' >> string "old"))
+      try (SquareOld <$ (char '*' >> char ' ' >> string "old"))
   <|> (char '*' >> char ' ' *> (MulWith . read <$> many1 digit))
   <|> (char '+' >> char ' ' *> (AddWith . read <$> many1 digit))
 

@@ -44,13 +44,26 @@ data Operation = MulWith Int
                | AddWith Int
                deriving (Eq, Show)
 
+type ItemWorryLevel = Int
+type MonkeyId = Int
+
+updateItemWorryLevel :: Operation -> ItemWorryLevel -> ItemWorryLevel
+updateItemWorryLevel (MulWith x) old = old * x
+updateItemWorryLevel SquareOld old = old * old
+updateItemWorryLevel (AddWith x) old = old + x
+
+chooseTarget :: Monkey -> ItemWorryLevel -> MonkeyId
+chooseTarget m wl =
+  if wl `mod` testDivisor m == 0 then trueThrowTo m
+  else falseThrowTo m
+
 data Monkey = Monkey {
-  idx :: Int,
-  startingItems :: [Int],
+  idx :: MonkeyId,
+  startingItems :: [ItemWorryLevel],
   operation :: Operation,
   testDivisor :: Int,
-  trueThrowTo :: Int,
-  falseThrowTo :: Int
+  trueThrowTo :: MonkeyId,
+  falseThrowTo :: MonkeyId
 } deriving (Eq, Show)
 
 numberListParser :: Parser [Int]
@@ -82,19 +95,6 @@ monkeyParser = do
 monkeysParser :: Parser [Monkey]
 monkeysParser = sepBy1 monkeyParser (char '\n')
 
-type WorryLevel = Int
-type ThrowTarget = Int
-
-updateWorryLevel :: Operation -> WorryLevel -> WorryLevel
-updateWorryLevel (MulWith x) old = old * x
-updateWorryLevel SquareOld old = old * old
-updateWorryLevel (AddWith x) old = old + x
-
-chooseTarget :: Monkey -> WorryLevel -> ThrowTarget
-chooseTarget m wl =
-  if wl `mod` testDivisor m == 0 then trueThrowTo m
-  else falseThrowTo m
-
 day11 :: IO ()
 day11 = do
   let input = testInput1
@@ -106,7 +106,12 @@ day11 = do
   forM_ monkeys $ \monkey ->
     print monkey
 
-  -- monkey inspects item
-  -- worry level is modified according to operation
-  -- worry level gets divided by three, since the item was not damaged
-  -- monkey checks worry level and throws item to other monkey
+  -- monkeyTurn: Monkey -> WorryLevel
+  -- - monkey inspects and throws all items
+  --
+  -- monkeyInspectAndThrow
+  -- - monkey inspects item
+  -- - worry level is modified according to operation
+  -- - worry level gets divided by three, since the item was not damaged
+  -- - monkey checks worry level and throws item to other monkey
+  --   - throwItemToOtherMonkey: updates that monkey with item of new worryLevel

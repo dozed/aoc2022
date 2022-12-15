@@ -18,15 +18,15 @@ day11Spec = do
 
       regularParse monkeysParser testInput1 `shouldBe` Right monkeys
 
-  describe "updateWorryLevel" $ do
+  describe "updateItemWorryLevel" $ do
     it "should compute correct value" $ do
-      updateWorryLevel (MulWith 2) 3 `shouldBe` 6
-      updateWorryLevel SquareOld 3 `shouldBe` 9
-      updateWorryLevel (AddWith 2) 3 `shouldBe` 5
+      updateItemWorryLevel (MulWith 2) 3 `shouldBe` 6
+      updateItemWorryLevel SquareOld 3 `shouldBe` 9
+      updateItemWorryLevel (AddWith 2) 3 `shouldBe` 5
 
   describe "chooseTarget" $ do
     let monkey = Monkey {idx = 0, startingItems = [79,98], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3}
-    
+
     it "should choose trueThrowTo target" $ do
       chooseTarget monkey 46 `shouldBe` 2
 

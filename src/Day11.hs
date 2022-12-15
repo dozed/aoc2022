@@ -85,7 +85,7 @@ monkeysParser = sepBy1 monkeyParser (char '\n')
 type WorryLevel = Int
 type ThrowTarget = Int
 
-updateWorryLevel :: Operation -> Int -> Int
+updateWorryLevel :: Operation -> WorryLevel -> WorryLevel
 updateWorryLevel (MulWith x) old = old * x
 updateWorryLevel SquareOld old = old * old
 updateWorryLevel (AddWith x) old = old + x

@@ -46,7 +46,6 @@ data Operation = MulWith Integer
                deriving (Eq, Show)
 
 type ItemWorryLevel = Integer
-type ItemIndex = Int
 type MonkeyIndex = Int
 
 data Monkey = Monkey {

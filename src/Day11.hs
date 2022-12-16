@@ -142,7 +142,9 @@ monkeyTakeTurn :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> 
 monkeyTakeTurn updateWorryLevelAfterInspection (monkeys, stats) monkeyIndex =
   let monkey = monkeys !! monkeyIndex
       monkeyItems = items monkey
+      -- monkey throws all items in this turn
       monkeysAfterTurn = foldl (\xs _ -> monkeyInspectAndThrowFirstItem updateWorryLevelAfterInspection xs monkeyIndex) monkeys [0..length monkeyItems-1]
+      -- update monkey inspection stats
       totalInspections = stats !! monkeyIndex
       newInspections = length monkeyItems
       totalInspections' = totalInspections + newInspections

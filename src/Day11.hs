@@ -40,12 +40,12 @@ Monkey 3:
     If false: throw to monkey 1
 |]
 
-data Operation = MulWith Int
+data Operation = MulWith Integer
                | SquareOld
-               | AddWith Int
+               | AddWith Integer
                deriving (Eq, Show)
 
-type ItemWorryLevel = Int
+type ItemWorryLevel = Integer
 type ItemIndex = Int
 type MonkeyIndex = Int
 
@@ -53,7 +53,7 @@ data Monkey = Monkey {
   idx :: MonkeyIndex,
   items :: [ItemWorryLevel],
   operation :: Operation,
-  testDivisor :: Int,
+  testDivisor :: Integer,
   trueThrowTo :: MonkeyIndex,
   falseThrowTo :: MonkeyIndex
 } deriving (Eq, Show)
@@ -61,7 +61,7 @@ data Monkey = Monkey {
 printMonkeys :: [Monkey] -> IO ()
 printMonkeys monkeys = forM_ monkeys $ do \m -> putStrLn $ "Monkey " <> show (idx m) <> ": " <> intercalate ", " (map show . items $ m)
 
-numberListParser :: Parser [Int]
+numberListParser :: Parser [Integer]
 numberListParser = sepBy1 (read <$> many1 digit) (string ", ")
 
 operationParser :: Parser Operation
@@ -114,7 +114,7 @@ throwItem fromMonkeyIndex itemIndex toMonkeyIndex monkeys =
 updateItemWorryLevel' :: Monkey -> Monkey
 updateItemWorryLevel' = undefined
 
-type UpdateWorryLevelAfterInspection = Int -> Int
+type UpdateWorryLevelAfterInspection = Integer -> Integer
 
 monkeyInspectAndThrowFirstItem :: UpdateWorryLevelAfterInspection -> [Monkey] -> MonkeyIndex -> [Monkey]
 monkeyInspectAndThrowFirstItem updateWorryLevelAfterInspection monkeys fromMonkeyIndex  =
@@ -149,7 +149,7 @@ monkeyBusiness stats =
 printRound :: Int -> [Monkey] -> MonkeyStats -> IO ()
 printRound i monkeys stats = do
   putStrLn $ "Monkeys after round " <> show i <> ":"
-  printMonkeys monkeys
+  -- printMonkeys monkeys
   putStrLn $ "Stats: " <> show stats
   putStrLn ""
 
@@ -173,8 +173,8 @@ monkeysRoundM updateWorryLevelAfterInspection (monkeys, stats) i = do
 
 day11 :: IO ()
 day11 = do
-  -- let input = testInput1
-  input <- readFile "input/Day11.txt"
+  let input = testInput1
+  -- input <- readFile "input/Day11.txt"
 
   monkeys <- case regularParse monkeysParser input of
     Left e -> fail $ show e
@@ -182,10 +182,12 @@ day11 = do
 
   let stats = replicate (length monkeys) 0
 
-  let div3 = (`div` 3)
-
   printRound 0 monkeys stats
 
-  (monkeys', stats') <- foldM (monkeysRoundM div3) (monkeys, stats) [1..20]
+  let div3 = (`div` 3)
+  let div2 = (`div` 2)
+  (monkeys', stats') <- foldM (monkeysRoundM id) (monkeys, stats) [1..10000]
 
   print $ monkeyBusiness stats'
+  -- Monkeys after round 1000:
+  -- Stats: [5204,4792,199,5192]

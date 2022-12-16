@@ -108,6 +108,9 @@ throwItem fromMonkeyId itemIndex toMonkeyId monkeys =
       monkeys'' = replaceAtIndex toMonkeyId toMonkey' monkeys'
   in monkeys''
 
+monkeyTakeTurn :: [Monkey] -> MonkeyIndex -> [Monkey]
+monkeyTakeTurn = undefined
+
 day11 :: IO ()
 day11 = do
   let input = testInput1
@@ -116,17 +119,25 @@ day11 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
+  putStrLn "Initial monkeys"
   forM_ monkeys $ \monkey ->
     print monkey
+
+  putStrLn "Starting new round"
+  let monkeysAfterRound = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
+
+  putStrLn "After round:"
+  forM_ monkeysAfterRound $ \monkey ->
+    print monkey
+
 
   -- monkeyTurn: Monkey -> WorryLevel
   -- - monkey inspects and throws all items
   --
-  -- for each monkey m:
-  -- - for each item i of monkey m:
-  --   - monkeyInspectAndThrow
-  --     - monkey inspects item
-  --     - worry level is modified according to operation
-  --     - worry level gets divided by three, since the item was not damaged
-  --     - monkey checks worry level and throws item to other monkey
-  --       - throwItemToOtherMonkey: updates that monkey with item of new worryLevel
+  -- for each monkey m: monkeyInspectItems
+  -- - for each item i of monkey m: monkeyInspectAndThrow
+  --   - monkey inspects item
+  --   - worry level is modified according to operation
+  --   - worry level gets divided by three, since the item was not damaged
+  --   - monkey checks worry level and throws item to other monkey
+  --     - throwItemToOtherMonkey: updates that monkey with item of new worryLevel

@@ -2,6 +2,9 @@ module Day11Spec (day11Spec) where
 
 import Test.Hspec
 
+import Control.Monad (foldM)
+import Control.Monad.IO.Class (liftIO)
+
 import Day11
 import Util (regularParse)
 
@@ -152,10 +155,15 @@ day11Spec = do
               Monkey {idx = 3, items = [], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      monkeysRound testMonkeys `shouldBe` expectedMonkeys
+      let stats = replicate (length testMonkeys) 0
+      let expectedStats = [2,4,3,5]
 
-  describe "getNumberOfInspectedItems" $ do
-    it "should compute the number of inspected items" $ do
+      let (monkeys', stats') = monkeysRound (testMonkeys, stats)
+
+      monkeys' `shouldBe` expectedMonkeys
+      stats' `shouldBe` expectedStats
+
+    it "should take a full game" $ do
       let testMonkeys = [
               Monkey {idx = 0, items = [79,98], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3},
               Monkey {idx = 1, items = [54,65,75,74], operation = AddWith 6, testDivisor = 19, trueThrowTo = 2, falseThrowTo = 0},
@@ -163,4 +171,21 @@ day11Spec = do
               Monkey {idx = 3, items = [74], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      getNumberOfInspectedItems testMonkeys `shouldBe` [2, 4, 3, 1]
+      let expectedMonkeys = [
+              Monkey {idx = 0, items = [10, 12, 14, 26, 34], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3},
+              Monkey {idx = 1, items = [245, 93, 53, 199, 115], operation = AddWith 6, testDivisor = 19, trueThrowTo = 2, falseThrowTo = 0},
+              Monkey {idx = 2, items = [], operation = SquareOld, testDivisor = 13, trueThrowTo = 1, falseThrowTo = 3},
+              Monkey {idx = 3, items = [], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
+            ]
+
+      let stats = replicate (length testMonkeys) 0
+      let expectedStats = [101, 95, 7, 105]
+
+      let (monkeys', stats') = foldl (\xs _ -> monkeysRound xs) (testMonkeys, stats) [1..20]
+
+      monkeys' `shouldBe` expectedMonkeys
+      stats' `shouldBe` expectedStats
+
+  describe "monkeyBusiness" $ do
+    it "should compute the monkey business" $ do
+      monkeyBusiness [101, 95, 7, 105] `shouldBe` 10605

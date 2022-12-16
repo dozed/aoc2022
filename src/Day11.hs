@@ -2,8 +2,8 @@
 
 module Day11 where
 
-import Control.Monad (forM_, foldM_)
-import Data.List (intercalate)
+import Control.Monad (forM_, foldM)
+import Data.List (intercalate, sort)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -134,38 +134,54 @@ monkeyInspectAndThrowFirstItem monkeys fromMonkeyIndex  =
       monkeys'' = replaceAtIndex toMonkeyIndex toMonkey' monkeys'
   in monkeys''
 
-monkeyTakeTurn :: [Monkey] -> MonkeyIndex -> [Monkey]
-monkeyTakeTurn monkeys monkeyIndex =
+type MonkeyStats = [Int]
+
+monkeyBusiness :: MonkeyStats -> Int
+monkeyBusiness stats =
+  let stats' = reverse . sort $ stats
+      a = head stats'
+      b = head $ tail stats'
+      mb = a * b
+  in mb
+
+printRound :: Int -> [Monkey] -> MonkeyStats -> IO ()
+printRound i monkeys stats = do
+  putStrLn $ "Monkeys after round " <> show i <> ":"
+  printMonkeys monkeys
+  putStrLn $ "Stats: " <> show stats
+  putStrLn ""
+
+monkeyTakeTurn :: ([Monkey], MonkeyStats) -> MonkeyIndex -> ([Monkey], MonkeyStats)
+monkeyTakeTurn (monkeys, stats) monkeyIndex =
   let monkey = monkeys !! monkeyIndex
       monkeyItems = items monkey
       monkeysAfterTurn = foldl (\xs _ -> monkeyInspectAndThrowFirstItem xs monkeyIndex) monkeys [0..length monkeyItems-1]
-  in monkeysAfterTurn
+      numInspections = (stats !! monkeyIndex) + length monkeyItems
+      stats' = replaceAtIndex monkeyIndex numInspections stats
+  in (monkeysAfterTurn, stats')
 
-monkeysRound :: [Monkey] -> [Monkey]
-monkeysRound monkeys = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
+monkeysRound :: ([Monkey], MonkeyStats) -> ([Monkey], MonkeyStats)
+monkeysRound (monkeys, stats) = foldl monkeyTakeTurn (monkeys, stats) [0..length monkeys-1]
 
-getNumberOfInspectedItems :: [Monkey] -> [Int]
-getNumberOfInspectedItems = map (length . items)
-
-monkeysRoundM :: [Monkey] -> Int -> IO [Monkey]
-monkeysRoundM monkeys i = do
-  let monkeys' = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
-  putStrLn $ "Monkeys after round " <> show i <> ":"
-  printMonkeys monkeys'
-  putStrLn ""
-  return monkeys'
+monkeysRoundM :: ([Monkey], MonkeyStats) -> Int -> IO ([Monkey], MonkeyStats)
+monkeysRoundM (monkeys, stats) i = do
+  let (monkeys', stats') = monkeysRound (monkeys, stats)
+  printRound i monkeys' stats'
+  return (monkeys', stats')
 
 day11 :: IO ()
 day11 = do
-  let input = testInput1
+  -- let input = testInput1
+  input <- readFile "input/Day11.txt"
 
   monkeys <- case regularParse monkeysParser input of
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  putStrLn "Initial monkeys:"
-  printMonkeys monkeys
+  let stats = replicate (length monkeys) 0
 
-  -- putStrLn "Monkeys after n rounds"
-  -- let monkeysAfterNRounds = foldl (\xs _ -> monkeysRound xs) monkeys [1..20]
-  foldM_ monkeysRoundM monkeys [1..20]
+  printRound 0 monkeys stats
+
+  (monkeys', stats') <- foldM monkeysRoundM (monkeys, stats) [1..20]
+
+  print $ monkeyBusiness stats'

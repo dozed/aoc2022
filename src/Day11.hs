@@ -120,11 +120,10 @@ monkeyInspectAndThrowFirstItem :: UpdateWorryLevelAfterInspection -> [Monkey] ->
 monkeyInspectAndThrowFirstItem updateWorryLevelAfterInspection monkeys fromMonkeyIndex  =
   let fromMonkey = monkeys !! fromMonkeyIndex
       monkeyItems = items fromMonkey
-      -- fromMonkey' = fromMonkey { items = tail monkeyItems }
       -- monkey inspects item: worry level is increased
       itemWorryLevel = head monkeyItems
       updatedItemWorryLevel = updateItemWorryLevel (operation fromMonkey) itemWorryLevel
-      -- after monkey inspected item: worry level is decreased
+      -- after monkey inspected item: worry level is decreased/modified
       boredItemWorryLevel = updateWorryLevelAfterInspection updatedItemWorryLevel
       -- monkey tests worry level
       toMonkeyIndex = chooseTarget fromMonkey boredItemWorryLevel

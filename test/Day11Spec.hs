@@ -142,6 +142,30 @@ day11Spec = do
 
       monkeyInspectAndThrowFirstItem div3 testMonkeys 1 `shouldBe` expectedMonkeys
 
+  describe "monkeyTakeTurn" $ do
+    it "should take a turn of a single monkey" $ do
+      let testMonkeys = [
+              Monkey {idx = 0, items = [79,98], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3},
+              Monkey {idx = 1, items = [54,65,75,74], operation = AddWith 6, testDivisor = 19, trueThrowTo = 2, falseThrowTo = 0},
+              Monkey {idx = 2, items = [79,60,97], operation = SquareOld, testDivisor = 13, trueThrowTo = 1, falseThrowTo = 3},
+              Monkey {idx = 3, items = [74], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
+            ]
+
+      let expectedMonkeys = [
+              Monkey {idx = 0, items = [], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3},
+              Monkey {idx = 1, items = [54,65,75,74], operation = AddWith 6, testDivisor = 19, trueThrowTo = 2, falseThrowTo = 0},
+              Monkey {idx = 2, items = [79,60,97], operation = SquareOld, testDivisor = 13, trueThrowTo = 1, falseThrowTo = 3},
+              Monkey {idx = 3, items = [74,500,620], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
+            ]
+
+      let stats = replicate (length testMonkeys) 0
+      let expectedStats = [2,0,0,0]
+
+      let (monkeys', stats') = monkeyTakeTurn div3 (testMonkeys, stats) 0
+
+      monkeys' `shouldBe` expectedMonkeys
+      stats' `shouldBe` expectedStats
+
   describe "monkeysRound" $ do
     it "should take a full round" $ do
       let testMonkeys = [

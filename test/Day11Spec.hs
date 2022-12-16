@@ -142,7 +142,7 @@ day11Spec = do
 
       monkeyInspectAndThrowFirstItem div3 testMonkeys 1 `shouldBe` expectedMonkeys
 
-  describe "monkeyTakeTurn" $ do
+  describe "takeMonkeyTurn" $ do
     it "should take a turn of a single monkey" $ do
       let testMonkeys = [
               Monkey {idx = 0, items = [79,98], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3},
@@ -161,12 +161,12 @@ day11Spec = do
       let stats = replicate (length testMonkeys) 0
       let expectedStats = [2,0,0,0]
 
-      let (monkeys', stats') = monkeyTakeTurn div3 (testMonkeys, stats) 0
+      let (monkeys', stats') = takeMonkeyTurn div3 (testMonkeys, stats) 0
 
       monkeys' `shouldBe` expectedMonkeys
       stats' `shouldBe` expectedStats
 
-  describe "monkeysRound" $ do
+  describe "takeMonkeysRound" $ do
     it "should take a full round" $ do
       let testMonkeys = [
               Monkey {idx = 0, items = [79,98], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3},
@@ -185,7 +185,7 @@ day11Spec = do
       let stats = replicate (length testMonkeys) 0
       let expectedStats = [2,4,3,5]
 
-      let (monkeys', stats') = monkeysRound div3 (testMonkeys, stats)
+      let (monkeys', stats') = takeMonkeysRound div3 (testMonkeys, stats)
 
       monkeys' `shouldBe` expectedMonkeys
       stats' `shouldBe` expectedStats
@@ -208,11 +208,11 @@ day11Spec = do
       let stats = replicate (length testMonkeys) 0
       let expectedStats = [101, 95, 7, 105]
 
-      let (monkeys', stats') = foldl (\xs _ -> monkeysRound div3 xs) (testMonkeys, stats) [1..20]
+      let (monkeys', stats') = foldl (\xs _ -> takeMonkeysRound div3 xs) (testMonkeys, stats) [1..20]
 
       monkeys' `shouldBe` expectedMonkeys
       stats' `shouldBe` expectedStats
 
-  describe "monkeyBusiness" $ do
+  describe "getMonkeyBusiness" $ do
     it "should compute the monkey business" $ do
-      monkeyBusiness [101, 95, 7, 105] `shouldBe` 10605
+      getMonkeyBusiness [101, 95, 7, 105] `shouldBe` 10605

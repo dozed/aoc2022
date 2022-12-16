@@ -8,7 +8,7 @@ import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (regularParse, replaceAtIndex, removeAtIndex)
+import Util (regularParse, replaceAtIndex)
 
 testInput1 :: String
 testInput1 = [r|Monkey 0:
@@ -122,8 +122,8 @@ monkeyInspectAndThrowFirstItem updateWorryLevelAfterInspection monkeys fromMonke
 
 type MonkeyStats = [Int]
 
-monkeyBusiness :: MonkeyStats -> Integer
-monkeyBusiness stats =
+getMonkeyBusiness :: MonkeyStats -> Integer
+getMonkeyBusiness stats =
   let stats' = reverse . sort $ stats
       a = fromIntegral . head $ stats'
       b = fromIntegral . head $ tail stats'
@@ -137,8 +137,8 @@ printRound i monkeys stats = do
   putStrLn $ "Stats: " <> show stats
   putStrLn ""
 
-monkeyTakeTurn :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> MonkeyIndex -> ([Monkey], MonkeyStats)
-monkeyTakeTurn updateWorryLevelAfterInspection (monkeys, stats) monkeyIndex =
+takeMonkeyTurn :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> MonkeyIndex -> ([Monkey], MonkeyStats)
+takeMonkeyTurn updateWorryLevelAfterInspection (monkeys, stats) monkeyIndex =
   let monkey = monkeys !! monkeyIndex
       monkeyItems = items monkey
       -- monkey throws all items in this turn
@@ -150,12 +150,12 @@ monkeyTakeTurn updateWorryLevelAfterInspection (monkeys, stats) monkeyIndex =
       stats' = replaceAtIndex monkeyIndex totalInspections' stats
   in (monkeysAfterTurn, stats')
 
-monkeysRound :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> ([Monkey], MonkeyStats)
-monkeysRound updateWorryLevelAfterInspection (monkeys, stats) = foldl (monkeyTakeTurn updateWorryLevelAfterInspection) (monkeys, stats) [0..length monkeys-1]
+takeMonkeysRound :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> ([Monkey], MonkeyStats)
+takeMonkeysRound updateWorryLevelAfterInspection (monkeys, stats) = foldl (takeMonkeyTurn updateWorryLevelAfterInspection) (monkeys, stats) [0..length monkeys-1]
 
-monkeysRoundM :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> Int -> IO ([Monkey], MonkeyStats)
-monkeysRoundM updateWorryLevelAfterInspection (monkeys, stats) i = do
-  let (monkeys', stats') = monkeysRound updateWorryLevelAfterInspection (monkeys, stats)
+takeMonkeysRoundM :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> Int -> IO ([Monkey], MonkeyStats)
+takeMonkeysRoundM updateWorryLevelAfterInspection (monkeys, stats) i = do
+  let (monkeys', stats') = takeMonkeysRound updateWorryLevelAfterInspection (monkeys, stats)
   printRound i monkeys' stats'
   return (monkeys', stats')
 
@@ -174,11 +174,11 @@ day11 = do
 
   -- part 1
   let div3 = (`div` 3)
-  (monkeys', stats') <- foldM (monkeysRoundM div3) (monkeys, stats) [1..20]
-  print $ monkeyBusiness stats'
+  (monkeys', stats') <- foldM (takeMonkeysRoundM div3) (monkeys, stats) [1..20]
+  print $ getMonkeyBusiness stats'
 
   -- part 2
   let base = product (map testDivisor monkeys)
   let reduceToProto n = n `mod` base
-  (monkeys', stats') <- foldM (monkeysRoundM reduceToProto) (monkeys, stats) [1..10000]
-  print $ monkeyBusiness stats'
+  (monkeys', stats') <- foldM (takeMonkeysRoundM reduceToProto) (monkeys, stats) [1..10000]
+  print $ getMonkeyBusiness stats'

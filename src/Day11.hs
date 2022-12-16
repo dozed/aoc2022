@@ -3,7 +3,7 @@
 module Day11 where
 
 import Control.Monad (forM_)
-import Data.List (findIndex)
+import Data.List (intercalate)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -58,6 +58,9 @@ data Monkey = Monkey {
   falseThrowTo :: MonkeyIndex
 } deriving (Eq, Show)
 
+printMonkeys :: [Monkey] -> IO ()
+printMonkeys monkeys = forM_ monkeys $ do \m -> putStrLn $ "Monkey " <> show (idx m) <> ": " <> intercalate ", " (map show . items $ m)
+
 numberListParser :: Parser [Int]
 numberListParser = sepBy1 (read <$> many1 digit) (string ", ")
 
@@ -97,13 +100,27 @@ chooseTarget m wl =
   if wl `mod` testDivisor m == 0 then trueThrowTo m
   else falseThrowTo m
 
+throwItem :: MonkeyIndex -> ItemIndex -> MonkeyIndex -> [Monkey] -> [Monkey]
+throwItem fromMonkeyIndex itemIndex toMonkeyIndex monkeys =
+  let fromMonkey = monkeys !! fromMonkeyIndex
+      toMonkey = monkeys !! toMonkeyIndex
+      item = items fromMonkey !! itemIndex
+      fromMonkey' = fromMonkey { items = removeAtIndex itemIndex (items fromMonkey) }
+      toMonkey' = toMonkey { items = items toMonkey <> [item] }
+      monkeys' = replaceAtIndex fromMonkeyIndex fromMonkey' monkeys
+      monkeys'' = replaceAtIndex toMonkeyIndex toMonkey' monkeys'
+  in monkeys''
+
+updateItemWorryLevel' :: Monkey -> Monkey
+updateItemWorryLevel' = undefined
+
 monkeyInspectAndThrowFirstItem :: [Monkey] -> MonkeyIndex -> [Monkey]
 monkeyInspectAndThrowFirstItem monkeys fromMonkeyIndex  =
   let fromMonkey = monkeys !! fromMonkeyIndex
       monkeyItems = items fromMonkey
       -- fromMonkey' = fromMonkey { items = tail monkeyItems }
-      itemWorryLevel = head monkeyItems
       -- monkey inspects item: worry level is increased
+      itemWorryLevel = head monkeyItems
       updatedItemWorryLevel = updateItemWorryLevel (operation fromMonkey) itemWorryLevel
       -- after monkey inspected item: worry level is decreased
       boredItemWorryLevel = updatedItemWorryLevel `div` 3
@@ -124,6 +141,9 @@ monkeyTakeTurn monkeys monkeyIndex =
       monkeysAfterTurn = foldl (\xs _ -> monkeyInspectAndThrowFirstItem xs monkeyIndex) monkeys [0..length monkeyItems-1]
   in monkeysAfterTurn
 
+monkeysRound :: [Monkey] -> [Monkey]
+monkeysRound monkeys = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
+
 day11 :: IO ()
 day11 = do
   let input = testInput1
@@ -132,25 +152,11 @@ day11 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  putStrLn "Initial monkeys"
-  forM_ monkeys $ \monkey ->
-    print monkey
+  putStrLn "Initial monkeys:"
+  printMonkeys monkeys
 
   putStrLn "Starting new round"
-  let monkeysAfterRound = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
+  let monkeysAfterRound = monkeysRound monkeys
 
   putStrLn "After round:"
-  forM_ monkeysAfterRound $ \monkey ->
-    print monkey
-
-
-  -- monkeyTurn: Monkey -> WorryLevel
-  -- - monkey inspects and throws all items
-  --
-  -- for each monkey m: monkeyInspectItems
-  -- - for each item i of monkey m: monkeyInspectAndThrow
-  --   - monkey inspects item
-  --   - worry level is modified according to operation
-  --   - worry level gets divided by three, since the item was not damaged
-  --   - monkey checks worry level and throws item to other monkey
-  --     - throwItemToOtherMonkey: updates that monkey with item of new worryLevel
+  printMonkeys monkeysAfterRound

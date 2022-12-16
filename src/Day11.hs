@@ -100,20 +100,6 @@ chooseTarget m wl =
   if wl `mod` testDivisor m == 0 then trueThrowTo m
   else falseThrowTo m
 
-throwItem :: MonkeyIndex -> ItemIndex -> MonkeyIndex -> [Monkey] -> [Monkey]
-throwItem fromMonkeyIndex itemIndex toMonkeyIndex monkeys =
-  let fromMonkey = monkeys !! fromMonkeyIndex
-      toMonkey = monkeys !! toMonkeyIndex
-      item = items fromMonkey !! itemIndex
-      fromMonkey' = fromMonkey { items = removeAtIndex itemIndex (items fromMonkey) }
-      toMonkey' = toMonkey { items = items toMonkey <> [item] }
-      monkeys' = replaceAtIndex fromMonkeyIndex fromMonkey' monkeys
-      monkeys'' = replaceAtIndex toMonkeyIndex toMonkey' monkeys'
-  in monkeys''
-
-updateItemWorryLevel' :: Monkey -> Monkey
-updateItemWorryLevel' = undefined
-
 type UpdateWorryLevelAfterInspection = Integer -> Integer
 
 monkeyInspectAndThrowFirstItem :: UpdateWorryLevelAfterInspection -> [Monkey] -> MonkeyIndex -> [Monkey]

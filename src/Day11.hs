@@ -137,11 +137,11 @@ monkeyInspectAndThrowFirstItem updateWorryLevelAfterInspection monkeys fromMonke
 
 type MonkeyStats = [Int]
 
-monkeyBusiness :: MonkeyStats -> Int
+monkeyBusiness :: MonkeyStats -> Integer
 monkeyBusiness stats =
   let stats' = reverse . sort $ stats
-      a = head stats'
-      b = head $ tail stats'
+      a = fromIntegral . head $ stats'
+      b = fromIntegral . head $ tail stats'
       mb = a * b
   in mb
 

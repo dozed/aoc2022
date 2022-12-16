@@ -2,7 +2,7 @@
 
 module Day11 where
 
-import Control.Monad (forM_)
+import Control.Monad (forM_, foldM_)
 import Data.List (intercalate)
 import Text.Parsec
 import Text.Parsec.String
@@ -144,6 +144,14 @@ monkeyTakeTurn monkeys monkeyIndex =
 monkeysRound :: [Monkey] -> [Monkey]
 monkeysRound monkeys = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
 
+monkeysRoundM :: [Monkey] -> Int -> IO [Monkey]
+monkeysRoundM monkeys i = do
+  let monkeys' = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
+  putStrLn $ "Monkeys after round " <> show i <> ":"
+  printMonkeys monkeys'
+  putStrLn ""
+  return monkeys'
+
 day11 :: IO ()
 day11 = do
   let input = testInput1
@@ -155,8 +163,6 @@ day11 = do
   putStrLn "Initial monkeys:"
   printMonkeys monkeys
 
-  putStrLn "Starting new round"
-  let monkeysAfterRound = monkeysRound monkeys
-
-  putStrLn "After round:"
-  printMonkeys monkeysAfterRound
+  -- putStrLn "Monkeys after n rounds"
+  -- let monkeysAfterNRounds = foldl (\xs _ -> monkeysRound xs) monkeys [1..20]
+  foldM_ monkeysRoundM monkeys [1..20]

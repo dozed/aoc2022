@@ -114,8 +114,10 @@ throwItem fromMonkeyIndex itemIndex toMonkeyIndex monkeys =
 updateItemWorryLevel' :: Monkey -> Monkey
 updateItemWorryLevel' = undefined
 
-monkeyInspectAndThrowFirstItem :: [Monkey] -> MonkeyIndex -> [Monkey]
-monkeyInspectAndThrowFirstItem monkeys fromMonkeyIndex  =
+type UpdateWorryLevelAfterInspection = Int -> Int
+
+monkeyInspectAndThrowFirstItem :: UpdateWorryLevelAfterInspection -> [Monkey] -> MonkeyIndex -> [Monkey]
+monkeyInspectAndThrowFirstItem updateWorryLevelAfterInspection monkeys fromMonkeyIndex  =
   let fromMonkey = monkeys !! fromMonkeyIndex
       monkeyItems = items fromMonkey
       -- fromMonkey' = fromMonkey { items = tail monkeyItems }
@@ -123,7 +125,7 @@ monkeyInspectAndThrowFirstItem monkeys fromMonkeyIndex  =
       itemWorryLevel = head monkeyItems
       updatedItemWorryLevel = updateItemWorryLevel (operation fromMonkey) itemWorryLevel
       -- after monkey inspected item: worry level is decreased
-      boredItemWorryLevel = updatedItemWorryLevel `div` 3
+      boredItemWorryLevel = updateWorryLevelAfterInspection updatedItemWorryLevel
       -- monkey tests worry level
       toMonkeyIndex = chooseTarget fromMonkey boredItemWorryLevel
       toMonkey = monkeys !! toMonkeyIndex
@@ -151,21 +153,21 @@ printRound i monkeys stats = do
   putStrLn $ "Stats: " <> show stats
   putStrLn ""
 
-monkeyTakeTurn :: ([Monkey], MonkeyStats) -> MonkeyIndex -> ([Monkey], MonkeyStats)
-monkeyTakeTurn (monkeys, stats) monkeyIndex =
+monkeyTakeTurn :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> MonkeyIndex -> ([Monkey], MonkeyStats)
+monkeyTakeTurn updateWorryLevelAfterInspection (monkeys, stats) monkeyIndex =
   let monkey = monkeys !! monkeyIndex
       monkeyItems = items monkey
-      monkeysAfterTurn = foldl (\xs _ -> monkeyInspectAndThrowFirstItem xs monkeyIndex) monkeys [0..length monkeyItems-1]
+      monkeysAfterTurn = foldl (\xs _ -> monkeyInspectAndThrowFirstItem updateWorryLevelAfterInspection xs monkeyIndex) monkeys [0..length monkeyItems-1]
       numInspections = (stats !! monkeyIndex) + length monkeyItems
       stats' = replaceAtIndex monkeyIndex numInspections stats
   in (monkeysAfterTurn, stats')
 
-monkeysRound :: ([Monkey], MonkeyStats) -> ([Monkey], MonkeyStats)
-monkeysRound (monkeys, stats) = foldl monkeyTakeTurn (monkeys, stats) [0..length monkeys-1]
+monkeysRound :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> ([Monkey], MonkeyStats)
+monkeysRound updateWorryLevelAfterInspection (monkeys, stats) = foldl (monkeyTakeTurn updateWorryLevelAfterInspection) (monkeys, stats) [0..length monkeys-1]
 
-monkeysRoundM :: ([Monkey], MonkeyStats) -> Int -> IO ([Monkey], MonkeyStats)
-monkeysRoundM (monkeys, stats) i = do
-  let (monkeys', stats') = monkeysRound (monkeys, stats)
+monkeysRoundM :: UpdateWorryLevelAfterInspection -> ([Monkey], MonkeyStats) -> Int -> IO ([Monkey], MonkeyStats)
+monkeysRoundM updateWorryLevelAfterInspection (monkeys, stats) i = do
+  let (monkeys', stats') = monkeysRound updateWorryLevelAfterInspection (monkeys, stats)
   printRound i monkeys' stats'
   return (monkeys', stats')
 
@@ -180,8 +182,10 @@ day11 = do
 
   let stats = replicate (length monkeys) 0
 
+  let div3 = (`div` 3)
+
   printRound 0 monkeys stats
 
-  (monkeys', stats') <- foldM monkeysRoundM (monkeys, stats) [1..20]
+  (monkeys', stats') <- foldM (monkeysRoundM div3) (monkeys, stats) [1..20]
 
   print $ monkeyBusiness stats'

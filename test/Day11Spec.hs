@@ -8,6 +8,9 @@ import Control.Monad.IO.Class (liftIO)
 import Day11
 import Util (regularParse)
 
+div3 :: Int -> Int
+div3 x = x `div` 3
+
 day11Spec :: Spec
 day11Spec = do
   describe "monkeysParser" $ do
@@ -52,7 +55,7 @@ day11Spec = do
               Monkey {idx = 3, items = [74,500], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      monkeyInspectAndThrowFirstItem testMonkeys 0 `shouldBe` expectedMonkeys
+      monkeyInspectAndThrowFirstItem div3 testMonkeys 0 `shouldBe` expectedMonkeys
 
     it "should throw first item from monkey 0 to monkey 3" $ do
       let testMonkeys = [
@@ -69,7 +72,7 @@ day11Spec = do
               Monkey {idx = 3, items = [74,500,620], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      monkeyInspectAndThrowFirstItem testMonkeys 0 `shouldBe` expectedMonkeys
+      monkeyInspectAndThrowFirstItem div3 testMonkeys 0 `shouldBe` expectedMonkeys
 
     it "should throw first item from monkey 1 to monkey 0" $ do
       let testMonkeys = [
@@ -86,7 +89,7 @@ day11Spec = do
               Monkey {idx = 3, items = [74,500,620], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      monkeyInspectAndThrowFirstItem testMonkeys 1 `shouldBe` expectedMonkeys
+      monkeyInspectAndThrowFirstItem div3 testMonkeys 1 `shouldBe` expectedMonkeys
 
     it "should throw first item from monkey 1 to monkey 0" $ do
       let testMonkeys = [
@@ -103,7 +106,7 @@ day11Spec = do
               Monkey {idx = 3, items = [74,500,620], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      monkeyInspectAndThrowFirstItem testMonkeys 1 `shouldBe` expectedMonkeys
+      monkeyInspectAndThrowFirstItem div3 testMonkeys 1 `shouldBe` expectedMonkeys
 
     it "should throw first item from monkey 1 to monkey 0" $ do
       let testMonkeys = [
@@ -120,7 +123,7 @@ day11Spec = do
               Monkey {idx = 3, items = [74,500,620], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      monkeyInspectAndThrowFirstItem testMonkeys 1 `shouldBe` expectedMonkeys
+      monkeyInspectAndThrowFirstItem div3 testMonkeys 1 `shouldBe` expectedMonkeys
 
     it "should throw first item from monkey 1 to monkey 0" $ do
       let testMonkeys = [
@@ -137,7 +140,7 @@ day11Spec = do
               Monkey {idx = 3, items = [74,500,620], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
             ]
 
-      monkeyInspectAndThrowFirstItem testMonkeys 1 `shouldBe` expectedMonkeys
+      monkeyInspectAndThrowFirstItem div3 testMonkeys 1 `shouldBe` expectedMonkeys
 
   describe "monkeysRound" $ do
     it "should take a full round" $ do
@@ -158,7 +161,7 @@ day11Spec = do
       let stats = replicate (length testMonkeys) 0
       let expectedStats = [2,4,3,5]
 
-      let (monkeys', stats') = monkeysRound (testMonkeys, stats)
+      let (monkeys', stats') = monkeysRound div3 (testMonkeys, stats)
 
       monkeys' `shouldBe` expectedMonkeys
       stats' `shouldBe` expectedStats
@@ -181,7 +184,7 @@ day11Spec = do
       let stats = replicate (length testMonkeys) 0
       let expectedStats = [101, 95, 7, 105]
 
-      let (monkeys', stats') = foldl (\xs _ -> monkeysRound xs) (testMonkeys, stats) [1..20]
+      let (monkeys', stats') = foldl (\xs _ -> monkeysRound div3 xs) (testMonkeys, stats) [1..20]
 
       monkeys' `shouldBe` expectedMonkeys
       stats' `shouldBe` expectedStats

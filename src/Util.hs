@@ -4,6 +4,7 @@ module Util (
   intersect,
   maxIndex,
   readFileLines,
+  removeAtIndex,
   regularParse,
   replaceAtIndex,
   strip,
@@ -58,6 +59,9 @@ intersect xs ys = intersectSorted (sort xs) (sort ys)
 
 replaceAtIndex :: Int -> a -> [a] -> [a]
 replaceAtIndex i x xs = take i xs ++ [x] ++ drop (i+1) xs
+
+removeAtIndex :: Int -> [a] -> [a]
+removeAtIndex i xs = take i xs ++ drop (i+1) xs
 
 -- https://hackage.haskell.org/package/MissingH-1.0.0/docs/Data-String-Utils.html
 wschars :: String

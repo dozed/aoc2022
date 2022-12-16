@@ -3,11 +3,12 @@
 module Day11 where
 
 import Control.Monad (forM_)
+import Data.List (findIndex)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (regularParse)
+import Util (regularParse, replaceAtIndex, removeAtIndex)
 
 testInput1 :: String
 testInput1 = [r|Monkey 0:
@@ -45,6 +46,7 @@ data Operation = MulWith Int
                deriving (Eq, Show)
 
 type ItemWorryLevel = Int
+type ItemIndex = Int
 type MonkeyId = Int
 
 updateItemWorryLevel :: Operation -> ItemWorryLevel -> ItemWorryLevel
@@ -95,6 +97,17 @@ monkeyParser = do
 monkeysParser :: Parser [Monkey]
 monkeysParser = sepBy1 monkeyParser (char '\n')
 
+throwItem :: [Monkey] -> ItemIndex -> MonkeyId -> MonkeyId -> [Monkey]
+throwItem monkeys itemIndex fromMonkeyId toMonkeyId =
+  let fromMonkey = monkeys !! fromMonkeyId
+      toMonkey = monkeys !! toMonkeyId
+      item = startingItems fromMonkey !! itemIndex
+      fromMonkey' = fromMonkey { startingItems = removeAtIndex itemIndex (startingItems fromMonkey) }
+      toMonkey' = toMonkey { startingItems = startingItems toMonkey <> [item] }
+      monkeys' = replaceAtIndex fromMonkeyId fromMonkey' monkeys
+      monkeys'' = replaceAtIndex toMonkeyId toMonkey' monkeys'
+  in monkeys''
+
 day11 :: IO ()
 day11 = do
   let input = testInput1
@@ -109,9 +122,11 @@ day11 = do
   -- monkeyTurn: Monkey -> WorryLevel
   -- - monkey inspects and throws all items
   --
-  -- monkeyInspectAndThrow
-  -- - monkey inspects item
-  -- - worry level is modified according to operation
-  -- - worry level gets divided by three, since the item was not damaged
-  -- - monkey checks worry level and throws item to other monkey
-  --   - throwItemToOtherMonkey: updates that monkey with item of new worryLevel
+  -- for each monkey m:
+  -- - for each item i of monkey m:
+  --   - monkeyInspectAndThrow
+  --     - monkey inspects item
+  --     - worry level is modified according to operation
+  --     - worry level gets divided by three, since the item was not damaged
+  --     - monkey checks worry level and throws item to other monkey
+  --       - throwItemToOtherMonkey: updates that monkey with item of new worryLevel

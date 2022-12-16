@@ -148,7 +148,7 @@ monkeyBusiness stats =
 printRound :: Int -> [Monkey] -> MonkeyStats -> IO ()
 printRound i monkeys stats = do
   putStrLn $ "Monkeys after round " <> show i <> ":"
-  -- printMonkeys monkeys
+  printMonkeys monkeys
   putStrLn $ "Stats: " <> show stats
   putStrLn ""
 

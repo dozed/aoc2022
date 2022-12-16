@@ -47,25 +47,15 @@ data Operation = MulWith Int
 
 type ItemWorryLevel = Int
 type ItemIndex = Int
-type MonkeyId = Int
-
-updateItemWorryLevel :: Operation -> ItemWorryLevel -> ItemWorryLevel
-updateItemWorryLevel (MulWith x) old = old * x
-updateItemWorryLevel SquareOld old = old * old
-updateItemWorryLevel (AddWith x) old = old + x
-
-chooseTarget :: Monkey -> ItemWorryLevel -> MonkeyId
-chooseTarget m wl =
-  if wl `mod` testDivisor m == 0 then trueThrowTo m
-  else falseThrowTo m
+type MonkeyIndex = Int
 
 data Monkey = Monkey {
-  idx :: MonkeyId,
-  startingItems :: [ItemWorryLevel],
+  idx :: MonkeyIndex,
+  items :: [ItemWorryLevel],
   operation :: Operation,
   testDivisor :: Int,
-  trueThrowTo :: MonkeyId,
-  falseThrowTo :: MonkeyId
+  trueThrowTo :: MonkeyIndex,
+  falseThrowTo :: MonkeyIndex
 } deriving (Eq, Show)
 
 numberListParser :: Parser [Int]
@@ -87,7 +77,7 @@ monkeyParser = do
   falseThrowTo <- string "    If false: throw to monkey " *> (read <$> many1 digit) <* char '\n'
   return Monkey {
     idx = idx,
-    startingItems = startingItems,
+    items = startingItems,
     operation = operation,
     testDivisor = testDivisor,
     trueThrowTo = trueThrowTo,
@@ -97,13 +87,23 @@ monkeyParser = do
 monkeysParser :: Parser [Monkey]
 monkeysParser = sepBy1 monkeyParser (char '\n')
 
-throwItem :: [Monkey] -> ItemIndex -> MonkeyId -> MonkeyId -> [Monkey]
-throwItem monkeys itemIndex fromMonkeyId toMonkeyId =
+updateItemWorryLevel :: Operation -> ItemWorryLevel -> ItemWorryLevel
+updateItemWorryLevel (MulWith x) old = old * x
+updateItemWorryLevel SquareOld old = old * old
+updateItemWorryLevel (AddWith x) old = old + x
+
+chooseTarget :: Monkey -> ItemWorryLevel -> MonkeyIndex
+chooseTarget m wl =
+  if wl `mod` testDivisor m == 0 then trueThrowTo m
+  else falseThrowTo m
+
+throwItem :: MonkeyIndex -> ItemIndex -> MonkeyIndex -> [Monkey] -> [Monkey]
+throwItem fromMonkeyId itemIndex toMonkeyId monkeys =
   let fromMonkey = monkeys !! fromMonkeyId
       toMonkey = monkeys !! toMonkeyId
-      item = startingItems fromMonkey !! itemIndex
-      fromMonkey' = fromMonkey { startingItems = removeAtIndex itemIndex (startingItems fromMonkey) }
-      toMonkey' = toMonkey { startingItems = startingItems toMonkey <> [item] }
+      item = items fromMonkey !! itemIndex
+      fromMonkey' = fromMonkey { items = removeAtIndex itemIndex (items fromMonkey) }
+      toMonkey' = toMonkey { items = items toMonkey <> [item] }
       monkeys' = replaceAtIndex fromMonkeyId fromMonkey' monkeys
       monkeys'' = replaceAtIndex toMonkeyId toMonkey' monkeys'
   in monkeys''

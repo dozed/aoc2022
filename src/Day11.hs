@@ -173,8 +173,8 @@ monkeysRoundM updateWorryLevelAfterInspection (monkeys, stats) i = do
 
 day11 :: IO ()
 day11 = do
-  let input = testInput1
-  -- input <- readFile "input/Day11.txt"
+  -- let input = testInput1
+  input <- readFile "input/Day11.txt"
 
   monkeys <- case regularParse monkeysParser input of
     Left e -> fail $ show e
@@ -184,10 +184,13 @@ day11 = do
 
   printRound 0 monkeys stats
 
+  -- part 1
   let div3 = (`div` 3)
-  let div2 = (`div` 2)
-  (monkeys', stats') <- foldM (monkeysRoundM id) (monkeys, stats) [1..10000]
-
+  (monkeys', stats') <- foldM (monkeysRoundM div3) (monkeys, stats) [1..20]
   print $ monkeyBusiness stats'
-  -- Monkeys after round 1000:
-  -- Stats: [5204,4792,199,5192]
+
+  -- part 2
+  let base = product (map testDivisor monkeys)
+  let reduceToProto n = n `mod` base
+  (monkeys', stats') <- foldM (monkeysRoundM reduceToProto) (monkeys, stats) [1..10000]
+  print $ monkeyBusiness stats'

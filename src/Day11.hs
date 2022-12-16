@@ -144,6 +144,9 @@ monkeyTakeTurn monkeys monkeyIndex =
 monkeysRound :: [Monkey] -> [Monkey]
 monkeysRound monkeys = foldl monkeyTakeTurn monkeys [0..length monkeys-1]
 
+getNumberOfInspectedItems :: [Monkey] -> [Int]
+getNumberOfInspectedItems = map (length . items)
+
 monkeysRoundM :: [Monkey] -> Int -> IO [Monkey]
 monkeysRoundM monkeys i = do
   let monkeys' = foldl monkeyTakeTurn monkeys [0..length monkeys-1]

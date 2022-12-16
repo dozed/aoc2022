@@ -153,3 +153,14 @@ day11Spec = do
             ]
 
       monkeysRound testMonkeys `shouldBe` expectedMonkeys
+
+  describe "getNumberOfInspectedItems" $ do
+    it "should compute the number of inspected items" $ do
+      let testMonkeys = [
+              Monkey {idx = 0, items = [79,98], operation = MulWith 19, testDivisor = 23, trueThrowTo = 2, falseThrowTo = 3},
+              Monkey {idx = 1, items = [54,65,75,74], operation = AddWith 6, testDivisor = 19, trueThrowTo = 2, falseThrowTo = 0},
+              Monkey {idx = 2, items = [79,60,97], operation = SquareOld, testDivisor = 13, trueThrowTo = 1, falseThrowTo = 3},
+              Monkey {idx = 3, items = [74], operation = AddWith 3, testDivisor = 17, trueThrowTo = 0, falseThrowTo = 1}
+            ]
+
+      getNumberOfInspectedItems testMonkeys `shouldBe` [2, 4, 3, 1]

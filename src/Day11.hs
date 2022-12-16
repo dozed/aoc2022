@@ -97,19 +97,32 @@ chooseTarget m wl =
   if wl `mod` testDivisor m == 0 then trueThrowTo m
   else falseThrowTo m
 
-throwItem :: MonkeyIndex -> ItemIndex -> MonkeyIndex -> [Monkey] -> [Monkey]
-throwItem fromMonkeyId itemIndex toMonkeyId monkeys =
-  let fromMonkey = monkeys !! fromMonkeyId
-      toMonkey = monkeys !! toMonkeyId
-      item = items fromMonkey !! itemIndex
-      fromMonkey' = fromMonkey { items = removeAtIndex itemIndex (items fromMonkey) }
-      toMonkey' = toMonkey { items = items toMonkey <> [item] }
-      monkeys' = replaceAtIndex fromMonkeyId fromMonkey' monkeys
-      monkeys'' = replaceAtIndex toMonkeyId toMonkey' monkeys'
+monkeyInspectAndThrowFirstItem :: [Monkey] -> MonkeyIndex -> [Monkey]
+monkeyInspectAndThrowFirstItem monkeys fromMonkeyIndex  =
+  let fromMonkey = monkeys !! fromMonkeyIndex
+      monkeyItems = items fromMonkey
+      -- fromMonkey' = fromMonkey { items = tail monkeyItems }
+      itemWorryLevel = head monkeyItems
+      -- monkey inspects item: worry level is increased
+      updatedItemWorryLevel = updateItemWorryLevel (operation fromMonkey) itemWorryLevel
+      -- after monkey inspected item: worry level is decreased
+      boredItemWorryLevel = updatedItemWorryLevel `div` 3
+      -- monkey tests worry level
+      toMonkeyIndex = chooseTarget fromMonkey boredItemWorryLevel
+      toMonkey = monkeys !! toMonkeyIndex
+      -- actually throw the item
+      fromMonkey' = fromMonkey { items = tail monkeyItems }
+      toMonkey' = toMonkey { items = items toMonkey <> [boredItemWorryLevel] }
+      monkeys' = replaceAtIndex fromMonkeyIndex fromMonkey' monkeys
+      monkeys'' = replaceAtIndex toMonkeyIndex toMonkey' monkeys'
   in monkeys''
 
 monkeyTakeTurn :: [Monkey] -> MonkeyIndex -> [Monkey]
-monkeyTakeTurn = undefined
+monkeyTakeTurn monkeys monkeyIndex =
+  let monkey = monkeys !! monkeyIndex
+      monkeyItems = items monkey
+      monkeysAfterTurn = foldl (\xs _ -> monkeyInspectAndThrowFirstItem xs monkeyIndex) monkeys [0..length monkeyItems-1]
+  in monkeysAfterTurn
 
 day11 :: IO ()
 day11 = do

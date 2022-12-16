@@ -8,7 +8,7 @@ import Control.Monad.IO.Class (liftIO)
 import Day11
 import Util (regularParse)
 
-div3 :: Int -> Int
+div3 :: Integer -> Integer
 div3 x = x `div` 3
 
 day11Spec :: Spec

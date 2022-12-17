@@ -7,7 +7,7 @@ import Control.Monad (forM_, mfilter)
 import Data.Char (chr, ord)
 import Data.List (elemIndex)
 import Data.List.Extra ((!?))
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (isJust)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.RawString.QQ

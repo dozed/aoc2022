@@ -2,11 +2,13 @@ module Util (
   count,
   deleteAt,
   intersect,
+  lstrip,
   maxIndex,
   readFileLines,
   removeAtIndex,
   regularParse,
   replaceAtIndex,
+  rstrip,
   strip,
   takeUntil,
   windows

@@ -27,6 +27,7 @@ library
       Day1
       Day10
       Day11
+      Day12
       Day2a
       Day2b
       Day3
@@ -69,6 +70,7 @@ test-suite aoc2022-test
   other-modules:
       Day10Spec
       Day11Spec
+      Day12Spec
       Day9Spec
       Paths_aoc2022
   hs-source-dirs:

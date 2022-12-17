@@ -72,7 +72,8 @@ getReachablePositions field pos =
       let
         testCellValue = incrCell $ getHeight currentCellValue
         adjacentPositions = getAdjacentPositions pos
-        reachablePositions = S.filter (isJust . mfilter (<= testCellValue) . fmap getHeight . getCell field) adjacentPositions
+        isReachable pos = isJust . mfilter (<= testCellValue) . fmap getHeight . getCell field $ pos
+        reachablePositions = S.filter isReachable adjacentPositions
       in reachablePositions
 
 day12 :: IO ()

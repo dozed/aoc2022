@@ -99,7 +99,7 @@ searchPaths' field toVisit currentPath visited =
       reachablePositions = getReachablePositions field toVisit
       isNotVisited pos = not . S.member pos $ visited
       positionsToVisit = S.filter isNotVisited reachablePositions
-      visited' = foldl (flip S.insert) visited positionsToVisit
+      visited' = S.union visited positionsToVisit
       otherPaths :: [Path]
         | isEnd cellValue = [reverse currentPath']
         | null positionsToVisit = []

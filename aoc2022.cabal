@@ -47,6 +47,7 @@ library
       base >=4.7 && <5
     , combinatorial
     , containers
+    , extra
     , parsec
     , raw-strings-qq
     , split
@@ -79,6 +80,7 @@ test-suite aoc2022-test
   build-depends:
       aoc2022
     , base >=4.7 && <5
+    , containers
     , hspec
     , raw-strings-qq
   default-language: Haskell2010

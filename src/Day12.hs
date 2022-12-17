@@ -88,19 +88,22 @@ getReachablePositions field pos =
         reachablePositions = S.filter isReachable adjacentPositions
       in reachablePositions
 
-searchPaths :: Field -> Pos -> [Pos] -> Set Pos -> [Path]
-searchPaths field toVisit currentPath visited =
+searchPaths' :: Field -> Pos -> [Pos] -> Set Pos -> [Path]
+searchPaths' field toVisit currentPath visited =
   let cellValue = fromMaybe undefined $ getCell field toVisit
       currentPath' = toVisit : currentPath
-      visited' = S.insert toVisit visited
       reachablePositions = getReachablePositions field toVisit
-      isNotVisited pos = not . S.member pos $ visited'
+      isNotVisited pos = not . S.member pos $ visited
       positionsToVisit = S.filter isNotVisited reachablePositions
+      visited' = foldl (flip S.insert) visited positionsToVisit
       otherPaths :: [Path]
         | isEnd cellValue = [reverse currentPath']
         | null positionsToVisit = []
-        | otherwise = concatMap (\x -> searchPaths field x currentPath' visited') positionsToVisit
+        | otherwise = concatMap (\x -> searchPaths' field x currentPath' visited') positionsToVisit
   in otherPaths
+
+searchPaths :: Field -> Pos -> [Path]
+searchPaths field startPos = searchPaths' field startPos [] (S.singleton startPos)
 
 day12 :: IO ()
 day12 = do
@@ -126,7 +129,7 @@ day12 = do
   putStrLn $ "endPos: " <> show endPos
 
   -- part 1
-  let paths = searchPaths field startPos [] S.empty
+  let paths = searchPaths field startPos
       shortestPath = minimumBy (compare `on` length) paths
       shortestPathLength = length shortestPath
       shortestPathSteps = shortestPathLength - 1

@@ -69,7 +69,7 @@ day12Spec = do
         (Just pos) -> pure pos
         Nothing -> fail "could not get start position"
 
-      let paths = searchPaths field startPos [] S.empty
+      let paths = searchPaths field startPos
           shortestPath = minimumBy (compare `on` length) paths
           shortestPathLength = length shortestPath
           shortestPathSteps = shortestPathLength - 1

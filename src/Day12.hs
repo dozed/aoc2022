@@ -32,11 +32,6 @@ type X = Int
 type Pos = (Y, X)
 type Path = [Pos]
 
-getHeight :: Cell -> Cell
-getHeight 'S' = 'a'
-getHeight 'E' = 'z'
-getHeight c = c
-
 isStart :: Cell -> Bool
 isStart 'S' = True
 isStart _ = False
@@ -44,6 +39,12 @@ isStart _ = False
 isEnd :: Cell -> Bool
 isEnd 'E' = True
 isEnd _ = False
+
+getHeight :: Cell -> Cell
+getHeight c
+  | isStart c = 'a'
+  | isEnd c = 'z'
+  | otherwise = c
 
 incrCell :: Cell -> Cell
 incrCell c = chr (ord c + 1)

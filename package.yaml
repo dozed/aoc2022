@@ -58,5 +58,6 @@ tests:
     dependencies:
       - containers
       - hspec
+      - QuickCheck
       - raw-strings-qq
       - aoc2022

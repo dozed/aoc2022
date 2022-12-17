@@ -37,6 +37,10 @@ getHeight 'S' = 'a'
 getHeight 'E' = 'z'
 getHeight c = c
 
+isEnd :: Cell -> Bool
+isEnd 'E' = True
+isEnd _ = False
+
 incrCell :: Cell -> Cell
 incrCell c = chr (ord c + 1)
 
@@ -80,21 +84,23 @@ getReachablePositions field pos =
       in reachablePositions
 
 searchPaths :: Field -> Pos -> [Pos] -> Set Pos -> [Path]
-searchPaths field nextToVisit currentPath visited =
-  let cellValue = fromMaybe undefined $ getCell field nextToVisit
-      currentPath' = nextToVisit : currentPath
-      visited' = S.insert nextToVisit visited
-      reachablePositions = S.toList $ getReachablePositions field nextToVisit
-      positionsToVisit = filter (\pos -> not . S.member pos $ visited) reachablePositions
+searchPaths field toVisit currentPath visited =
+  let cellValue = fromMaybe undefined $ getCell field toVisit
+      currentPath' = toVisit : currentPath
+      visited' = S.insert toVisit visited
+      reachablePositions = getReachablePositions field toVisit
+      isNotVisited pos = not . S.member pos $ visited'
+      positionsToVisit = S.filter isNotVisited reachablePositions
       otherPaths :: [Path]
-        | cellValue == 'E' = [reverse currentPath']
+        | isEnd cellValue = [reverse currentPath']
         | null positionsToVisit = []
         | otherwise = concatMap (\x -> searchPaths field x currentPath' visited') positionsToVisit
   in otherPaths
 
 day12 :: IO ()
 day12 = do
-  let input = testInput1
+  -- let input = testInput1
+  input <- strip <$> readFile "input/Day12.txt"
 
   let field = mkField input
 

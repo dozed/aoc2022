@@ -14,10 +14,10 @@ day12Spec :: Spec
 day12Spec = do
   let field = mkField testInput1
 
-  describe "getHeight" $ do
-    it "should compute height for 'S'" $ getHeight 'S' `shouldBe` 'a'
-    it "should compute height for 'E'" $ getHeight 'E' `shouldBe` 'z'
-    it "should compute height for 'c'" $ getHeight 'c' `shouldBe` 'c'
+  describe "toHeight" $ do
+    it "should compute height for 'S'" $ toHeight 'S' `shouldBe` 'a'
+    it "should compute height for 'E'" $ toHeight 'E' `shouldBe` 'z'
+    it "should compute height for 'c'" $ toHeight 'c' `shouldBe` 'c'
 
   describe "isStart" $ do
     prop "should not detect non-S as start cell value" $ \c -> (c /= 'S') ==> isStart c `shouldBe` False
@@ -27,9 +27,9 @@ day12Spec = do
     prop "should not detect non-E as end cell value" $ \c -> (c /= 'E') ==> isEnd c `shouldBe` False
     it "should detect E as end cell value" $ isEnd 'E' `shouldBe` True
 
-  describe "incrCell" $ do
+  describe "incrCellHeight" $ do
     it "should get next higher cell value" $ do
-      incrCell 'a' `shouldBe` 'b'
+      incrCellHeight 'a' `shouldBe` 'b'
 
   describe "getPos" $ do
     it "should return value for cell value which is on the field" $ do

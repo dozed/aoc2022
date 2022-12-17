@@ -27,6 +27,7 @@ abdefghi
 
 type Cell = Char
 type Field = [[Cell]]
+type CellHeight = Char
 type Y = Int
 type X = Int
 type Pos = (Y, X)
@@ -40,14 +41,14 @@ isEnd :: Cell -> Bool
 isEnd 'E' = True
 isEnd _ = False
 
-getHeight :: Cell -> Cell
-getHeight c
+toHeight :: Cell -> CellHeight
+toHeight c
   | isStart c = 'a'
   | isEnd c = 'z'
   | otherwise = c
 
-incrCell :: Cell -> Cell
-incrCell c = chr (ord c + 1)
+incrCellHeight :: CellHeight -> CellHeight
+incrCellHeight c = chr (ord c + 1)
 
 mkField :: String -> Field
 mkField = lines
@@ -73,18 +74,21 @@ getCell field (y, x) = do
   cell <- row !? x
   return cell
 
+getCellHeight :: Field -> Pos -> Maybe CellHeight
+getCellHeight field pos = fmap toHeight . getCell field $ pos
+
 getAdjacentPositions :: Pos -> Set Pos
 getAdjacentPositions (y, x) = S.fromList [(y-1, x), (y+1, x), (y, x-1), (y, x+1)]
 
 getReachablePositions :: Field -> Pos -> Set Pos
 getReachablePositions field pos =
-  case getCell field pos of
+  case getCellHeight field pos of
     Nothing -> S.empty
-    Just currentCellValue ->
+    Just currentCellHeight ->
       let
-        testCellValue = incrCell $ getHeight currentCellValue
+        maxReachableCellHeight = incrCellHeight currentCellHeight
         adjacentPositions = getAdjacentPositions pos
-        isReachable pos = isJust . mfilter (<= testCellValue) . fmap getHeight . getCell field $ pos
+        isReachable pos = isJust . mfilter (<= maxReachableCellHeight) . getCellHeight field $ pos
         reachablePositions = S.filter isReachable adjacentPositions
       in reachablePositions
 

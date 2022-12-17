@@ -128,7 +128,9 @@ day12 = do
   -- part 1
   let paths = searchPaths field startPos [] S.empty
       shortestPath = minimumBy (compare `on` length) paths
+      shortestPathLength = length shortestPath
+      shortestPathSteps = shortestPathLength - 1
 
   putStrLn $ "Shortest path: " <> show shortestPath
-  putStrLn $ "Shortest path length: " <> show (length shortestPath)
-  putStrLn $ "Num steps: " <> show (length shortestPath - 1)
+  putStrLn $ "Shortest path length: " <> show shortestPathLength
+  putStrLn $ "Num steps: " <> show shortestPathSteps

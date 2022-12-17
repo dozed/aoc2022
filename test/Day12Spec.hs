@@ -45,15 +45,15 @@ day12Spec = do
     it "should get end position" $ do
       getEndPos field `shouldBe` Just (2, 5)
 
-  describe "getCell" $ do
-    it "should get cell" $ do
-      getCell field (0, 0) `shouldBe` Just 'S'
-      getCell field (2, 5) `shouldBe` Just 'E'
-      getCell field (1, 0) `shouldBe` Just 'a'
-      getCell field (0, 1) `shouldBe` Just 'a'
+  describe "getCellVaue" $ do
+    it "should get cell value" $ do
+      getCellValue field (0, 0) `shouldBe` Just 'S'
+      getCellValue field (2, 5) `shouldBe` Just 'E'
+      getCellValue field (1, 0) `shouldBe` Just 'a'
+      getCellValue field (0, 1) `shouldBe` Just 'a'
 
     it "should return Nothing for out-of-field cell" $ do
-      getCell field (12, 15) `shouldBe` Nothing
+      getCellValue field (12, 15) `shouldBe` Nothing
 
   describe "getAdjacentPositions" $ do
     it "should compute adjacent positions" $ do

@@ -68,14 +68,14 @@ getStartPos = getPos isStart
 getEndPos :: Field -> Maybe Pos
 getEndPos = getPos isEnd
 
-getCell :: Field -> Pos -> Maybe Cell
-getCell field (y, x) = do
+getCellValue :: Field -> Pos -> Maybe Cell
+getCellValue field (y, x) = do
   row <- field !? y
   cell <- row !? x
   return cell
 
 getCellHeight :: Field -> Pos -> Maybe CellHeight
-getCellHeight field pos = fmap toHeight . getCell field $ pos
+getCellHeight field pos = fmap toHeight . getCellValue field $ pos
 
 getAdjacentPositions :: Pos -> Set Pos
 getAdjacentPositions (y, x) = S.fromList [(y-1, x), (y+1, x), (y, x-1), (y, x+1)]
@@ -94,7 +94,7 @@ getReachablePositions field pos =
 
 searchPaths' :: Field -> Pos -> [Pos] -> Set Pos -> [Path]
 searchPaths' field toVisit currentPath visited =
-  let cellValue = fromMaybe undefined $ getCell field toVisit
+  let cellValue = fromMaybe undefined $ getCellValue field toVisit
       currentPath' = toVisit : currentPath
       reachablePositions = getReachablePositions field toVisit
       isNotVisited pos = not . S.member pos $ visited

@@ -7,7 +7,7 @@ import Control.Applicative ((<|>))
 import Control.Monad (forM_, mfilter)
 import Data.Char (chr, ord)
 import Data.Function (on)
-import Data.List (elemIndex, minimumBy)
+import Data.List (findIndex, minimumBy)
 import Data.List.Extra ((!?))
 import Data.Maybe (fromMaybe, isJust)
 import Data.Set (Set)
@@ -37,6 +37,10 @@ getHeight 'S' = 'a'
 getHeight 'E' = 'z'
 getHeight c = c
 
+isStart :: Cell -> Bool
+isStart 'S' = True
+isStart _ = False
+
 isEnd :: Cell -> Bool
 isEnd 'E' = True
 isEnd _ = False
@@ -47,20 +51,20 @@ incrCell c = chr (ord c + 1)
 mkField :: String -> Field
 mkField = lines
 
-getPos :: Cell -> Field -> Maybe Pos
-getPos cell field = getPos' 0 field
+getPos :: (Cell -> Bool) -> Field -> Maybe Pos
+getPos checkCell field = getPos' 0 field
   where
     getPos' :: Y -> Field -> Maybe Pos
     getPos' rowIdx (row:others) =
-      let idx = (\colIdx -> (rowIdx, colIdx)) <$> elemIndex cell row
+      let idx = (\colIdx -> (rowIdx, colIdx)) <$> findIndex checkCell row
       in idx <|> getPos' (rowIdx+1) others
     getPos' _ [] = Nothing
 
 getStartPos :: Field -> Maybe Pos
-getStartPos = getPos 'S'
+getStartPos = getPos isStart
 
 getEndPos :: Field -> Maybe Pos
-getEndPos = getPos 'E'
+getEndPos = getPos isEnd
 
 getCell :: Field -> Pos -> Maybe Cell
 getCell field (y, x) = do

@@ -6,7 +6,7 @@ import qualified Data.Set as S
 
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
-import Test.QuickCheck (property, (==>))
+import Test.QuickCheck ((==>))
 
 import Day12
 
@@ -19,6 +19,10 @@ day12Spec = do
     it "should compute height for 'E'" $ getHeight 'E' `shouldBe` 'z'
     it "should compute height for 'c'" $ getHeight 'c' `shouldBe` 'c'
 
+  describe "isStart" $ do
+    prop "should not detect non-S as start cell value" $ \c -> (c /= 'S') ==> isStart c `shouldBe` False
+    it "should detect S as end cell value" $ isStart 'S' `shouldBe` True
+
   describe "isEnd" $ do
     prop "should not detect non-E as end cell value" $ \c -> (c /= 'E') ==> isEnd c `shouldBe` False
     it "should detect E as end cell value" $ isEnd 'E' `shouldBe` True
@@ -29,10 +33,10 @@ day12Spec = do
 
   describe "getPos" $ do
     it "should return value for cell value which is on the field" $ do
-      getPos 'a' field `shouldBe` Just (0, 1)
+      getPos (== 'a') field `shouldBe` Just (0, 1)
 
     it "should return Nothing for cell value which is not on the field" $ do
-      getPos 'X' field `shouldBe` Nothing
+      getPos (== 'X') field `shouldBe` Nothing
 
   describe "getStartPos" $ do
     it "should get start position" $ do

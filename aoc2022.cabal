@@ -16,7 +16,6 @@ license:        BSD3
 build-type:     Simple
 extra-source-files:
     README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
@@ -28,6 +27,7 @@ library
       Day10
       Day11
       Day12
+      Day13
       Day2a
       Day2b
       Day3
@@ -72,6 +72,7 @@ test-suite aoc2022-test
       Day10Spec
       Day11Spec
       Day12Spec
+      Day13Spec
       Day9Spec
       Paths_aoc2022
   hs-source-dirs:

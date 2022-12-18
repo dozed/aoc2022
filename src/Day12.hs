@@ -127,19 +127,8 @@ searchShortestPathsBfsFrom field startPos endPos =
       shortestPath = getPathTo predecessors startPos endPos
   in shortestPath
 
-getReachablePositionsOnLevelA :: Field -> Pos -> Set Pos -> Set Pos
-getReachablePositionsOnLevelA field currentPos visited =
-  let adjacentPositions = getAdjacentPositions currentPos
-      isReachable pos = isJust . mfilter (== 'a') . getCellHeight field $ pos
-      reachablePositions = S.filter isReachable adjacentPositions
-      reachablePositionsNotVisited = S.difference reachablePositions visited
-      visited' = S.insert currentPos visited
-      others = S.unions . S.fromList . fmap (\x -> getReachablePositionsOnLevelA field x visited') $ S.toList reachablePositionsNotVisited
-      others' = S.union visited' others
-  in others'
-
-getPositionsOnLevel :: Field -> CellHeight -> [Pos]
-getPositionsOnLevel field ch = map fst . filter (\(p, c) -> c == ch) . M.toList $ field
+getPositionsOnHeight :: Field -> CellHeight -> [Pos]
+getPositionsOnHeight field ch = map fst . filter (\(p, c) -> c == ch) . M.toList $ field
 
 day12 :: IO ()
 day12 = do
@@ -174,7 +163,7 @@ day12 = do
   putStrLn $ "Shortest path length: " <> show shortestPathLength
 
   -- part 2
-  let possibleStartPositions = getPositionsOnLevel field 'a'
+  let possibleStartPositions = getPositionsOnHeight field 'a'
       allPaths = catMaybes . filter isJust . map (\x -> searchShortestPathsBfsFrom field x endPos) $ possibleStartPositions
       shortestPathLength = minimum . map getPathLength $ allPaths
 

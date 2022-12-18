@@ -3,13 +3,12 @@
 
 module Day12 where
 
-import Control.Applicative ((<|>))
-import Control.Monad (forM_, mfilter)
+import Control.Monad (mfilter)
 import Data.Char (chr, ord)
-import Data.Function (on)
-import Data.List (findIndex, minimumBy)
-import Data.List.Extra ((!?))
-import Data.Maybe (fromMaybe, isJust)
+import Data.List (find)
+import Data.Map (Map)
+import qualified Data.Map as M
+import Data.Maybe (isJust)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.RawString.QQ
@@ -26,11 +25,11 @@ abdefghi
 |]
 
 type Cell = Char
-type Field = [[Cell]]
 type CellHeight = Char
 type Y = Int
 type X = Int
 type Pos = (Y, X)
+type Field = Map Pos Cell
 type Path = [Pos]
 
 isStart :: Cell -> Bool
@@ -51,16 +50,17 @@ incrCellHeight :: CellHeight -> CellHeight
 incrCellHeight c = chr (ord c + 1)
 
 mkField :: String -> Field
-mkField = lines
+mkField txt =
+  let xs = lines txt
+      height = length xs
+      width = length . head $ xs
+      positions = [(y, x) | y <- [0..height-1], x <- [0..width-1]]
+      values = [(pos, (xs !! y) !! x) | pos@(y, x) <- positions]
+      map = M.fromList values
+  in map
 
 getPos :: (Cell -> Bool) -> Field -> Maybe Pos
-getPos checkCell field = getPos' 0 field
-  where
-    getPos' :: Y -> Field -> Maybe Pos
-    getPos' rowIdx (row:others) =
-      let idx = (\colIdx -> (rowIdx, colIdx)) <$> findIndex checkCell row
-      in idx <|> getPos' (rowIdx+1) others
-    getPos' _ [] = Nothing
+getPos checkCell field = fst <$> find (\(_, cell) -> checkCell cell) (M.toList field)
 
 getStartPos :: Field -> Maybe Pos
 getStartPos = getPos isStart
@@ -69,10 +69,7 @@ getEndPos :: Field -> Maybe Pos
 getEndPos = getPos isEnd
 
 getCellValue :: Field -> Pos -> Maybe Cell
-getCellValue field (y, x) = do
-  row <- field !? y
-  cell <- row !? x
-  return cell
+getCellValue fieldMap pos = M.lookup pos fieldMap
 
 getCellHeight :: Field -> Pos -> Maybe CellHeight
 getCellHeight field pos = fmap toHeight . getCellValue field $ pos
@@ -92,22 +89,32 @@ getReachablePositions field pos =
         reachablePositions = S.filter isReachable adjacentPositions
       in reachablePositions
 
-searchPaths' :: Field -> Pos -> [Pos] -> Set Pos -> [Path]
-searchPaths' field toVisit currentPath visited =
-  let cellValue = fromMaybe undefined $ getCellValue field toVisit
-      currentPath' = toVisit : currentPath
-      reachablePositions = getReachablePositions field toVisit
-      isNotVisited pos = not . S.member pos $ visited
-      positionsToVisit = S.filter isNotVisited reachablePositions
-      visited' = S.union visited positionsToVisit
-      otherPaths :: [Path]
-        | isEnd cellValue = [reverse currentPath']
-        | null positionsToVisit = []
-        | otherwise = concatMap (\x -> searchPaths' field x currentPath' visited') positionsToVisit
-  in otherPaths
+type PredecessorMap = Map Pos Pos
 
-searchPaths :: Field -> Pos -> [Path]
-searchPaths field startPos = searchPaths' field startPos [] (S.singleton startPos)
+searchPaths' :: Field -> Pos -> [Pos] -> Set Pos -> PredecessorMap -> PredecessorMap
+searchPaths' field pos toVisit visited predecessors =
+  let visited' = S.insert pos visited
+      reachablePositions = getReachablePositions field pos
+      reachablePositionsNotVisited = S.difference reachablePositions visited'
+      reachablePositionsNotVisitedAndNotToVisit = S.difference reachablePositionsNotVisited (S.fromList toVisit)
+      toVisit' = toVisit ++ S.toList reachablePositionsNotVisitedAndNotToVisit
+      predecessors' = foldl (\acc x -> M.insert x pos acc) predecessors reachablePositionsNotVisitedAndNotToVisit
+
+  in case toVisit' of
+    [] -> predecessors'
+    x:xs -> searchPaths' field x xs visited' predecessors'
+
+searchPaths :: Field -> Pos -> PredecessorMap
+searchPaths field startPos = searchPaths' field startPos [] S.empty M.empty
+
+getPathTo' :: Map Pos Pos -> Pos -> Path -> Path
+getPathTo' predecessors pos pathSoFar = do
+  case M.lookup pos predecessors of
+    Just x -> getPathTo' predecessors x (pos:pathSoFar)
+    Nothing -> pos:pathSoFar
+
+getPathTo :: Map Pos Pos -> Pos -> Path
+getPathTo predecessors pos = getPathTo' predecessors pos []
 
 day12 :: IO ()
 day12 = do
@@ -126,18 +133,15 @@ day12 = do
 
   -- debug
   putStrLn "Field:"
-  forM_ field $ \l -> do
-    putStrLn l
+  putStrLn input
 
   putStrLn $ "startPos: " <> show startPos
   putStrLn $ "endPos: " <> show endPos
 
   -- part 1
-  let paths = searchPaths field startPos
-      shortestPath = minimumBy (compare `on` length) paths
-      shortestPathLength = length shortestPath
-      shortestPathSteps = shortestPathLength - 1
+  let predecessors = searchPaths field startPos
+      shortestPath = getPathTo predecessors endPos
+      shortestPathLength = length shortestPath - 1
 
   putStrLn $ "Shortest path: " <> show shortestPath
   putStrLn $ "Shortest path length: " <> show shortestPathLength
-  putStrLn $ "Num steps: " <> show shortestPathSteps

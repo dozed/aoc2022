@@ -71,7 +71,7 @@ day12Spec = do
         (Just pos) -> pure pos
         Nothing -> fail "could not get end position"
 
-      let predecessors = searchPaths field startPos
+      let predecessors = searchShortestPathsBfsFrom field startPos
           shortestPath = getPathTo predecessors endPos
           shortestPathLength = length shortestPath - 1
 

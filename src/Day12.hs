@@ -91,21 +91,23 @@ getReachablePositions field pos =
 
 type PredecessorMap = Map Pos Pos
 
-searchPaths' :: Field -> Pos -> [Pos] -> Set Pos -> PredecessorMap -> PredecessorMap
-searchPaths' field pos toVisit visited predecessors =
+searchShortestPathsBfsFrom' :: Field -> Pos -> [Pos] -> Set Pos -> PredecessorMap -> PredecessorMap
+searchShortestPathsBfsFrom' field pos toVisit visited predecessors =
   let visited' = S.insert pos visited
       reachablePositions = getReachablePositions field pos
       reachablePositionsNotVisited = S.difference reachablePositions visited'
       reachablePositionsNotVisitedAndNotToVisit = S.difference reachablePositionsNotVisited (S.fromList toVisit)
       toVisit' = toVisit ++ S.toList reachablePositionsNotVisitedAndNotToVisit
       predecessors' = foldl (\acc x -> M.insert x pos acc) predecessors reachablePositionsNotVisitedAndNotToVisit
+      -- toVisit' = toVisit ++ S.toList reachablePositionsNotVisited
+      -- predecessors' = foldl (\acc x -> M.insert x pos acc) predecessors reachablePositionsNotVisited
 
   in case toVisit' of
     [] -> predecessors'
-    x:xs -> searchPaths' field x xs visited' predecessors'
+    x:xs -> searchShortestPathsBfsFrom' field x xs visited' predecessors'
 
-searchPaths :: Field -> Pos -> PredecessorMap
-searchPaths field startPos = searchPaths' field startPos [] S.empty M.empty
+searchShortestPathsBfsFrom :: Field -> Pos -> PredecessorMap
+searchShortestPathsBfsFrom field startPos = searchShortestPathsBfsFrom' field startPos [] S.empty M.empty
 
 getPathTo' :: Map Pos Pos -> Pos -> Path -> Path
 getPathTo' predecessors pos pathSoFar = do
@@ -139,7 +141,7 @@ day12 = do
   putStrLn $ "endPos: " <> show endPos
 
   -- part 1
-  let predecessors = searchPaths field startPos
+  let predecessors = searchShortestPathsBfsFrom field startPos
       shortestPath = getPathTo predecessors endPos
       shortestPathLength = length shortestPath - 1
 

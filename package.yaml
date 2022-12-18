@@ -8,7 +8,6 @@ copyright:           "2022 Stefan Ollinger"
 
 extra-source-files:
 - README.md
-- CHANGELOG.md
 
 description:         Please see GitHub at <https://github.com/dozed/aoc2022#readme>
 

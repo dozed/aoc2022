@@ -51,3 +51,16 @@ day13Spec = do
   describe "packetPairsParser" $ do
     it "should parse packet pairs" $ do
       regularParse packetPairsParser txt2 `shouldBe` Right [(packet1, packet2), (packet3, packet4)]
+
+      let expected = [
+              (L [S 1,S 1,S 3,S 1,S 1],L [S 1,S 1,S 5,S 1,S 1]),
+              (L [L [S 1],L [S 2,S 3,S 4]],L [L [S 1],S 4]),
+              (L [S 9],L [L [S 8,S 7,S 6]]),
+              (L [L [S 4,S 4],S 4,S 4],L [L [S 4,S 4],S 4,S 4,S 4]),
+              (L [S 7,S 7,S 7,S 7],L [S 7,S 7,S 7]),
+              (L [],L [S 3]),
+              (L [L [L []]],L [L []]),
+              (L [S 1,L [S 2,L [S 3,L [S 4,L [S 5,S 6,S 7]]]],S 8,S 9],L [S 1,L [S 2,L [S 3,L [S 4,L [S 5,S 6,S 0]]]],S 8,S 9])
+            ]
+
+      regularParse packetPairsParser testInput1 `shouldBe` Right expected

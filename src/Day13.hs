@@ -7,8 +7,8 @@ import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip)
-  
+import Util (lstrip, regularParse)
+
 testInput1 :: String
 testInput1 = lstrip [r|
 [1,1,3,1,1]
@@ -46,7 +46,7 @@ smallPacketParser = S . read <$> many1 digit
 largePacketParser :: Parser Packet
 largePacketParser = do
   void $ char '['
-  packets <- sepBy1 packetParser (char ',')
+  packets <- sepBy packetParser (char ',')
   void $ char ']'
   return $ L packets
 
@@ -62,8 +62,14 @@ packetPairParser = do
   return (p1, p2)
 
 packetPairsParser :: Parser [(Packet, Packet)]
-packetPairsParser = sepBy1 packetPairParser endOfLine 
+packetPairsParser = sepBy1 packetPairParser endOfLine
 
 day13 :: IO ()
 day13 = do
-  print "day13"
+  let input = testInput1
+  
+  packets <- case regularParse packetPairsParser input of
+    Left e -> fail $ show e
+    Right xs -> pure xs
+  
+  print packets

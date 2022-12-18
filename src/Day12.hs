@@ -129,8 +129,8 @@ getPositionsOnHeight field ch = map fst . filter (\(p, c) -> c == ch) . M.toList
 
 day12 :: IO ()
 day12 = do
-  let input = testInput1
-  -- input <- strip <$> readFile "input/Day12.txt"
+  -- let input = testInput1
+  input <- strip <$> readFile "input/Day12.txt"
 
   let field = mkField input
 

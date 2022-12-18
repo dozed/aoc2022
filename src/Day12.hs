@@ -8,7 +8,7 @@ import Data.Char (chr, ord)
 import Data.List (find)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, catMaybes)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.RawString.QQ
@@ -31,6 +31,9 @@ type X = Int
 type Pos = (Y, X)
 type Field = Map Pos Cell
 type Path = [Pos]
+
+getPathLength :: Path -> Int
+getPathLength p = length p - 1
 
 isStart :: Cell -> Bool
 isStart 'S' = True
@@ -106,32 +109,52 @@ searchShortestPathsBfsFrom' field pos toVisit visited predecessors =
     [] -> predecessors'
     x:xs -> searchShortestPathsBfsFrom' field x xs visited' predecessors'
 
-searchShortestPathsBfsFrom :: Field -> Pos -> PredecessorMap
-searchShortestPathsBfsFrom field startPos = searchShortestPathsBfsFrom' field startPos [] S.empty M.empty
+getPathTo' :: PredecessorMap -> Pos -> Path -> Path
+getPathTo' predecessors currentPos pathSoFar = do
+  case M.lookup currentPos predecessors of
+    Just x -> getPathTo' predecessors x (currentPos:pathSoFar)
+    Nothing -> currentPos:pathSoFar
 
-getPathTo' :: Map Pos Pos -> Pos -> Path -> Path
-getPathTo' predecessors pos pathSoFar = do
-  case M.lookup pos predecessors of
-    Just x -> getPathTo' predecessors x (pos:pathSoFar)
-    Nothing -> pos:pathSoFar
+getPathTo :: PredecessorMap -> Pos -> Pos -> Maybe Path
+getPathTo predecessors startPos endPos =
+  let path = getPathTo' predecessors endPos []
+      pathFiltered = if head path == startPos then Just path else Nothing
+  in pathFiltered
 
-getPathTo :: Map Pos Pos -> Pos -> Path
-getPathTo predecessors pos = getPathTo' predecessors pos []
+searchShortestPathsBfsFrom :: Field -> Pos -> Pos -> Maybe Path
+searchShortestPathsBfsFrom field startPos endPos =
+  let predecessors = searchShortestPathsBfsFrom' field startPos [] S.empty M.empty
+      shortestPath = getPathTo predecessors startPos endPos
+  in shortestPath
+
+getReachablePositionsOnLevelA :: Field -> Pos -> Set Pos -> Set Pos
+getReachablePositionsOnLevelA field currentPos visited =
+  let adjacentPositions = getAdjacentPositions currentPos
+      isReachable pos = isJust . mfilter (== 'a') . getCellHeight field $ pos
+      reachablePositions = S.filter isReachable adjacentPositions
+      reachablePositionsNotVisited = S.difference reachablePositions visited
+      visited' = S.insert currentPos visited
+      others = S.unions . S.fromList . fmap (\x -> getReachablePositionsOnLevelA field x visited') $ S.toList reachablePositionsNotVisited
+      others' = S.union visited' others
+  in others'
+
+getPositionsOnLevel :: Field -> CellHeight -> [Pos]
+getPositionsOnLevel field ch = map fst . filter (\(p, c) -> c == ch) . M.toList $ field
 
 day12 :: IO ()
 day12 = do
-  -- let input = testInput1
-  input <- strip <$> readFile "input/Day12.txt"
+  let input = testInput1
+  -- input <- strip <$> readFile "input/Day12.txt"
 
   let field = mkField input
 
   startPos <- case getStartPos field of
-    (Just pos) -> pure pos
     Nothing -> fail "could not get start position"
+    (Just pos) -> pure pos
 
   endPos <- case getEndPos field of
-    (Just pos) -> pure pos
     Nothing -> fail "could not get end position"
+    (Just pos) -> pure pos
 
   -- debug
   putStrLn "Field:"
@@ -141,9 +164,18 @@ day12 = do
   putStrLn $ "endPos: " <> show endPos
 
   -- part 1
-  let predecessors = searchShortestPathsBfsFrom field startPos
-      shortestPath = getPathTo predecessors endPos
-      shortestPathLength = length shortestPath - 1
+  shortestPath <- case searchShortestPathsBfsFrom field startPos endPos of
+    Nothing -> fail "could not get shortest path"
+    Just x -> pure x
+
+  let shortestPathLength = getPathLength shortestPath
 
   putStrLn $ "Shortest path: " <> show shortestPath
+  putStrLn $ "Shortest path length: " <> show shortestPathLength
+
+  -- part 2
+  let possibleStartPositions = getPositionsOnLevel field 'a'
+      allPaths = catMaybes . filter isJust . map (\x -> searchShortestPathsBfsFrom field x endPos) $ possibleStartPositions
+      shortestPathLength = minimum . map getPathLength $ allPaths
+
   putStrLn $ "Shortest path length: " <> show shortestPathLength

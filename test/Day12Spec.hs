@@ -64,16 +64,18 @@ day12Spec = do
   describe "searchPaths" $ do
     it "should find the shortest path from S to E" $ do
       startPos <- case getStartPos field of
-        (Just pos) -> pure pos
         Nothing -> fail "could not get start position"
+        (Just pos) -> pure pos
 
       endPos <- case getEndPos field of
-        (Just pos) -> pure pos
         Nothing -> fail "could not get end position"
+        (Just pos) -> pure pos
 
-      let predecessors = searchShortestPathsBfsFrom field startPos
-          shortestPath = getPathTo predecessors endPos
-          shortestPathLength = length shortestPath - 1
+      shortestPath <- case searchShortestPathsBfsFrom field startPos endPos of
+        Nothing -> fail "could not get shortest path"
+        (Just path) -> pure path
+
+      let shortestPathLength = getPathLength shortestPath
 
       shortestPath `shouldBe` [(0,0),(0,1),(0,2),(1,2),(2,2),(3,2),(4,2),(4,3),(4,4),(4,5),(4,6),(4,7),(3,7),(2,7),(1,7),(0,7),(0,6),(0,5),(0,4),(0,3),(1,3),(2,3),(3,3),(3,4),(3,5),(3,6),(2,6),(1,6),(1,5),(1,4),(2,4),(2,5)]
       shortestPathLength `shouldBe` 31

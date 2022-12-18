@@ -2,7 +2,7 @@
 
 module Day13 where
 
-import Control.Monad (void)
+import Control.Monad (forM_, void)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -40,6 +40,28 @@ data Packet = L [Packet]
             | S Int
             deriving (Eq, Show)
 
+data PacketOrder = CorrectOrder | IncorrectOrder | InconclusiveOrder
+                   deriving (Eq, Show)
+
+isCorrectOrder :: PacketOrder -> Bool
+isCorrectOrder CorrectOrder = True
+isCorrectOrder _ = False
+
+getPacketOrder :: Packet -> Packet -> PacketOrder
+getPacketOrder (S i) (S j)
+  | i < j = CorrectOrder
+  | i > j = IncorrectOrder
+  | otherwise = InconclusiveOrder
+getPacketOrder (S i) (L ys) = getPacketOrder (L [S i]) (L ys)
+getPacketOrder (L xs) (S j) = getPacketOrder (L xs) (L [S j])
+getPacketOrder (L []) (L (_:_)) = CorrectOrder
+getPacketOrder (L (_:_)) (L []) = IncorrectOrder
+getPacketOrder (L []) (L []) = InconclusiveOrder
+getPacketOrder (L (x:xs)) (L (y:ys)) =
+  case getPacketOrder x y of
+    InconclusiveOrder -> getPacketOrder (L xs) (L ys)
+    other -> other
+
 smallPacketParser :: Parser Packet
 smallPacketParser = S . read <$> many1 digit
 
@@ -66,10 +88,20 @@ packetPairsParser = sepBy1 packetPairParser endOfLine
 
 day13 :: IO ()
 day13 = do
-  let input = testInput1
-  
-  packets <- case regularParse packetPairsParser input of
+  -- let input = testInput1
+  input <- readFile "input/Day13.txt"
+
+  packetPairs <- case regularParse packetPairsParser input of
     Left e -> fail $ show e
     Right xs -> pure xs
-  
-  print packets
+
+  print packetPairs
+
+  forM_ packetPairs $ \(a, b) -> do
+    putStrLn $ show (a, b) <> " " <> show (getPacketOrder a b)
+
+  -- part 1
+  let orders = map (uncurry getPacketOrder) packetPairs
+      indexSum = sum . map snd . filter (\(o, i) -> isCorrectOrder o) $ orders `zip` [1..]
+
+  putStrLn $ "No. correct orders: " <> show indexSum

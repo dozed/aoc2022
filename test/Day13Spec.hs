@@ -64,3 +64,128 @@ day13Spec = do
             ]
 
       regularParse packetPairsParser testInput1 `shouldBe` Right expected
+
+  describe "getPacketOrder" $ do
+    it "should detect correct packet order for small packets" $ do
+      let p1 = S 1
+      let p2 = S 2
+
+      getPacketOrder p1 p2 `shouldBe` CorrectOrder
+
+    it "should detect incorrect packet order for small packets" $ do
+      let p1 = S 2
+      let p2 = S 1
+
+      getPacketOrder p1 p2 `shouldBe` IncorrectOrder
+
+    it "should detect inconclusive packet order for small packets" $ do
+      let p1 = S 2
+      let p2 = S 2
+
+      getPacketOrder p1 p2 `shouldBe` InconclusiveOrder
+
+    it "should detect correct packet order for mismatching packets" $ do
+      let p1 = S 1
+      let p2 = L [S 2, S 3]
+
+      getPacketOrder p1 p2 `shouldBe` CorrectOrder
+
+      let p3 = S 1
+      let p4 = L [S 1, S 3]
+
+      getPacketOrder p3 p4 `shouldBe` CorrectOrder
+
+      let p5 = L [S 1, S 3]
+      let p6 = S 2
+
+      getPacketOrder p5 p6 `shouldBe` CorrectOrder
+
+    it "should detect incorrect packet order for mismatching packets" $ do
+      let p1 = S 2
+      let p2 = L [S 1, S 3]
+
+      getPacketOrder p1 p2 `shouldBe` IncorrectOrder
+
+      let p3 = L [S 2, S 3]
+      let p4 = S 1
+
+      getPacketOrder p3 p4 `shouldBe` IncorrectOrder
+
+      let p5 = L [S 1, S 3]
+      let p6 = S 1
+
+      getPacketOrder p5 p6 `shouldBe` IncorrectOrder
+
+    it "should detect inconclusive packet order for mismatching packets" $ do
+      let p1 = S 1
+      let p2 = L [S 1]
+
+      getPacketOrder p1 p2 `shouldBe` InconclusiveOrder
+
+      let p3 = L [S 1]
+      let p4 = S 1
+
+      getPacketOrder p3 p4 `shouldBe` InconclusiveOrder
+
+    it "should detect correct packet order for unbalanced large packets" $ do
+      let p1 = L []
+      let p2 = L [S 1, S 5]
+
+      getPacketOrder p1 p2 `shouldBe` CorrectOrder
+
+    it "should detect incorrect packet order for unbalanced large packets" $ do
+      let p1 = L [S 1, S 5]
+      let p2 = L []
+
+      getPacketOrder p1 p2 `shouldBe` IncorrectOrder
+
+    it "should detect inconclusive packet order for empty large packets" $ do
+      let p1 = L []
+      let p2 = L []
+
+      getPacketOrder p1 p2 `shouldBe` InconclusiveOrder
+
+    it "should detect correct packet order for large packets" $ do
+      let p1 = L [S 1, S 2]
+      let p2 = L [S 2, S 3]
+
+      getPacketOrder p1 p2 `shouldBe` CorrectOrder
+
+      let p3 = L [S 2, S 2]
+      let p4 = L [S 2, S 3]
+
+      getPacketOrder p3 p4 `shouldBe` CorrectOrder
+
+    it "should detect incorrect packet order for large packets" $ do
+      let p1 = L [S 2, S 3]
+      let p2 = L [S 1, S 2]
+
+      getPacketOrder p1 p2 `shouldBe` IncorrectOrder
+
+      let p3 = L [S 2, S 3]
+      let p4 = L [S 2, S 2]
+
+      getPacketOrder p3 p4 `shouldBe` IncorrectOrder
+
+    it "should detect correct packet order for nested packets" $ do
+      let p1 = L [L [S 1, S 2], S 5]
+      let p2 = L [L [S 2, S 3], S 4]
+
+      getPacketOrder p1 p2 `shouldBe` CorrectOrder
+
+      let p3 = L [L [S 2, S 2], S 2]
+      let p4 = L [L [S 2, S 3], S 2]
+
+      getPacketOrder p3 p4 `shouldBe` CorrectOrder
+
+    it "should detect packet order for example input" $ do
+      packetPairs <- case regularParse packetPairsParser testInput1 of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+    
+      let orders = map (uncurry getPacketOrder) packetPairs
+      
+      orders `shouldBe` [
+          CorrectOrder, CorrectOrder, IncorrectOrder, CorrectOrder,
+          IncorrectOrder, CorrectOrder, IncorrectOrder, IncorrectOrder
+        ]

@@ -8,7 +8,7 @@ import Data.Char (chr, ord)
 import Data.List (find)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (isJust, catMaybes)
+import Data.Maybe (isJust, mapMaybe)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.RawString.QQ
@@ -161,7 +161,7 @@ day12 = do
 
   -- part 2
   let possibleStartPositions = getPositionsOnHeight field 'a'
-      allPaths = catMaybes . filter isJust . map (\x -> searchShortestPathsBfsFrom field x endPos) $ possibleStartPositions
+      allPaths = mapMaybe (\x -> searchShortestPathsBfsFrom field x endPos) possibleStartPositions
       shortestPathLength = minimum . map getPathLength $ allPaths
 
   putStrLn $ "Shortest path length: " <> show shortestPathLength

@@ -109,17 +109,14 @@ searchShortestPathsBfsFrom' field pos toVisit visited predecessors =
     [] -> predecessors'
     x:xs -> searchShortestPathsBfsFrom' field x xs visited' predecessors'
 
-getPathTo' :: PredecessorMap -> Pos -> Path -> Path
-getPathTo' predecessors currentPos pathSoFar = do
+getPathTo' :: PredecessorMap -> Pos -> Pos -> Path -> Maybe Path
+getPathTo' predecessors startPos currentPos pathSoFar = do
   case M.lookup currentPos predecessors of
-    Just x -> getPathTo' predecessors x (currentPos:pathSoFar)
-    Nothing -> currentPos:pathSoFar
+    Just x -> getPathTo' predecessors startPos x (currentPos:pathSoFar)
+    Nothing -> if currentPos == startPos then Just (currentPos:pathSoFar) else Nothing
 
 getPathTo :: PredecessorMap -> Pos -> Pos -> Maybe Path
-getPathTo predecessors startPos endPos =
-  let path = getPathTo' predecessors endPos []
-      pathFiltered = if head path == startPos then Just path else Nothing
-  in pathFiltered
+getPathTo predecessors startPos endPos = getPathTo' predecessors startPos endPos []
 
 searchShortestPathsBfsFrom :: Field -> Pos -> Pos -> Maybe Path
 searchShortestPathsBfsFrom field startPos endPos =

@@ -2,12 +2,14 @@
 
 module Day14 where
 
-import Control.Monad (void)
+import Control.Monad (forM_, join, void)
+import Data.Function (on)
+import Data.List (maximumBy, minimumBy)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip)
+import Util (lstrip, regularParse)
 
 testInput1 :: String
 testInput1 = lstrip [r|
@@ -35,4 +37,24 @@ pathsParser = endBy1 pathParser endOfLine
 
 day14 :: IO ()
 day14 = do
-  putStrLn "day14"
+  let input = testInput1
+
+  paths <- case regularParse pathsParser input of
+    Left e -> fail $ show e
+    Right xs -> pure xs
+
+  forM_ paths print
+
+  let minX = fst . minimumBy (compare `on` fst) $ join paths
+      maxX = fst . maximumBy (compare `on` fst) $ join paths
+      minY = snd . minimumBy (compare `on` snd) $ join paths
+      maxY = snd . maximumBy (compare `on` snd) $ join paths
+      width = maxX - minX
+      height = maxY - minY
+
+  putStrLn $ "minX: " <> show minX <> " maxX: " <> show maxX <> " minY: " <> show minY <> " maxY: " <> show maxY
+  putStrLn $ "height: " <> show height <> " width: " <> show width 
+
+  let paths' = map (map (\(x, y) -> (x - minX, y - minY))) paths
+  
+  forM_ paths' print

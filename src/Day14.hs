@@ -30,6 +30,9 @@ posParser = do
 pathParser :: Parser Path
 pathParser = sepBy1 posParser (try (string " -> "))
 
+pathsParser :: Parser [Path]
+pathsParser = endBy1 pathParser endOfLine
+
 day14 :: IO ()
 day14 = do
   putStrLn "day14"

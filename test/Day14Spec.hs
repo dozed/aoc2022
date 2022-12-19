@@ -15,3 +15,10 @@ day14Spec = do
   describe "pathParser" $ do
     it "should parse a Path" $ do
       regularParse pathParser "498,4 -> 498,6 -> 496,6" `shouldBe` Right [(498, 4), (498, 6), (496, 6)]
+
+  describe "pathsParser" $ do
+    it "should parse a list of Path" $ do
+      regularParse pathsParser testInput1 `shouldBe` Right [
+          [(498, 4), (498, 6), (496, 6)],
+          [(503, 4), (502, 4), (502, 9), (494, 9)]
+        ]

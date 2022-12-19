@@ -25,12 +25,36 @@ day14Spec = do
           [(503, 4), (502, 4), (502, 9), (494, 9)]
         ]
 
+  describe "mkPathSegment" $ do
+    it "should make PathSegment" $ do
+      let from = (1, 1)
+      let to = (10, 1)
+      mkPathSegment from to `shouldBe` (from, to)
+
   describe "getOrientation" $ do
     it "should get Horizontal orientation" $ do
-      getOrientation (498, 6) (496, 6) `shouldBe` Horizontal
+      getOrientation (mkPathSegment (498, 6) (496, 6)) `shouldBe` Horizontal
 
     it "should get Vertical orientation" $ do
-      getOrientation (498, 4) (498, 6) `shouldBe` Vertical
+      getOrientation (mkPathSegment (498, 4) (498, 6)) `shouldBe` Vertical
 
     it "should throw for non-Horizontal and non-Vertical orientation" $ do
-      evaluate (getOrientation (498, 4) (499, 5)) `shouldThrow` anyErrorCall
+      evaluate (getOrientation (mkPathSegment (498, 4) (499, 5))) `shouldThrow` anyErrorCall
+
+  describe "getRange" $ do
+    it "should compute increasing range" $ do
+      getRange 1 3 `shouldBe` [1, 2, 3]
+
+    it "should compute decreasing range" $ do
+      getRange 3 1 `shouldBe` [3, 2, 1]
+
+  describe "expandPathSegment" $ do
+    it "should expand a horizontal PathSegment" $ do
+      let seg = mkPathSegment (498, 6) (495, 6)
+
+      expandPathSegment seg `shouldBe` [(498, 6), (497, 6), (496, 6), (495, 6)]
+
+    it "should expand a vertical PathSegment" $ do
+      let seg = mkPathSegment (498, 4) (498, 7)
+
+      expandPathSegment seg `shouldBe` [(498, 4), (498, 5), (498, 6), (498, 7)]

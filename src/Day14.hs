@@ -19,17 +19,32 @@ testInput1 = lstrip [r|
 
 type X = Int
 type Y = Int
-type Pos = (X,Y)
+type Pos = (X, Y)
 type Path = [Pos]
+type PathSegment = (Pos, Pos)
 
 data Orientation = Horizontal | Vertical
                    deriving (Eq, Show)
 
-getOrientation :: Pos -> Pos -> Orientation
-getOrientation (x1, y1) (x2, y2)
+mkPathSegment :: Pos -> Pos -> PathSegment
+mkPathSegment from to = (from, to)
+
+getOrientation :: PathSegment -> Orientation
+getOrientation ((x1, y1), (x2, y2))
   | x1 == x2 = Vertical
   | y1 == y2 = Horizontal
   | otherwise = undefined
+
+getRange :: Int -> Int -> [Int]
+getRange from to
+  | from <= to = [from,(from+1)..to]
+  | otherwise = [from,(from-1)..to]
+
+expandPathSegment :: PathSegment -> Path
+expandPathSegment seg@((x1, y1), (x2, y2)) =
+  case getOrientation seg of
+    Horizontal -> [(x, y1) | x <- getRange x1 x2]
+    Vertical -> [(x2, y) | y <- getRange y1 y2]
 
 posParser :: Parser Pos
 posParser = do

@@ -12,6 +12,6 @@ day14Spec = do
     it "should parse a Pos" $ do
       regularParse posParser "498,4" `shouldBe` Right (498, 4)
 
-  describe "lineParser" $ do
-    it "should parse a list of Pos" $ do
-      regularParse lineParser "498,4 -> 498,6 -> 496,6" `shouldBe` Right [(498, 4), (498, 6), (496, 6)]
+  describe "pathParser" $ do
+    it "should parse a Segment" $ do
+      regularParse pathParser "498,4 -> 498,6 -> 496,6" `shouldBe` Right [(498, 4), (498, 6), (496, 6)]

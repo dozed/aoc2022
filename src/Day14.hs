@@ -22,6 +22,15 @@ type Y = Int
 type Pos = (X,Y)
 type Path = [Pos]
 
+data Orientation = Horizontal | Vertical
+                   deriving (Eq, Show)
+
+getOrientation :: Pos -> Pos -> Orientation
+getOrientation (x1, y1) (x2, y2)
+  | x1 == x2 = Vertical
+  | y1 == y2 = Horizontal
+  | otherwise = undefined
+
 posParser :: Parser Pos
 posParser = do
   x <- read <$> many1 digit
@@ -53,8 +62,8 @@ day14 = do
       height = maxY - minY
 
   putStrLn $ "minX: " <> show minX <> " maxX: " <> show maxX <> " minY: " <> show minY <> " maxY: " <> show maxY
-  putStrLn $ "height: " <> show height <> " width: " <> show width 
+  putStrLn $ "height: " <> show height <> " width: " <> show width
 
   let paths' = map (map (\(x, y) -> (x - minX, y - minY))) paths
-  
+
   forM_ paths' print

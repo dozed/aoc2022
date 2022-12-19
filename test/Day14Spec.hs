@@ -1,5 +1,7 @@
 module Day14Spec (day14Spec) where
 
+import Control.Exception (evaluate)
+
 import Test.Hspec
 
 import Day14
@@ -22,3 +24,13 @@ day14Spec = do
           [(498, 4), (498, 6), (496, 6)],
           [(503, 4), (502, 4), (502, 9), (494, 9)]
         ]
+
+  describe "getOrientation" $ do
+    it "should get Horizontal orientation" $ do
+      getOrientation (498, 6) (496, 6) `shouldBe` Horizontal
+
+    it "should get Vertical orientation" $ do
+      getOrientation (498, 4) (498, 6) `shouldBe` Vertical
+
+    it "should throw for non-Horizontal and non-Vertical orientation" $ do
+      evaluate (getOrientation (498, 4) (499, 5)) `shouldThrow` anyErrorCall

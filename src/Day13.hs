@@ -3,11 +3,12 @@
 module Day13 where
 
 import Control.Monad (forM_, void)
+import Data.List (elemIndex, sortBy)
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse)
+import Util (catPairs, lstrip, regularParse)
 
 testInput1 :: String
 testInput1 = lstrip [r|
@@ -46,6 +47,11 @@ data PacketOrder = CorrectOrder | IncorrectOrder | InconclusiveOrder
 isCorrectOrder :: PacketOrder -> Bool
 isCorrectOrder CorrectOrder = True
 isCorrectOrder _ = False
+
+toOrdering :: PacketOrder -> Ordering
+toOrdering CorrectOrder = LT
+toOrdering IncorrectOrder = GT
+toOrdering InconclusiveOrder = EQ
 
 getPacketOrder :: Packet -> Packet -> PacketOrder
 getPacketOrder (S i) (S j)
@@ -105,3 +111,19 @@ day13 = do
       indexSum = sum . map snd . filter (\(o, i) -> isCorrectOrder o) $ orders `zip` [1..]
 
   putStrLn $ "No. correct orders: " <> show indexSum
+
+  -- part 2
+  let dividerPacket1 = L [L [S 2]]
+      dividerPacket2 = L [L [S 6]]
+      unsortedPackets = dividerPacket1 : dividerPacket2 : catPairs packetPairs
+      sortedPackets = sortBy (\a b -> toOrdering (getPacketOrder a b)) unsortedPackets
+
+  idx1 <- case elemIndex dividerPacket1 sortedPackets of
+    Nothing -> fail "Could not find dividerPacket1"
+    Just x -> pure $ x + 1
+
+  idx2 <- case elemIndex dividerPacket2 sortedPackets of
+    Nothing -> fail "Could not find dividerPacket2"
+    Just x -> pure $ x + 1
+
+  putStrLn $ "Decoder key: " <> show (idx1 * idx2)

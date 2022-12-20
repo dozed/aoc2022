@@ -8,7 +8,6 @@ copyright:           "2022 Stefan Ollinger"
 
 extra-source-files:
 - README.md
-- CHANGELOG.md
 
 description:         Please see GitHub at <https://github.com/dozed/aoc2022#readme>
 
@@ -31,6 +30,7 @@ library:
   dependencies:
   - combinatorial
   - containers
+  - extra
   - parsec
   - raw-strings-qq
   - split
@@ -55,6 +55,8 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
+      - containers
       - hspec
+      - QuickCheck
       - raw-strings-qq
       - aoc2022

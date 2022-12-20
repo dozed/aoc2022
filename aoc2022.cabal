@@ -16,7 +16,6 @@ license:        BSD3
 build-type:     Simple
 extra-source-files:
     README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
@@ -27,6 +26,9 @@ library
       Day1
       Day10
       Day11
+      Day12
+      Day13
+      Day14
       Day2a
       Day2b
       Day3
@@ -46,6 +48,7 @@ library
       base >=4.7 && <5
     , combinatorial
     , containers
+    , extra
     , parsec
     , raw-strings-qq
     , split
@@ -69,14 +72,19 @@ test-suite aoc2022-test
   other-modules:
       Day10Spec
       Day11Spec
+      Day12Spec
+      Day13Spec
+      Day14Spec
       Day9Spec
       Paths_aoc2022
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aoc2022
+      QuickCheck
+    , aoc2022
     , base >=4.7 && <5
+    , containers
     , hspec
     , raw-strings-qq
   default-language: Haskell2010

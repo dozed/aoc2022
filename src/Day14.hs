@@ -43,19 +43,19 @@ getRange from to
   | from <= to = [from,(from+1)..to]
   | otherwise = [from,(from-1)..to]
 
-expandPathSegment :: PathSegment -> Set Pos
+expandPathSegment :: PathSegment -> Field
 expandPathSegment seg@((x1, y1), (x2, y2)) =
   case getOrientation seg of
     Horizontal -> S.fromList [(x, y1) | x <- getRange x1 x2]
     Vertical -> S.fromList [(x2, y) | y <- getRange y1 y2]
 
-expandPath :: Path -> Set Pos
+expandPath :: Path -> Field
 expandPath path =
   let pathSegments = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ path
       field = foldl (\acc seg -> S.union acc (expandPathSegment seg)) S.empty pathSegments
   in field
 
-expandPaths :: [Path] -> Set Pos
+expandPaths :: [Path] -> Field
 expandPaths paths = foldl (\acc path -> S.union acc (expandPath path)) S.empty paths
 
 posParser :: Parser Pos
@@ -70,6 +70,43 @@ pathParser = sepBy1 posParser (try (string " -> "))
 
 pathsParser :: Parser [Path]
 pathsParser = endBy1 pathParser endOfLine
+
+getDownPos :: Pos -> Pos
+getDownPos (x, y) = (x, y + 1)
+
+getDownLeftPos :: Pos -> Pos
+getDownLeftPos (x, y) = (x - 1, y + 1)
+
+getDownRightPos :: Pos -> Pos
+getDownRightPos (x, y) = (x + 1, y + 1)
+
+isBlockedPos :: Field -> Pos -> Bool
+isBlockedPos field pos = S.member pos field
+
+isFreePos :: Field -> Pos -> Bool
+isFreePos field = not . isBlockedPos field
+
+isComeToRest :: Field -> Pos -> Bool
+isComeToRest field pos =
+  let downPos = getDownPos pos
+      downLeftPos = getDownLeftPos pos
+      downRightPos = getDownRightPos pos
+      isBlockedDown = isBlockedPos field downPos
+      isBlockedLeft = isBlockedPos field downLeftPos
+      isBlockedRight = isBlockedPos field downRightPos
+      isBlocked = isBlockedDown && isBlockedLeft && isBlockedRight
+  in isBlocked
+
+getNextPos :: Field -> Pos -> Pos
+getNextPos field pos =
+  let downPos = getDownPos pos
+      downLeftPos = getDownLeftPos pos
+      downRightPos = getDownRightPos pos
+  in
+    if isFreePos field downPos then downPos
+    else if isFreePos field downLeftPos then downLeftPos
+    else if isFreePos field downRightPos then downRightPos
+    else pos
 
 day14 :: IO ()
 day14 = do
@@ -92,5 +129,8 @@ day14 = do
   putStrLn $ "height: " <> show height <> " width: " <> show width
 
   let paths' = map (map (\(x, y) -> (x - minX, y - minY))) paths
-
   forM_ paths' print
+
+  let field = expandPaths paths
+  print field
+

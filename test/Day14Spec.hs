@@ -74,13 +74,13 @@ day14Spec = do
     it "should expand a Path" $ do
       let path = [(498, 4), (498, 6), (496, 6)]
       let expected = S.fromList [(498, 4), (498, 5), (498, 6), (498, 6), (497, 6), (496, 6)]
-      
+
       expandPath path `shouldBe` expected
 
     it "should expand another Path" $ do
       let path = [(503, 4), (502, 4), (502, 9), (500, 9)]
       let expected = S.fromList [(503, 4), (502, 4), (502, 5), (502, 6), (502, 7), (502, 8), (502, 9), (501, 9), (500, 9)]
-      
+
       expandPath path `shouldBe` expected
 
   describe "expandPaths" $ do
@@ -89,9 +89,33 @@ day14Spec = do
               [(498, 4), (498, 6), (496, 6)],
               [(503, 4), (502, 4), (502, 9), (500, 9)]
             ]
-      
+
       let expected = S.union
             (S.fromList [(498, 4), (498, 5), (498, 6), (498, 6), (497, 6), (496, 6)])
             (S.fromList [(503, 4), (502, 4), (502, 5), (502, 6), (502, 7), (502, 8), (502, 9), (501, 9), (500, 9)])
 
       expandPaths paths `shouldBe` expected
+
+  describe "getDownPos" $ it "should get position below" $ getDownPos (1, 0) `shouldBe` (1, 1)
+  describe "getDownLeftPos" $ it "should get position below left" $ getDownLeftPos (1, 0) `shouldBe` (0, 1)
+  describe "getDownRightPos" $ it "should get position below right" $ getDownRightPos (1, 0) `shouldBe` (2, 1)
+
+  describe "isBlockedPos" $ do
+    it "should detect a blocked position" $ isBlockedPos (S.fromList [(0, 0)]) (0, 0) `shouldBe` True
+    it "should detect a non-blocked position" $ isBlockedPos (S.fromList [(0, 0)]) (1, 1) `shouldBe` False
+
+  describe "isComeToRest" $ do
+    it "should detect a blocked pos" $ do
+      let field = S.fromList [(0, 1), (1, 1), (2, 1)]
+      isComeToRest field (1, 0) `shouldBe` True
+
+    it "should detect a non-blocked pos" $ do
+      let field1 = S.fromList [(0, 1), (1, 1)]
+      isComeToRest field1 (1, 0) `shouldBe` False
+
+      let field2 = S.fromList [(0, 1), (2, 1)]
+      isComeToRest field2 (1, 0) `shouldBe` False
+
+      let field3 = S.fromList [(1, 1), (2, 1)]
+      isComeToRest field3 (1, 0) `shouldBe` False
+

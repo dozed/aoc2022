@@ -1,6 +1,10 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Day14Spec (day14Spec) where
 
 import Control.Exception (evaluate)
+import qualified Data.Set as S
+import Data.Set (Set)
 import qualified Data.Set as S
 
 import Test.Hspec

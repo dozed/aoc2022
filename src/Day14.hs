@@ -38,6 +38,9 @@ isSand :: Elem -> Bool
 isSand (Sand _) = True
 isSand _ = False
 
+getFieldMaxY :: Field -> Int
+getFieldMaxY field = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
+
 showFieldAndSandField :: Field -> String
 showFieldAndSandField field =
   let posList = map getPos . S.toList $ field
@@ -180,7 +183,7 @@ day14 = do
     Right xs -> pure xs
 
   let field = S.map Rock $ expandPaths paths
-      maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field  
+      maxY = getFieldMaxY field  
   putStrLn $ showFieldAndSandField field
 
   -- part 1

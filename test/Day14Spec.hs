@@ -3,8 +3,6 @@
 module Day14Spec (day14Spec) where
 
 import Control.Exception (evaluate)
-import Data.Function (on)
-import Data.List (maximumBy)
 import qualified Data.Set as S
 
 import Test.Hspec
@@ -142,6 +140,6 @@ day14Spec = do
   describe "sandFallsIntoEndlessVoid" $ do
     it "should detect a fall into endless void" $ do
       let field = S.fromList [Rock (0, 1), Rock (1, 1), Rock (2, 1)]
-          maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
+          maxY = getFieldMaxY field
       sandFallsIntoEndlessVoid maxY (3, 1) `shouldBe` True
       sandFallsIntoEndlessVoid maxY (1, 0) `shouldBe` False

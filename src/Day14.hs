@@ -146,8 +146,8 @@ sandFallsIntoEndlessVoid maxY (_, y) = y >= maxY
 
 fallSandUnit :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Pos -> Maybe Pos
 fallSandUnit checkStop field sandPos =
-  let (stop, newPos) = checkStop field sandPos
-  in if stop then newPos
+  let (stop, sandPosToStore) = checkStop field sandPos
+  in if stop then sandPosToStore
      else
        let nextSandPos = getNextPos field sandPos
        in fallSandUnit checkStop field nextSandPos
@@ -183,7 +183,7 @@ day14 = do
     Right xs -> pure xs
 
   let field = S.map Rock $ expandPaths paths
-      maxY = getFieldMaxY field  
+      maxY = getFieldMaxY field
   putStrLn $ showFieldAndSandField field
 
   -- part 1

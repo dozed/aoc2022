@@ -108,6 +108,10 @@ day14Spec = do
     it "should detect a blocked position" $ isBlockedPos (S.fromList [(0, 0)]) (0, 0) `shouldBe` True
     it "should detect a non-blocked position" $ isBlockedPos (S.fromList [(0, 0)]) (1, 1) `shouldBe` False
 
+  describe "isFreePos" $ do
+    it "should detect a non-free position" $ isFreePos (S.fromList [(0, 0)]) (0, 0) `shouldBe` False
+    it "should detect a free position" $ isFreePos (S.fromList [(0, 0)]) (1, 1) `shouldBe` True
+
   describe "isComeToRest" $ do
     it "should detect a blocked pos" $ do
       let field = S.fromList [(0, 1), (1, 1), (2, 1)]

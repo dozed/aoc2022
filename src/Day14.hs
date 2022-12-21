@@ -155,8 +155,8 @@ fallSandUnit checkStop field sandPos =
 fallSandUnits :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Field
 fallSandUnits checkStop field =
   let startPos = sandSource
-      newSandPos = Sand <$> fallSandUnit checkStop field startPos
-      field' = maybe field (`S.insert` field) newSandPos
+      sandPosToStore = Sand <$> fallSandUnit checkStop field startPos
+      field' = maybe field (`S.insert` field) sandPosToStore
   in
     if field == field' then field
     else fallSandUnits checkStop field'

@@ -26,6 +26,9 @@ type Path = [Pos]
 type PathSegment = (Pos, Pos)
 type Field = Set Pos
 
+sandSource :: Pos
+sandSource = (500, 0)
+
 data Orientation = Horizontal | Vertical
                    deriving (Eq, Show)
 
@@ -108,6 +111,11 @@ getNextPos field pos =
     else if isFreePos field downRightPos then downRightPos
     else pos
 
+sandFallsIntoEndlessVoid :: Field -> Pos -> Bool
+sandFallsIntoEndlessVoid field (_, y) =
+  let maxY = snd . maximumBy (compare `on` snd) $ S.toList field
+  in y >= maxY
+
 day14 :: IO ()
 day14 = do
   let input = testInput1
@@ -133,4 +141,9 @@ day14 = do
 
   let field = expandPaths paths
   print field
+
+  let currentPos = sandSource
+  print currentPos
+
+
 

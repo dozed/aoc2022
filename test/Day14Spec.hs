@@ -129,3 +129,9 @@ day14Spec = do
       let field3 = S.fromList [(1, 1), (2, 1)]
       isComeToRest field3 (1, 0) `shouldBe` False
 
+  describe "sandFallsIntoEndlessVoid" $ do
+    it "should detect a fall into endless void" $ do
+      let field = S.fromList [(0, 1), (1, 1), (2, 1)]
+      sandFallsIntoEndlessVoid field (3, 1) `shouldBe` True
+      sandFallsIntoEndlessVoid field (1, 0) `shouldBe` False
+

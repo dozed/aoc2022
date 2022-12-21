@@ -50,6 +50,11 @@ day14Spec = do
 
   describe "expandPathSegment" $ do
     it "should expand a horizontal PathSegment" $ do
+      let seg = mkPathSegment (495, 6) (498, 6)
+
+      expandPathSegment seg `shouldBe` [(495, 6), (496, 6), (497, 6), (498, 6)]
+
+    it "should expand a reverse horizontal PathSegment" $ do
       let seg = mkPathSegment (498, 6) (495, 6)
 
       expandPathSegment seg `shouldBe` [(498, 6), (497, 6), (496, 6), (495, 6)]
@@ -58,3 +63,8 @@ day14Spec = do
       let seg = mkPathSegment (498, 4) (498, 7)
 
       expandPathSegment seg `shouldBe` [(498, 4), (498, 5), (498, 6), (498, 7)]
+
+    it "should expand a reverse vertical PathSegment" $ do
+      let seg = mkPathSegment (498, 7) (498, 4)
+
+      expandPathSegment seg `shouldBe` [(498, 7), (498, 6), (498, 5), (498, 4)]

@@ -186,5 +186,5 @@ day14 = do
   let sandField'' = fallSandUnits checkStop' field S.empty
   putStrLn $ showFieldAndSandField field sandField''
 
-  let numSandUnits' = S.size sandField'
+  let numSandUnits' = S.size sandField''
   print numSandUnits'

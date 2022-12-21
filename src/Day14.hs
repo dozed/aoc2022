@@ -2,6 +2,7 @@
 
 module Day14 where
 
+import Control.Monad (void)
 import Data.Function (on)
 import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Set (Set)
@@ -162,3 +163,6 @@ day14 = do
   -- part 1
   let sandField' = fallSandUnits field S.empty
   putStrLn $ showFieldAndSandField field sandField'
+
+  let numSandUnits = S.size sandField'
+  print numSandUnits

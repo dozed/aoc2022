@@ -7,9 +7,17 @@ import qualified Data.Set as S
 
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
+import Test.QuickCheck (Arbitrary, Gen, arbitrary)
 
 import Day14
 import Util (regularParse)
+
+instance Arbitrary Elem where
+  arbitrary = do
+    isRock <- (arbitrary :: Gen Bool)
+    pos <- (arbitrary :: Gen (Int, Int))
+    let e = if isRock then Rock pos else Sand pos
+    return e
 
 day14Spec :: Spec
 day14Spec = do
@@ -104,34 +112,34 @@ day14Spec = do
   describe "getDownRightPos" $ it "should get position below right" $ getDownRightPos (1, 0) `shouldBe` (2, 1)
 
   describe "isBlockedPos" $ do
-    it "should detect a blocked position" $ isBlockedPos (S.fromList [(0, 0)]) (0, 0) `shouldBe` True
-    it "should detect a non-blocked position" $ isBlockedPos (S.fromList [(0, 0)]) (1, 1) `shouldBe` False
+    it "should detect a blocked position" $ isBlockedPos (S.fromList [Rock (0, 0)]) (0, 0) `shouldBe` True
+    it "should detect a non-blocked position" $ isBlockedPos (S.fromList [Rock (0, 0)]) (1, 1) `shouldBe` False
 
   describe "isFreePos" $ do
-    it "should detect a non-free position" $ isFreePos (S.fromList [(0, 0)]) (0, 0) `shouldBe` False
-    it "should detect a free position" $ isFreePos (S.fromList [(0, 0)]) (1, 1) `shouldBe` True
+    it "should detect a non-free position" $ isFreePos (S.fromList [Rock (0, 0)]) (0, 0) `shouldBe` False
+    it "should detect a free position" $ isFreePos (S.fromList [Rock (0, 0)]) (1, 1) `shouldBe` True
 
     prop "is negative of isBlockedPos" $ \(field, pos) ->
       isFreePos field pos `shouldBe` not (isBlockedPos field pos)
- 
+
   describe "isComeToRest" $ do
     it "should detect a blocked pos" $ do
-      let field = S.fromList [(0, 1), (1, 1), (2, 1)]
+      let field = S.fromList [Rock (0, 1), Rock (1, 1), Rock (2, 1)]
       isComeToRest field (1, 0) `shouldBe` True
 
     it "should detect a non-blocked pos" $ do
-      let field1 = S.fromList [(0, 1), (1, 1)]
+      let field1 = S.fromList [Rock (0, 1), Rock (1, 1)]
       isComeToRest field1 (1, 0) `shouldBe` False
 
-      let field2 = S.fromList [(0, 1), (2, 1)]
+      let field2 = S.fromList [Rock (0, 1), Rock (2, 1)]
       isComeToRest field2 (1, 0) `shouldBe` False
 
-      let field3 = S.fromList [(1, 1), (2, 1)]
+      let field3 = S.fromList [Rock (1, 1), Rock (2, 1)]
       isComeToRest field3 (1, 0) `shouldBe` False
 
   describe "sandFallsIntoEndlessVoid" $ do
     it "should detect a fall into endless void" $ do
-      let field = S.fromList [(0, 1), (1, 1), (2, 1)]
+      let field = S.fromList [Rock (0, 1), Rock (1, 1), Rock (2, 1)]
       sandFallsIntoEndlessVoid field (3, 1) `shouldBe` True
       sandFallsIntoEndlessVoid field (1, 0) `shouldBe` False
 

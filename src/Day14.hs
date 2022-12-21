@@ -24,18 +24,30 @@ type Y = Int
 type Pos = (X, Y)
 type Path = [Pos]
 type PathSegment = (Pos, Pos)
-type Field = Set Pos
 
-showFieldAndSandField :: Field -> Field -> String
-showFieldAndSandField field sandField =
-  let fullField = S.union field sandField
-      minX = fst . minimumBy (compare `on` fst) $ fullField
-      maxX = fst . maximumBy (compare `on` fst) $ fullField
-      minY = snd . minimumBy (compare `on` snd) $ fullField
-      maxY = snd . maximumBy (compare `on` snd) $ fullField
+data Elem = Rock Pos | Sand Pos
+            deriving (Eq, Show, Ord)
+
+type Field = Set Elem
+
+getPos :: Elem -> Pos
+getPos (Rock pos) = pos
+getPos (Sand pos) = pos
+
+isSand :: Elem -> Bool
+isSand (Sand _) = True
+isSand _ = False
+
+showFieldAndSandField :: Field -> String
+showFieldAndSandField field =
+  let posList = map getPos . S.toList $ field
+      minX = fst . minimumBy (compare `on` fst) $ posList
+      maxX = fst . maximumBy (compare `on` fst) $ posList
+      minY = snd . minimumBy (compare `on` snd) $ posList
+      maxY = snd . maximumBy (compare `on` snd) $ posList
       getPixel x y
-        | S.member (x, y) field = '#'
-        | S.member (x, y) sandField = 'o'
+        | S.member (Rock (x, y)) field = '#'
+        | S.member (Sand (x, y)) field = 'o'
         | otherwise = '.'
       xxs = [[getPixel x y | x <- [minX..maxX]] | y <- [minY..maxY]]
       txt = intercalate "\n" xxs
@@ -61,19 +73,19 @@ getRange from to
   | from <= to = [from,(from+1)..to]
   | otherwise = [from,(from-1)..to]
 
-expandPathSegment :: PathSegment -> Field
+expandPathSegment :: PathSegment -> Set Pos
 expandPathSegment seg@((x1, y1), (x2, y2)) =
   case getOrientation seg of
     Horizontal -> S.fromList [(x, y1) | x <- getRange x1 x2]
     Vertical -> S.fromList [(x2, y) | y <- getRange y1 y2]
 
-expandPath :: Path -> Field
+expandPath :: Path -> Set Pos
 expandPath path =
   let pathSegments = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ path
       field = foldl (\acc seg -> S.union acc (expandPathSegment seg)) S.empty pathSegments
   in field
 
-expandPaths :: [Path] -> Field
+expandPaths :: [Path] -> Set Pos
 expandPaths paths = foldl (\acc path -> S.union acc (expandPath path)) S.empty paths
 
 posParser :: Parser Pos
@@ -99,7 +111,7 @@ getDownRightPos :: Pos -> Pos
 getDownRightPos (x, y) = (x + 1, y + 1)
 
 isBlockedPos :: Field -> Pos -> Bool
-isBlockedPos field pos = S.member pos field
+isBlockedPos field pos = S.member (Rock pos) field || S.member (Sand pos) field
 
 isFreePos :: Field -> Pos -> Bool
 isFreePos field = not . isBlockedPos field
@@ -128,26 +140,25 @@ getNextPos field pos =
 
 sandFallsIntoEndlessVoid :: Field -> Pos -> Bool
 sandFallsIntoEndlessVoid field (_, y) =
-  let maxY = snd . maximumBy (compare `on` snd) $ S.toList field
+  let maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
   in y >= maxY
 
-fallSandUnit :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Field -> Pos -> Maybe Pos
-fallSandUnit checkStop field sandField sandPos =
-  let unionField = S.union field sandField
-      (stop, newPos) = checkStop unionField sandPos
+fallSandUnit :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Pos -> Maybe Pos
+fallSandUnit checkStop field sandPos =
+  let (stop, newPos) = checkStop field sandPos
   in if stop then newPos
      else
-       let nextSandPos = getNextPos unionField sandPos
-       in fallSandUnit checkStop field sandField nextSandPos
+       let nextSandPos = getNextPos field sandPos
+       in fallSandUnit checkStop field nextSandPos
 
-fallSandUnits :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Field -> Field
-fallSandUnits checkStop field sandField =
+fallSandUnits :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Field
+fallSandUnits checkStop field =
   let startPos = sandSource
-      newSandPos = fallSandUnit checkStop field sandField startPos
-      sandField' = maybe sandField (`S.insert` sandField) newSandPos
+      newSandPos = Sand <$> fallSandUnit checkStop field startPos
+      field' = maybe field (`S.insert` field) newSandPos
   in
-    if sandField == sandField' then sandField
-    else fallSandUnits checkStop field sandField'
+    if field == field' then field
+    else fallSandUnits checkStop field'
 
 day14 :: IO ()
 day14 = do
@@ -158,8 +169,8 @@ day14 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  let field = expandPaths paths
-  putStrLn $ showFieldAndSandField field S.empty
+  let field = S.map Rock $ expandPaths paths
+  putStrLn $ showFieldAndSandField field
 
   -- part 1
   putStrLn "part 1"
@@ -168,23 +179,23 @@ day14 = do
         | sandFallsIntoEndlessVoid unionField sandPos = (True, Nothing)
         | otherwise = (False, Nothing)
 
-  let sandField' = fallSandUnits checkStop field S.empty
-  putStrLn $ showFieldAndSandField field sandField'
+  let field' = fallSandUnits checkStop field
+  putStrLn $ showFieldAndSandField field'
 
-  let numSandUnits = S.size sandField'
+  let numSandUnits = S.size . S.filter isSand $ field'
   print numSandUnits
 
   -- part 2
   putStrLn "part 2"
-  let maxY = snd . maximumBy (compare `on` snd) $ S.toList field
+  let maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
 
   let checkStop' unionField sandPos@(_, y)
         | isComeToRest unionField sandPos = (True, Just sandPos)
-        | y == (maxY + 2) = (True, Just sandPos)
+        | y == (maxY + 1) = (True, Just sandPos)
         | otherwise = (False, Nothing)
 
-  let sandField'' = fallSandUnits checkStop' field S.empty
-  putStrLn $ showFieldAndSandField field sandField''
+  let field'' = fallSandUnits checkStop' field
+  putStrLn $ showFieldAndSandField field''
 
-  let numSandUnits' = S.size sandField''
+  let numSandUnits' = S.size . S.filter isSand $ field''
   print numSandUnits'

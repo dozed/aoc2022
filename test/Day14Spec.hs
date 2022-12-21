@@ -8,6 +8,7 @@ import Data.Set (Set)
 import qualified Data.Set as S
 
 import Test.Hspec
+import Test.Hspec.QuickCheck (prop)
 
 import Day14
 import Util (regularParse)
@@ -112,6 +113,9 @@ day14Spec = do
     it "should detect a non-free position" $ isFreePos (S.fromList [(0, 0)]) (0, 0) `shouldBe` False
     it "should detect a free position" $ isFreePos (S.fromList [(0, 0)]) (1, 1) `shouldBe` True
 
+    prop "is negative of isBlockedPos" $ \(field, pos) ->
+      isFreePos field pos `shouldBe` not (isBlockedPos field pos)
+ 
   describe "isComeToRest" $ do
     it "should detect a blocked pos" $ do
       let field = S.fromList [(0, 1), (1, 1), (2, 1)]

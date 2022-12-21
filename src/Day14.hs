@@ -160,6 +160,18 @@ fallSandUnits checkStop field =
     if field == field' then field
     else fallSandUnits checkStop field'
 
+checkStopPart1 :: Field -> Pos -> (Bool, Maybe Pos)
+checkStopPart1 field sandPos
+    | isComeToRest field sandPos = (True, Just sandPos)
+    | sandFallsIntoEndlessVoid field sandPos = (True, Nothing)
+    | otherwise = (False, Nothing)
+
+checkStopPart2 :: Int -> Field -> Pos -> (Bool, Maybe Pos)
+checkStopPart2 maxY field sandPos@(_, y)
+    | isComeToRest field sandPos = (True, Just sandPos)
+    | y == (maxY + 1) = (True, Just sandPos)
+    | otherwise = (False, Nothing)
+
 day14 :: IO ()
 day14 = do
   -- let input = testInput1
@@ -174,28 +186,16 @@ day14 = do
 
   -- part 1
   putStrLn "part 1"
-  let checkStop unionField sandPos
-        | isComeToRest unionField sandPos = (True, Just sandPos)
-        | sandFallsIntoEndlessVoid unionField sandPos = (True, Nothing)
-        | otherwise = (False, Nothing)
-
-  let field' = fallSandUnits checkStop field
+  let field' = fallSandUnits checkStopPart1 field
+      numSandUnits = S.size . S.filter isSand $ field'
   putStrLn $ showFieldAndSandField field'
-
-  let numSandUnits = S.size . S.filter isSand $ field'
   print numSandUnits
 
   -- part 2
   putStrLn "part 2"
   let maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
+      field'' = fallSandUnits (checkStopPart2 maxY) field
+      numSandUnits' = S.size . S.filter isSand $ field''
 
-  let checkStop' unionField sandPos@(_, y)
-        | isComeToRest unionField sandPos = (True, Just sandPos)
-        | y == (maxY + 1) = (True, Just sandPos)
-        | otherwise = (False, Nothing)
-
-  let field'' = fallSandUnits checkStop' field
   putStrLn $ showFieldAndSandField field''
-
-  let numSandUnits' = S.size . S.filter isSand $ field''
   print numSandUnits'

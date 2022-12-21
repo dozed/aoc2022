@@ -55,6 +55,9 @@ expandPath path =
       field = foldl (\acc seg -> S.union acc (expandPathSegment seg)) S.empty pathSegments
   in field
 
+expandPaths :: [Path] -> Set Pos
+expandPaths paths = foldl (\acc path -> S.union acc (expandPath path)) S.empty paths
+
 posParser :: Parser Pos
 posParser = do
   x <- read <$> many1 digit

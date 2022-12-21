@@ -76,3 +76,22 @@ day14Spec = do
       let expected = S.fromList [(498, 4), (498, 5), (498, 6), (498, 6), (497, 6), (496, 6)]
       
       expandPath path `shouldBe` expected
+
+    it "should expand another Path" $ do
+      let path = [(503, 4), (502, 4), (502, 9), (500, 9)]
+      let expected = S.fromList [(503, 4), (502, 4), (502, 5), (502, 6), (502, 7), (502, 8), (502, 9), (501, 9), (500, 9)]
+      
+      expandPath path `shouldBe` expected
+
+  describe "expandPaths" $ do
+    it "should expand a list of Paths" $ do
+      let paths = [
+              [(498, 4), (498, 6), (496, 6)],
+              [(503, 4), (502, 4), (502, 9), (500, 9)]
+            ]
+      
+      let expected = S.union
+            (S.fromList [(498, 4), (498, 5), (498, 6), (498, 6), (497, 6), (496, 6)])
+            (S.fromList [(503, 4), (502, 4), (502, 5), (502, 6), (502, 7), (502, 8), (502, 9), (501, 9), (500, 9)])
+
+      expandPaths paths `shouldBe` expected

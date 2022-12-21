@@ -131,27 +131,28 @@ sandFallsIntoEndlessVoid field (_, y) =
   let maxY = snd . maximumBy (compare `on` snd) $ S.toList field
   in y >= maxY
 
-fallSandUnit :: Field -> Field -> Pos -> Maybe Pos
-fallSandUnit field sandField sandPos =
+fallSandUnit :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Field -> Pos -> Maybe Pos
+fallSandUnit checkStop field sandField sandPos =
   let unionField = S.union field sandField
-  in if isComeToRest unionField sandPos then Just sandPos
-     else if sandFallsIntoEndlessVoid unionField sandPos then Nothing
+      (stop, newPos) = checkStop unionField sandPos
+  in if stop then newPos
      else
        let nextSandPos = getNextPos unionField sandPos
-       in fallSandUnit field sandField nextSandPos
+       in fallSandUnit checkStop field sandField nextSandPos
 
-fallSandUnits :: Field -> Field -> Field
-fallSandUnits field sandField =
+fallSandUnits :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Field -> Field
+fallSandUnits checkStop field sandField =
   let startPos = sandSource
-      newSandPos = fallSandUnit field sandField startPos
+      newSandPos = fallSandUnit checkStop field sandField startPos
       sandField' = maybe sandField (`S.insert` sandField) newSandPos
   in
     if sandField == sandField' then sandField
-    else fallSandUnits field sandField'
+    else fallSandUnits checkStop field sandField'
 
 day14 :: IO ()
 day14 = do
-  let input = testInput1
+  -- let input = testInput1
+  input <- readFile "input/Day14.txt"
 
   paths <- case regularParse pathsParser input of
     Left e -> fail $ show e
@@ -161,8 +162,29 @@ day14 = do
   putStrLn $ showFieldAndSandField field S.empty
 
   -- part 1
-  let sandField' = fallSandUnits field S.empty
+  putStrLn "part 1"
+  let checkStop unionField sandPos
+        | isComeToRest unionField sandPos = (True, Just sandPos)
+        | sandFallsIntoEndlessVoid unionField sandPos = (True, Nothing)
+        | otherwise = (False, Nothing)
+
+  let sandField' = fallSandUnits checkStop field S.empty
   putStrLn $ showFieldAndSandField field sandField'
 
   let numSandUnits = S.size sandField'
   print numSandUnits
+
+  -- part 2
+  putStrLn "part 2"
+  let maxY = snd . maximumBy (compare `on` snd) $ S.toList field
+
+  let checkStop' unionField sandPos@(_, y)
+        | isComeToRest unionField sandPos = (True, Just sandPos)
+        | y == (maxY + 2) = (True, Just sandPos)
+        | otherwise = (False, Nothing)
+
+  let sandField'' = fallSandUnits checkStop' field S.empty
+  putStrLn $ showFieldAndSandField field sandField''
+
+  let numSandUnits' = S.size sandField'
+  print numSandUnits'

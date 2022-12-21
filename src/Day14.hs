@@ -138,10 +138,8 @@ getNextPos field pos =
     else if isFreePos field downRightPos then downRightPos
     else pos
 
-sandFallsIntoEndlessVoid :: Field -> Pos -> Bool
-sandFallsIntoEndlessVoid field (_, y) =
-  let maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
-  in y >= maxY
+sandFallsIntoEndlessVoid :: Int -> Pos -> Bool
+sandFallsIntoEndlessVoid maxY (_, y) = y >= maxY
 
 fallSandUnit :: (Field -> Pos -> (Bool, Maybe Pos)) -> Field -> Pos -> Maybe Pos
 fallSandUnit checkStop field sandPos =
@@ -160,10 +158,10 @@ fallSandUnits checkStop field =
     if field == field' then field
     else fallSandUnits checkStop field'
 
-checkStopPart1 :: Field -> Pos -> (Bool, Maybe Pos)
-checkStopPart1 field sandPos
+checkStopPart1 :: Int -> Field -> Pos -> (Bool, Maybe Pos)
+checkStopPart1 maxY field sandPos
     | isComeToRest field sandPos = (True, Just sandPos)
-    | sandFallsIntoEndlessVoid field sandPos = (True, Nothing)
+    | sandFallsIntoEndlessVoid maxY sandPos = (True, Nothing)
     | otherwise = (False, Nothing)
 
 checkStopPart2 :: Int -> Field -> Pos -> (Bool, Maybe Pos)
@@ -182,19 +180,19 @@ day14 = do
     Right xs -> pure xs
 
   let field = S.map Rock $ expandPaths paths
+      maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field  
   putStrLn $ showFieldAndSandField field
 
   -- part 1
   putStrLn "part 1"
-  let field' = fallSandUnits checkStopPart1 field
+  let field' = fallSandUnits (checkStopPart1 maxY) field
       numSandUnits = S.size . S.filter isSand $ field'
   putStrLn $ showFieldAndSandField field'
   print numSandUnits
 
   -- part 2
   putStrLn "part 2"
-  let maxY = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
-      field'' = fallSandUnits (checkStopPart2 maxY) field
+  let field'' = fallSandUnits (checkStopPart2 maxY) field
       numSandUnits' = S.size . S.filter isSand $ field''
 
   putStrLn $ showFieldAndSandField field''

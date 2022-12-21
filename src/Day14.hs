@@ -2,9 +2,8 @@
 
 module Day14 where
 
-import Control.Monad (forM_, join, void)
 import Data.Function (on)
-import Data.List (maximumBy, minimumBy)
+import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.Parsec
@@ -25,6 +24,21 @@ type Pos = (X, Y)
 type Path = [Pos]
 type PathSegment = (Pos, Pos)
 type Field = Set Pos
+
+showFieldAndSandField :: Field -> Field -> String
+showFieldAndSandField field sandField =
+  let fullField = S.union field sandField
+      minX = fst . minimumBy (compare `on` fst) $ fullField
+      maxX = fst . maximumBy (compare `on` fst) $ fullField
+      minY = snd . minimumBy (compare `on` snd) $ fullField
+      maxY = snd . maximumBy (compare `on` snd) $ fullField
+      getPixel x y
+        | S.member (x, y) field = '#'
+        | S.member (x, y) sandField = 'o'
+        | otherwise = '.'
+      xxs = [[getPixel x y | x <- [minX..maxX]] | y <- [minY..maxY]]
+      txt = intercalate "\n" xxs
+  in txt
 
 sandSource :: Pos
 sandSource = (500, 0)
@@ -116,6 +130,24 @@ sandFallsIntoEndlessVoid field (_, y) =
   let maxY = snd . maximumBy (compare `on` snd) $ S.toList field
   in y >= maxY
 
+fallSandUnit :: Field -> Field -> Pos -> Maybe Pos
+fallSandUnit field sandField sandPos =
+  let unionField = S.union field sandField
+  in if isComeToRest unionField sandPos then Just sandPos
+     else if sandFallsIntoEndlessVoid unionField sandPos then Nothing
+     else
+       let nextSandPos = getNextPos unionField sandPos
+       in fallSandUnit field sandField nextSandPos
+
+fallSandUnits :: Field -> Field -> Field
+fallSandUnits field sandField =
+  let startPos = sandSource
+      newSandPos = fallSandUnit field sandField startPos
+      sandField' = maybe sandField (`S.insert` sandField) newSandPos
+  in
+    if sandField == sandField' then sandField
+    else fallSandUnits field sandField'
+
 day14 :: IO ()
 day14 = do
   let input = testInput1
@@ -124,26 +156,9 @@ day14 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  forM_ paths print
-
-  let minX = fst . minimumBy (compare `on` fst) $ join paths
-      maxX = fst . maximumBy (compare `on` fst) $ join paths
-      minY = snd . minimumBy (compare `on` snd) $ join paths
-      maxY = snd . maximumBy (compare `on` snd) $ join paths
-      width = maxX - minX
-      height = maxY - minY
-
-  putStrLn $ "minX: " <> show minX <> " maxX: " <> show maxX <> " minY: " <> show minY <> " maxY: " <> show maxY
-  putStrLn $ "height: " <> show height <> " width: " <> show width
-
-  let paths' = map (map (\(x, y) -> (x - minX, y - minY))) paths
-  forM_ paths' print
-
   let field = expandPaths paths
-  print field
+  putStrLn $ showFieldAndSandField field S.empty
 
-  let currentPos = sandSource
-  print currentPos
-
-
-
+  -- part 1
+  let sandField' = fallSandUnits field S.empty
+  putStrLn $ showFieldAndSandField field sandField'

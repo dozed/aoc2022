@@ -147,7 +147,9 @@ sandFallsIntoEndlessVoid maxY (_, y) = y >= maxY
 data Directive = Stop | Continue
                  deriving (Eq, Show)
 
-fallSandUnit :: (Field -> Pos -> (Directive, Maybe Pos)) -> Field -> Pos -> Maybe Pos
+type SandPositionToStore = Maybe Pos
+
+fallSandUnit :: (Field -> Pos -> (Directive, SandPositionToStore)) -> Field -> Pos -> Maybe Pos
 fallSandUnit checkStop field sandPos =
   let (stop, sandPosToStore) = checkStop field sandPos
   in if stop == Stop then sandPosToStore
@@ -155,7 +157,7 @@ fallSandUnit checkStop field sandPos =
        let nextSandPos = getNextPos field sandPos
        in fallSandUnit checkStop field nextSandPos
 
-fallSandUnits :: (Field -> Pos -> (Directive, Maybe Pos)) -> Field -> Field
+fallSandUnits :: (Field -> Pos -> (Directive, SandPositionToStore)) -> Field -> Field
 fallSandUnits checkStop field =
   let startPos = sandSource
       sandPosToStore = Sand <$> fallSandUnit checkStop field startPos
@@ -164,13 +166,13 @@ fallSandUnits checkStop field =
     if field == field' then field
     else fallSandUnits checkStop field'
 
-checkStopPart1 :: Int -> Field -> Pos -> (Directive, Maybe Pos)
+checkStopPart1 :: Int -> Field -> Pos -> (Directive, SandPositionToStore)
 checkStopPart1 maxY field sandPos
     | isComeToRest field sandPos = (Stop, Just sandPos)
     | sandFallsIntoEndlessVoid maxY sandPos = (Stop, Nothing)
     | otherwise = (Continue, Nothing)
 
-checkStopPart2 :: Int -> Field -> Pos -> (Directive, Maybe Pos)
+checkStopPart2 :: Int -> Field -> Pos -> (Directive, SandPositionToStore)
 checkStopPart2 maxY field sandPos@(_, y)
     | isComeToRest field sandPos = (Stop, Just sandPos)
     | y == (maxY + 1) = (Stop, Just sandPos)

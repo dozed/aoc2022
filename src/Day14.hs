@@ -41,8 +41,8 @@ isSand _ = False
 getFieldMaxY :: Field -> Int
 getFieldMaxY field = snd . maximumBy (compare `on` snd) . map getPos $ S.toList field
 
-showFieldAndSandField :: Field -> String
-showFieldAndSandField field =
+showField :: Field -> String
+showField field =
   let posList = map getPos . S.toList $ field
       minX = fst . minimumBy (compare `on` fst) $ posList
       maxX = fst . maximumBy (compare `on` fst) $ posList
@@ -184,13 +184,14 @@ day14 = do
 
   let field = S.map Rock $ expandPaths paths
       maxY = getFieldMaxY field
-  putStrLn $ showFieldAndSandField field
+  putStrLn $ showField field
+  putStrLn $ "maxY: " <> show maxY
 
   -- part 1
   putStrLn "part 1"
   let field' = fallSandUnits (checkStopPart1 maxY) field
       numSandUnits = S.size . S.filter isSand $ field'
-  putStrLn $ showFieldAndSandField field'
+  putStrLn $ showField field'
   print numSandUnits
 
   -- part 2
@@ -198,5 +199,5 @@ day14 = do
   let field'' = fallSandUnits (checkStopPart2 maxY) field
       numSandUnits' = S.size . S.filter isSand $ field''
 
-  putStrLn $ showFieldAndSandField field''
+  putStrLn $ showField field''
   print numSandUnits'

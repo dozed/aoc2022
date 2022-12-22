@@ -149,7 +149,7 @@ data Directive = Stop | Continue
 
 type SandPositionToStore = Maybe Pos
 
-fallSandUnit :: (Field -> Pos -> (Directive, SandPositionToStore)) -> Field -> Pos -> Maybe Pos
+fallSandUnit :: (Field -> Pos -> (Directive, SandPositionToStore)) -> Field -> Pos -> SandPositionToStore
 fallSandUnit checkStop field sandPos =
   let (stop, sandPosToStore) = checkStop field sandPos
   in if stop == Stop then sandPosToStore

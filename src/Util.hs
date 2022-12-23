@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Util (
   catPairs,
   count,
@@ -24,9 +26,6 @@ import Text.Parsec.String (Parser)
 
 readFileLines :: String -> IO [String]
 readFileLines filename = lines <$> readFile filename
-
-count :: Eq a => a -> [a] -> Int
-count x xs = length . filter (x ==) $ xs
 
 windows :: Int -> [a] -> [[a]]
 windows n0 = go 0 Seq.empty
@@ -110,3 +109,13 @@ takeUntil p (x:xs) = x : if p x then takeUntil p xs
 catPairs :: [(a,a)] -> [a]
 catPairs [] = []
 catPairs ((x,y):xys) = x:y:catPairs xys
+
+-- https://hackage.haskell.org/package/ghc-9.4.2/docs/src/GHC.Utils.Misc.html#count
+count :: (a -> Bool) -> [a] -> Int
+count p = go 0
+  where go !n [] = n
+        go !n (x:xs) | p x       = go (n+1) xs
+                     | otherwise = go n xs
+                     
+--count :: Eq a => a -> [a] -> Int
+--count x xs = length . filter (x ==) $ xs

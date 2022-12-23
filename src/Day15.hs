@@ -7,11 +7,11 @@ import Data.Function (on)
 import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Set (Set)
 import qualified Data.Set as S
-import Text.Parsec
+import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse)
+import Util (count, lstrip, regularParse)
 
 testInput :: String
 testInput = lstrip [r|
@@ -119,6 +119,13 @@ showField sensorPositions beaconPositions coveredPositions =
       txt = intercalate "\n" xxs
   in txt
 
+getNonBeaconPositionsInRow :: Int -> Set Pos -> Set Pos -> Int
+getNonBeaconPositionsInRow y beaconPositions coveredPositions =
+  let minX = fst . minimumBy (compare `on` fst) $ coveredPositions
+      maxX = fst . maximumBy (compare `on` fst) $ coveredPositions
+      coveredPositionsInRow = count (\x -> S.member (x, y) coveredPositions && (not . S.member (x, y)) beaconPositions) [minX..maxX]
+  in coveredPositionsInRow
+
 day15 :: IO ()
 day15 = do
   let input = testInput
@@ -140,3 +147,5 @@ day15 = do
   putStrLn $ showField sensorPositions beaconPositions S.empty
   putStrLn "---"
   putStrLn $ showField sensorPositions beaconPositions coveredPositions
+  putStrLn "---"
+  print $ getNonBeaconPositionsInRow 10 beaconPositions coveredPositions

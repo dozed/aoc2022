@@ -2,6 +2,7 @@
 
 module Day15Spec (day15Spec) where
 
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.Set as S
 import Text.RawString.QQ
 
@@ -66,3 +67,14 @@ day15Spec = do
                   (7, 8), (8, 8), (9, 8),
                           (8, 9)
         ]
+
+  describe "getNonBeaconPositionsInRow" $ do
+    it "should compute non beacon position in row" $ do
+      infos <- case regularParse infosParser testInput of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+    
+      let beaconPositions = S.fromList $ map (\(Info _ bp) -> bp) infos
+          coveredPositions = S.unions $ map (\(Info sp bp) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
+
+      getNonBeaconPositionsInRow 10 beaconPositions coveredPositions `shouldBe` 26

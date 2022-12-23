@@ -3,6 +3,8 @@
 module Day15 where
 
 import Control.Monad (void)
+import Data.Function (on)
+import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.Parsec
@@ -101,6 +103,22 @@ getCoveredPositions midPos width =
       covered = S.unions [rowPos, upwardCoveredPositions, downwardCoveredPositions]
   in covered
 
+showField :: Set Pos -> Set Pos -> Set Pos -> String
+showField sensorPositions beaconPositions coveredPositions =
+  let allPos = S.unions [sensorPositions, beaconPositions, coveredPositions]
+      minX = fst . minimumBy (compare `on` fst) $ allPos
+      maxX = fst . maximumBy (compare `on` fst) $ allPos
+      minY = snd . minimumBy (compare `on` snd) $ allPos
+      maxY = snd . maximumBy (compare `on` snd) $ allPos
+      getPixel x y
+        | S.member (x, y) sensorPositions = 'S'
+        | S.member (x, y) beaconPositions = 'B'
+        | S.member (x, y) coveredPositions = '#'
+        | otherwise = '.'
+      xxs = [[getPixel x y | x <- [minX..maxX]] | y <- [minY..maxY]]
+      txt = intercalate "\n" xxs
+  in txt
+
 day15 :: IO ()
 day15 = do
   let input = testInput
@@ -119,3 +137,6 @@ day15 = do
   print beaconPositions
   print coveredPositions
 
+  putStrLn $ showField sensorPositions beaconPositions S.empty
+  putStrLn "---"
+  putStrLn $ showField sensorPositions beaconPositions coveredPositions

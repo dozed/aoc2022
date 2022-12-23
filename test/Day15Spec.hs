@@ -27,3 +27,17 @@ day15Spec = do
   describe "linesParser" $ do
     it "should parse a list of Info" $ do
       regularParse infosParser testInput1 `shouldBe` Right [Info (2, 18) (-2, 15), Info (9, 16) (10, 16)]
+
+  describe "getManhattanDistance" $ do
+    it "should compute the manhattan distance for two Pos values" $ do
+      let p1 = (8, 7)
+          p2 = (2, 10)
+
+      getManhattanDistance p1 p2 `shouldBe` 9
+
+  describe "getCoveredRowPoints" $ do
+    it "should compute covered points in the current row in a specific distance" $ do
+      let p = (8, 0)
+          n = 2
+
+      getCoveredRowPoints p n `shouldBe` [(6, 0), (7, 0), (8, 0), (9, 0), (10, 0)]

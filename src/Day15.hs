@@ -3,11 +3,13 @@
 module Day15 where
 
 import Control.Monad (void)
+import Data.Set (Set)
+import qualified Data.Set as S
 import Text.Parsec
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip)
+import Util (lstrip, regularParse)
 
 testInput :: String
 testInput = lstrip [r|
@@ -33,7 +35,7 @@ type Pos = (X, Y)
 type SensorPos = Pos
 type BeaconPos = Pos
 data Info = Info SensorPos BeaconPos
-            deriving (Eq, Show)
+            deriving (Eq, Show, Ord)
 
 positiveNumberParser :: Parser Int
 positiveNumberParser = read <$> many1 digit
@@ -62,6 +64,31 @@ infoParser = do
 infosParser :: Parser [Info]
 infosParser = endBy1 infoParser endOfLine
 
+getManhattanDistance :: Pos -> Pos -> Int
+getManhattanDistance (x1, y1) (x2, y2) =
+  let xn = abs (x1 - x2)
+      yn = abs (y1 - y2)
+      md = xn + yn
+  in md
+
+getCoveredRowPoints :: Pos -> Int -> [Pos]
+getCoveredRowPoints (x, y) distance =
+  let from = x - distance
+      to = x + distance
+      covered = [(t, y) | t <- [from..to]]
+  in covered
+
 day15 :: IO ()
 day15 = do
-  putStrLn "day15"
+  let input = testInput
+
+  infos <- case regularParse infosParser input of
+    Left e -> fail $ show e
+    Right xs -> pure xs
+
+  print infos
+
+  -- compute covered positions for all Sensor/Beacon pairs
+  -- compute covered positions for one Sensor/Beacon pair
+  -- - build pyramid up
+  -- - build pyramid down

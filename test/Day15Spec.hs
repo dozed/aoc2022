@@ -2,6 +2,7 @@
 
 module Day15Spec (day15Spec) where
 
+import qualified Data.Set as S
 import Text.RawString.QQ
 
 import Test.Hspec
@@ -45,12 +46,23 @@ day15Spec = do
       let p = (8, 0)
           n = 2
 
-      getCoveredRowPoints p n `shouldBe` [(6, 0), (7, 0), (8, 0), (9, 0), (10, 0)]
+      getCoveredRowPoints p n `shouldBe` S.fromList [(6, 0), (7, 0), (8, 0), (9, 0), (10, 0)]
 
-  describe "getUpwardPoint" $ do
+  describe "getUpwardPos" $ do
     it "should compute an upward point for a given distance" $ do
-      getUpwardPoint (8, 7) 9 `shouldBe` (8, -2)
+      getUpwardPos (8, 7) `shouldBe` (8, 6)
 
-  describe "getDownwardPoint" $ do
+  describe "getDownwardPos" $ do
     it "should compute a downward point for a given distance" $ do
-      getDownwardPoint (8, 7) 9 `shouldBe` (8, 16)
+      getDownwardPos (8, 7) `shouldBe` (8, 8)
+
+  describe "getCoveredPositions" $ do
+    it "should compute covered positions" $ do
+
+      getCoveredPositions (8, 7) 2 `shouldBe` S.fromList [
+                          (8, 5),
+                  (7, 6), (8, 6), (9, 6),
+          (6, 7), (7, 7), (8, 7), (9, 7), (10, 7),
+                  (7, 8), (8, 8), (9, 8),
+                          (8, 9)
+        ]

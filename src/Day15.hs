@@ -37,6 +37,12 @@ type BeaconPos = Pos
 data Info = Info SensorPos BeaconPos
             deriving (Eq, Show, Ord)
 
+getSensorPos :: Info -> Pos
+getSensorPos (Info sp _) = sp
+
+getBeaconPos :: Info -> Pos
+getBeaconPos (Info _ bp) = bp
+
 positiveNumberParser :: Parser Int
 positiveNumberParser = read <$> many1 digit
 
@@ -71,18 +77,29 @@ getManhattanDistance (x1, y1) (x2, y2) =
       md = xn + yn
   in md
 
-getCoveredRowPoints :: Pos -> Int -> [Pos]
+getCoveredRowPoints :: Pos -> Int -> Set Pos
 getCoveredRowPoints (x, y) distance =
   let from = x - distance
       to = x + distance
-      covered = [(t, y) | t <- [from..to]]
+      covered = S.fromList [(t, y) | t <- [from..to]]
   in covered
 
-getUpwardPoint :: Pos -> Int -> Pos
-getUpwardPoint (x, y) distance = (x, y - distance)
+getUpwardPos :: Pos -> Pos
+getUpwardPos (x, y) = (x, y - 1)
 
-getDownwardPoint :: Pos -> Int -> Pos
-getDownwardPoint (x, y) distance = (x, y + distance)
+getDownwardPos :: Pos -> Pos
+getDownwardPos (x, y) = (x, y + 1)
+
+getCoveredPositions :: Pos -> Int -> Set Pos
+getCoveredPositions midPos 0 = S.singleton midPos
+getCoveredPositions midPos width =
+  let rowPos = getCoveredRowPoints midPos width
+      upwardMidPos = getUpwardPos midPos
+      upwardCoveredPositions = getCoveredPositions upwardMidPos (width - 1)
+      downwardMidPos = getDownwardPos midPos
+      downwardCoveredPositions = getCoveredPositions downwardMidPos (width - 1)
+      covered = S.unions [rowPos, upwardCoveredPositions, downwardCoveredPositions]
+  in covered
 
 day15 :: IO ()
 day15 = do
@@ -94,9 +111,11 @@ day15 = do
 
   print infos
 
-  -- compute covered positions for all Sensor/Beacon pairs
-  -- compute covered positions for one Sensor/Beacon pair
-  -- - build pyramid up
-  --   - get covered position for one row
-  --   - build covered row positions for all required rows
-  -- - build pyramid down
+  let sensorPositions = S.fromList $ map (\(Info sp _) -> sp) infos
+      beaconPositions = S.fromList $ map (\(Info _ bp) -> bp) infos
+      coveredPositions = S.unions $ map (\(Info sp bp) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
+
+  print sensorPositions
+  print beaconPositions
+  print coveredPositions
+

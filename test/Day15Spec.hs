@@ -5,6 +5,7 @@ module Day15Spec (day15Spec) where
 import Text.RawString.QQ
 
 import Test.Hspec
+import Test.Hspec.QuickCheck (prop)
 
 import Day15
 import Util (lstrip, regularParse)
@@ -34,6 +35,10 @@ day15Spec = do
           p2 = (2, 10)
 
       getManhattanDistance p1 p2 `shouldBe` 9
+      getManhattanDistance p2 p1 `shouldBe` 9
+
+    prop "should be symmetric" $ \(p1, p2) ->
+      getManhattanDistance p1 p2 `shouldBe` getManhattanDistance p2 p1
 
   describe "getCoveredRowPoints" $ do
     it "should compute covered points in the current row in a specific distance" $ do

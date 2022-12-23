@@ -46,3 +46,11 @@ day15Spec = do
           n = 2
 
       getCoveredRowPoints p n `shouldBe` [(6, 0), (7, 0), (8, 0), (9, 0), (10, 0)]
+
+  describe "getUpwardPoint" $ do
+    it "should compute an upward point for a given distance" $ do
+      getUpwardPoint (8, 7) 9 `shouldBe` (8, -2)
+
+  describe "getDownwardPoint" $ do
+    it "should compute a downward point for a given distance" $ do
+      getDownwardPoint (8, 7) 9 `shouldBe` (8, 16)

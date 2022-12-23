@@ -78,6 +78,12 @@ getCoveredRowPoints (x, y) distance =
       covered = [(t, y) | t <- [from..to]]
   in covered
 
+getUpwardPoint :: Pos -> Int -> Pos
+getUpwardPoint (x, y) distance = (x, y - distance)
+
+getDownwardPoint :: Pos -> Int -> Pos
+getDownwardPoint (x, y) distance = (x, y + distance)
+
 day15 :: IO ()
 day15 = do
   let input = testInput
@@ -91,4 +97,6 @@ day15 = do
   -- compute covered positions for all Sensor/Beacon pairs
   -- compute covered positions for one Sensor/Beacon pair
   -- - build pyramid up
+  --   - get covered position for one row
+  --   - build covered row positions for all required rows
   -- - build pyramid down

@@ -106,9 +106,16 @@ day15Spec = do
 
       countNonBeaconPositionsInRow' 10 (S.fromList infos) beaconPositions `shouldBe` 26
 
-  describe "isCoveredByBeacon" $ do
+  describe "isCoveredBySensor" $ do
     it "should detect covered position" $ do
-      isCoveredByBeacon (Info (8, 7) (2, 10) 9) (2, 10) `shouldBe` True
+      isCoveredBySensor (Info (8, 7) (2, 10) 9) (2, 10) `shouldBe` True
 
     it "should detect non-covered position" $ do
-      isCoveredByBeacon (Info (8, 7) (2, 10) 9) (2, 11) `shouldBe` False
+      isCoveredBySensor (Info (8, 7) (2, 10) 9) (2, 11) `shouldBe` False
+
+  describe "isCoveredBySensor'" $ do
+    it "should detect covered position" $ do
+      isCoveredBySensor' (Info (8, 7) (2, 10) 9) (2, 10) `shouldBe` True
+
+    it "should detect non-covered position" $ do
+      isCoveredBySensor' (Info (8, 7) (2, 10) 9) (2, 11) `shouldBe` False

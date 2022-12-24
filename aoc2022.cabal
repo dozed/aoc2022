@@ -50,6 +50,7 @@ library
     , combinatorial
     , containers
     , extra
+    , parallel
     , parsec
     , raw-strings-qq
     , split

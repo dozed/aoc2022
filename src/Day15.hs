@@ -123,15 +123,15 @@ showField sensorPositions beaconPositions coveredPositions =
       txt = intercalate "\n" xxs
   in txt
 
-isCoveredByBeacon :: Info -> Pos -> Bool
-isCoveredByBeacon (Info (sx, sy) _ d) (x, y) =
+isCoveredBySensor :: Info -> Pos -> Bool
+isCoveredBySensor (Info (sx, sy) _ d) (x, y) =
   let dx = abs (sx - x)
       dy = abs (sy - y)
       covered = dy <= d - dx
   in covered
 
-isCoveredByBeacon' :: Info -> Pos -> Bool
-isCoveredByBeacon' (Info sp _ d) pos =
+isCoveredBySensor' :: Info -> Pos -> Bool
+isCoveredBySensor' (Info sp _ d) pos =
   let d' = getManhattanDistance sp pos
       covered = d' <= d
   in covered
@@ -144,24 +144,16 @@ countNonBeaconPositionsInRow y beaconPositions coveredPositions =
   in coveredPositionsInRow
 
 getMinXByInfo :: Info -> X
-getMinXByInfo (Info sp@(sx, _) bp _) =
-  let d = getManhattanDistance sp bp
-  in sx - d
+getMinXByInfo (Info (sx, _) _ d) = sx - d
 
 getMaxXByInfo :: Info -> X
-getMaxXByInfo (Info sp@(sx, _) bp _) =
-  let d = getManhattanDistance sp bp
-  in sx + d
+getMaxXByInfo (Info (sx, _) _ d) = sx + d
 
 getMinYByInfo :: Info -> Y
-getMinYByInfo (Info sp@(_, sy) bp _) =
-  let d = getManhattanDistance sp bp
-  in sy - d
+getMinYByInfo (Info (_, sy) _ d) = sy - d
 
 getMaxYByInfo :: Info -> Y
-getMaxYByInfo (Info sp@(_, sy) bp _) =
-  let d = getManhattanDistance sp bp
-  in sy + d
+getMaxYByInfo (Info (_, sy) _ d) = sy + d
 
 getMinXByInfos :: Set Info -> X
 getMinXByInfos infos = minimum $ S.map getMinXByInfo infos
@@ -179,7 +171,7 @@ countNonBeaconPositionsInRow' :: Int -> Set Info -> Set Pos -> Int
 countNonBeaconPositionsInRow' y infos beaconPositions =
   let minX = getMinXByInfos infos
       maxX = getMaxXByInfos infos
-      coveredPositionsInRow = count (\x -> any (\i -> isCoveredByBeacon' i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
+      coveredPositionsInRow = count (\x -> any (\i -> isCoveredBySensor' i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
       -- coveredPositionsInRow = count (\x -> any (\i -> isCoveredByBeacon i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
   in coveredPositionsInRow
 
@@ -213,8 +205,23 @@ day15 = do
 
   -- print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
 
+  let minX = getMinXByInfos infos
+      maxX = getMaxXByInfos infos
+      minY = getMinYByInfos infos
+      maxY = getMaxYByInfos infos
+      dx = abs (maxX - minX)
+      dy = abs (maxY - minY)
+
+  putStrLn $ "minX: " <> show minX <> " maxX: " <> show maxX <> " minY: " <> show minY <> " maxY: " <> show maxY
+  putStrLn $ "dx: " <> show dx <> " dy: " <> show dy
+  putStrLn $ "fieldSize: " <> show (dx * dy)
+  -- minX: -1892089 maxX: 5929991 minY: -1916483 maxY: 5272410
+  -- dx: 7822080 dy: 7188893
+  -- fieldSize: 56232096157440
+
   forM_ [0..4000000] $ \y -> do
+    print y
     forM_ [0..4000000] $ \x -> do
-      let covered = any (\i -> isCoveredByBeacon' i (x, y)) infos
+      let covered = any (\i -> isCoveredBySensor' i (x, y)) infos
       if covered then pure ()
       else putStrLn $ show (x, y) <> " - " <> show (getTuningSignal (x, y))

@@ -2,7 +2,7 @@
 
 module Day15 where
 
-import Control.Monad (void)
+import Control.Monad (forM_, void)
 import Data.Function (on)
 import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Set (Set)
@@ -36,14 +36,15 @@ type Y = Int
 type Pos = (X, Y)
 type SensorPos = Pos
 type BeaconPos = Pos
-data Info = Info SensorPos BeaconPos
+type ManhattanDistance = Int
+data Info = Info SensorPos BeaconPos ManhattanDistance
             deriving (Eq, Show, Ord)
 
 getSensorPos :: Info -> Pos
-getSensorPos (Info sp _) = sp
+getSensorPos (Info sp _ _) = sp
 
 getBeaconPos :: Info -> Pos
-getBeaconPos (Info _ bp) = bp
+getBeaconPos (Info _ bp _) = bp
 
 positiveNumberParser :: Parser Int
 positiveNumberParser = read <$> many1 digit
@@ -67,7 +68,10 @@ infoParser = do
   bx <- numberParser
   void $ string ", y="
   by <- numberParser
-  return $ Info (sx, sy) (bx, by)
+  let sensorPos = (sx, sy)
+      beaconPos = (bx, by)
+      dist = getManhattanDistance sensorPos beaconPos
+  return $ Info sensorPos beaconPos dist
 
 infosParser :: Parser [Info]
 infosParser = endBy1 infoParser endOfLine
@@ -120,11 +124,16 @@ showField sensorPositions beaconPositions coveredPositions =
   in txt
 
 isCoveredByBeacon :: Info -> Pos -> Bool
-isCoveredByBeacon (Info s@(sx, sy) b) (x, y) =
-  let d = getManhattanDistance s b
-      dx = abs (sx - x)
+isCoveredByBeacon (Info (sx, sy) _ d) (x, y) =
+  let dx = abs (sx - x)
       dy = abs (sy - y)
       covered = dy <= d - dx
+  in covered
+
+isCoveredByBeacon' :: Info -> Pos -> Bool
+isCoveredByBeacon' (Info sp _ d) pos =
+  let d' = getManhattanDistance sp pos
+      covered = d' <= d
   in covered
 
 countNonBeaconPositionsInRow :: Int -> Set Pos -> Set Pos -> Int
@@ -135,22 +144,22 @@ countNonBeaconPositionsInRow y beaconPositions coveredPositions =
   in coveredPositionsInRow
 
 getMinXByInfo :: Info -> X
-getMinXByInfo (Info sp@(sx, _) bp) =
+getMinXByInfo (Info sp@(sx, _) bp _) =
   let d = getManhattanDistance sp bp
   in sx - d
 
 getMaxXByInfo :: Info -> X
-getMaxXByInfo (Info sp@(sx, _) bp) =
+getMaxXByInfo (Info sp@(sx, _) bp _) =
   let d = getManhattanDistance sp bp
   in sx + d
 
 getMinYByInfo :: Info -> Y
-getMinYByInfo (Info sp@(_, sy) bp) =
+getMinYByInfo (Info sp@(_, sy) bp _) =
   let d = getManhattanDistance sp bp
   in sy - d
 
 getMaxYByInfo :: Info -> Y
-getMaxYByInfo (Info sp@(_, sy) bp) =
+getMaxYByInfo (Info sp@(_, sy) bp _) =
   let d = getManhattanDistance sp bp
   in sy + d
 
@@ -170,8 +179,12 @@ countNonBeaconPositionsInRow' :: Int -> Set Info -> Set Pos -> Int
 countNonBeaconPositionsInRow' y infos beaconPositions =
   let minX = getMinXByInfos infos
       maxX = getMaxXByInfos infos
-      coveredPositionsInRow = count (\x -> any (\i -> isCoveredByBeacon i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
+      coveredPositionsInRow = count (\x -> any (\i -> isCoveredByBeacon' i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
+      -- coveredPositionsInRow = count (\x -> any (\i -> isCoveredByBeacon i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
   in coveredPositionsInRow
+
+getTuningSignal :: Pos -> Integer
+getTuningSignal (x, y) = fromIntegral x * 4000000 + fromIntegral y
 
 day15 :: IO ()
 day15 = do
@@ -180,12 +193,12 @@ day15 = do
 
   infos <- case regularParse infosParser input of
     Left e -> fail $ show e
-    Right xs -> pure xs
+    Right xs -> pure $ S.fromList xs
 
   print infos
 
-  let sensorPositions = S.fromList $ map (\(Info sp _) -> sp) infos
-      beaconPositions = S.fromList $ map (\(Info _ bp) -> bp) infos
+  let sensorPositions = S.map (\(Info sp _ _) -> sp) infos
+      beaconPositions = S.map (\(Info _ bp _) -> bp) infos
       -- coveredPositions = S.unions $ map (\(Info sp bp) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
 
   print sensorPositions
@@ -197,4 +210,11 @@ day15 = do
   -- putStrLn $ showField sensorPositions beaconPositions coveredPositions
   -- putStrLn "---"
   -- print $ countNonBeaconPositionsInRow 10 beaconPositions coveredPositions
-  print $ countNonBeaconPositionsInRow' 2000000 (S.fromList infos) beaconPositions
+
+  -- print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
+
+  forM_ [0..4000000] $ \y -> do
+    forM_ [0..4000000] $ \x -> do
+      let covered = any (\i -> isCoveredByBeacon' i (x, y)) infos
+      if covered then pure ()
+      else putStrLn $ show (x, y) <> " - " <> show (getTuningSignal (x, y))

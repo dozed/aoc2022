@@ -25,11 +25,11 @@ day15Spec = do
   describe "lineParser" $ do
     it "should parse an Info" $ do
       let txt = "Sensor at x=2, y=18: closest beacon is at x=-2, y=15"
-      regularParse infoParser txt `shouldBe` Right (Info (2, 18) (-2, 15))
+      regularParse infoParser txt `shouldBe` Right (Info (2, 18) (-2, 15) 7)
 
   describe "linesParser" $ do
     it "should parse a list of Info" $ do
-      regularParse infosParser testInput1 `shouldBe` Right [Info (2, 18) (-2, 15), Info (9, 16) (10, 16)]
+      regularParse infosParser testInput1 `shouldBe` Right [Info (2, 18) (-2, 15) 7, Info (9, 16) (10, 16) 1]
 
   describe "getManhattanDistance" $ do
     it "should compute the manhattan distance for two Pos values" $ do
@@ -44,19 +44,19 @@ day15Spec = do
 
   describe "getMinXByInfo" $ do
     it "should compute minimum covered x distance" $ do
-      getMinXByInfo (Info (8, 7) (2, 10)) `shouldBe` (-1)
+      getMinXByInfo (Info (8, 7) (2, 10) 9) `shouldBe` (-1)
 
   describe "getMaxXByInfo" $ do
     it "should compute maximum covered x distance" $ do
-      getMaxXByInfo (Info (8, 7) (2, 10)) `shouldBe` 17
+      getMaxXByInfo (Info (8, 7) (2, 10) 9) `shouldBe` 17
 
   describe "getMinYByInfo" $ do
     it "should compute minimum covered y distance" $ do
-      getMinYByInfo (Info (8, 7) (2, 10)) `shouldBe` (-2)
+      getMinYByInfo (Info (8, 7) (2, 10) 9) `shouldBe` (-2)
 
   describe "getMaxYByInfo" $ do
     it "should compute maximum covered y distance" $ do
-      getMaxYByInfo (Info (8, 7) (2, 10)) `shouldBe` 16
+      getMaxYByInfo (Info (8, 7) (2, 10) 9) `shouldBe` 16
 
   describe "getCoveredRowPoints" $ do
     it "should compute covered points in the current row in a specific distance" $ do
@@ -90,8 +90,8 @@ day15Spec = do
         Left e -> fail $ show e
         Right xs -> pure xs
     
-      let beaconPositions = S.fromList $ map (\(Info _ bp) -> bp) infos
-          coveredPositions = S.unions $ map (\(Info sp bp) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
+      let beaconPositions = S.fromList $ map (\(Info _ bp _) -> bp) infos
+          coveredPositions = S.unions $ map (\(Info sp bp _) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
 
       countNonBeaconPositionsInRow 10 beaconPositions coveredPositions `shouldBe` 26
 
@@ -101,14 +101,14 @@ day15Spec = do
         Left e -> fail $ show e
         Right xs -> pure xs
 
-      let beaconPositions = S.fromList $ map (\(Info _ bp) -> bp) infos
+      let beaconPositions = S.fromList $ map (\(Info _ bp _) -> bp) infos
           -- coveredPositions = S.unions $ map (\(Info sp bp) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
 
       countNonBeaconPositionsInRow' 10 (S.fromList infos) beaconPositions `shouldBe` 26
 
   describe "isCoveredByBeacon" $ do
     it "should detect covered position" $ do
-      isCoveredByBeacon (Info (8, 7) (2, 10)) (2, 10) `shouldBe` True
+      isCoveredByBeacon (Info (8, 7) (2, 10) 9) (2, 10) `shouldBe` True
 
     it "should detect non-covered position" $ do
-      isCoveredByBeacon (Info (8, 7) (2, 10)) (2, 11) `shouldBe` False
+      isCoveredByBeacon (Info (8, 7) (2, 10) 9) (2, 11) `shouldBe` False

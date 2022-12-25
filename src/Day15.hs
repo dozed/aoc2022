@@ -206,7 +206,7 @@ iteratePositions fieldSize infos pos@(x, y) = do
   when isUncovered $ putStrLn $ "uncovered position: " <> show pos <> " tuning signal: " <> show (getTuningSignal pos)
 
   let pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y+1)
-                         else (x + skippableXPositions, y)
+                      else (x + skippableXPositions, y)
 
   if y' > fieldSize then pure ()
   else iteratePositions fieldSize infos pos'

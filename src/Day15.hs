@@ -222,6 +222,20 @@ day15 = do
 
   print infos
 
+  let minX = getMinXByInfos infos
+      maxX = getMaxXByInfos infos
+      minY = getMinYByInfos infos
+      maxY = getMaxYByInfos infos
+      dx = abs (maxX - minX)
+      dy = abs (maxY - minY)
+
+  putStrLn $ "minX: " <> show minX <> " maxX: " <> show maxX <> " minY: " <> show minY <> " maxY: " <> show maxY
+  putStrLn $ "dx: " <> show dx <> " dy: " <> show dy
+  putStrLn $ "fieldSize: " <> show (dx * dy)
+  -- minX: -1892089 maxX: 5929991 minY: -1916483 maxY: 5272410
+  -- dx: 7822080 dy: 7188893
+  -- fieldSize: 56232096157440
+
   -- part 1
   let sensorPositions = S.map (\(Info sp _ _) -> sp) infos
       beaconPositions = S.map (\(Info _ bp _) -> bp) infos
@@ -238,20 +252,6 @@ day15 = do
 
   print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
   -- print $ countNonBeaconPositionsInRow' 10 infos beaconPositions
-
-  let minX = getMinXByInfos infos
-      maxX = getMaxXByInfos infos
-      minY = getMinYByInfos infos
-      maxY = getMaxYByInfos infos
-      dx = abs (maxX - minX)
-      dy = abs (maxY - minY)
-
-  putStrLn $ "minX: " <> show minX <> " maxX: " <> show maxX <> " minY: " <> show minY <> " maxY: " <> show maxY
-  putStrLn $ "dx: " <> show dx <> " dy: " <> show dy
-  putStrLn $ "fieldSize: " <> show (dx * dy)
-  -- minX: -1892089 maxX: 5929991 minY: -1916483 maxY: 5272410
-  -- dx: 7822080 dy: 7188893
-  -- fieldSize: 56232096157440
 
   -- part 2
   -- iteratePositions 20 (S.toList infos) (0, 0)

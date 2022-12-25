@@ -124,26 +124,35 @@ day15Spec = do
     it "should detect non-covered position" $ do
       isCoveredBySensor' (Info (8, 7) (2, 10) 9) (2, 11) `shouldBe` False
 
-  describe "getNextXBySkippingCovered" $ do
+  describe "getSkippableX" $ do
     it "should skip all covered x positions" $ do
       let pos = (1, 4)
           sensor = mkSensorInfo (3, 2) (7, 1)
 
-      getNextXBySkippingCovered sensor pos `shouldBe` Just 6
+      getSkippableX sensor pos `shouldBe` Just 6
 
       let pos' = (5, 4)
           sensor' = mkSensorInfo (3, 2) (7, 1)
 
-      getNextXBySkippingCovered sensor' pos' `shouldBe` Just 2
+      getSkippableX sensor' pos' `shouldBe` Just 2
 
     it "should not skip for a non-covered position" $ do
       let pos = (-2, 4)
           sensor = mkSensorInfo (3, 2) (7, 1)
 
-      getNextXBySkippingCovered sensor pos `shouldBe` Nothing
+      getSkippableX sensor pos `shouldBe` Nothing
 
       let pos' = (7, 0)
           sensor' = mkSensorInfo (3, 2) (7, 1)
 
-      getNextXBySkippingCovered sensor' pos' `shouldBe` Nothing
+      getSkippableX sensor' pos' `shouldBe` Nothing
 
+  describe "getMaximumSkippableX" $ do
+    it "should find maximum skippable x's for multiple Infos" $ do
+      let sensors = [mkSensorInfo (0, 6) (0, 4), mkSensorInfo (3, 2) (7, 1), mkSensorInfo (12, 1) (13, 0)]
+
+      getMaximumSkippableX sensors (1, 4) `shouldBe` Just 6
+      getMaximumSkippableX sensors (5, 4) `shouldBe` Just 2
+      getMaximumSkippableX sensors (7, 4) `shouldBe` Nothing
+      getMaximumSkippableX sensors (11, 0) `shouldBe` Just 3
+      getMaximumSkippableX sensors (2, 6) `shouldBe` Just 3

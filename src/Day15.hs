@@ -4,8 +4,7 @@ module Day15 where
 
 import Control.Monad (forM_, void)
 import Data.Function (on)
-import Data.List (intercalate, maximumBy, minimumBy, sort)
-import Data.Maybe (mapMaybe)
+import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.Parsec hiding (count)
@@ -59,7 +58,7 @@ negativeNumberParser :: Parser Int
 negativeNumberParser = do
   void $ char '-'
   n <- positiveNumberParser
-  return $ -n
+  return (-n)
 
 numberParser :: Parser Int
 numberParser = negativeNumberParser <|> positiveNumberParser
@@ -77,7 +76,7 @@ infoParser = do
   let sensorPos = (sx, sy)
       beaconPos = (bx, by)
       sensorInfo = mkSensorInfo sensorPos beaconPos
-  return $ sensorInfo
+  return sensorInfo
 
 infosParser :: Parser [Info]
 infosParser = endBy1 infoParser endOfLine
@@ -178,7 +177,6 @@ countNonBeaconPositionsInRow' y infos beaconPositions =
   let minX = getMinXByInfos infos
       maxX = getMaxXByInfos infos
       coveredPositionsInRow = count (\x -> any (\i -> isCoveredBySensor' i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
-      -- coveredPositionsInRow = count (\x -> any (\i -> isCoveredByBeacon i (x, y)) infos && (not . S.member (x, y)) beaconPositions) [minX..maxX]
   in coveredPositionsInRow
 
 getTuningSignal :: Pos -> Integer

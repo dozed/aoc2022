@@ -21,7 +21,7 @@ Sensor at x=9, y=16: closest beacon is at x=10, y=16
 
 day15Spec :: Spec
 day15Spec = do
-  
+
   describe "mkSensorInfo" $
     it "should create SensorInfo with manhattan distance" $
       mkSensorInfo (3, 2) (7, 1) `shouldBe` Info (3, 2) (7, 1) 5
@@ -131,11 +131,10 @@ day15Spec = do
 
       getNextXBySkippingCovered sensor pos `shouldBe` Just 6
 
-    it "should skip all covered x positions" $ do
-      let pos = (5, 4)
-          sensor = mkSensorInfo (3, 2) (7, 1)
+      let pos' = (5, 4)
+          sensor' = mkSensorInfo (3, 2) (7, 1)
 
-      getNextXBySkippingCovered sensor pos `shouldBe` Just 2
+      getNextXBySkippingCovered sensor' pos' `shouldBe` Just 2
 
     it "should not skip for a non-covered position" $ do
       let pos = (-2, 4)
@@ -143,10 +142,8 @@ day15Spec = do
 
       getNextXBySkippingCovered sensor pos `shouldBe` Nothing
 
-    it "should not skip for a non-covered position" $ do
-      let pos = (7, 0)
-          sensor = mkSensorInfo (3, 2) (7, 1)
+      let pos' = (7, 0)
+          sensor' = mkSensorInfo (3, 2) (7, 1)
 
-      getNextXBySkippingCovered sensor pos `shouldBe` Nothing
-
+      getNextXBySkippingCovered sensor' pos' `shouldBe` Nothing
 

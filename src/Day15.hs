@@ -194,9 +194,9 @@ getMaximumSkippableX [] _ = Nothing
 getMaximumSkippableX (i:is) pos =
   case getSkippableX i pos of
     Nothing -> getMaximumSkippableX is pos
-    Just x' ->  case getMaximumSkippableX is pos of
-      Nothing -> Just x'
-      Just x'' -> if x' > x'' then Just x' else Just x''
+    Just skippable ->  case getMaximumSkippableX is pos of
+      Nothing -> Just skippable
+      Just skippable' -> if skippable > skippable' then Just skippable else Just skippable'
 
 day15 :: IO ()
 day15 = do
@@ -246,9 +246,9 @@ day15 = do
 
     -- processRow
     let x = 0
-        nextX = getMaximumSkippableX' infos' (x, y)
+        skippable = getMaximumSkippableX infos' (x, y)
 
-    let x' = case nextX of
+    let x' = case skippable of
           Nothing ->
             -- uncovered position, print position and stop (or continue with next position
             if x + 1 > 4000000 then undefined -- x = 0, proceed with next row

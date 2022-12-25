@@ -4,7 +4,8 @@ module Day15 where
 
 import Control.Monad (forM_, void)
 import Data.Function (on)
-import Data.List (intercalate, maximumBy, minimumBy)
+import Data.List (intercalate, maximumBy, minimumBy, sort)
+import Data.Maybe (mapMaybe)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.Parsec hiding (count)
@@ -46,6 +47,11 @@ getSensorPos (Info sp _ _) = sp
 getBeaconPos :: Info -> Pos
 getBeaconPos (Info _ bp _) = bp
 
+mkSensorInfo :: Pos -> Pos -> Info
+mkSensorInfo sensorPos beaconPos =
+  let dist = getManhattanDistance sensorPos beaconPos
+  in Info sensorPos beaconPos dist
+
 positiveNumberParser :: Parser Int
 positiveNumberParser = read <$> many1 digit
 
@@ -70,8 +76,8 @@ infoParser = do
   by <- numberParser
   let sensorPos = (sx, sy)
       beaconPos = (bx, by)
-      dist = getManhattanDistance sensorPos beaconPos
-  return $ Info sensorPos beaconPos dist
+      sensorInfo = mkSensorInfo sensorPos beaconPos
+  return $ sensorInfo
 
 infosParser :: Parser [Info]
 infosParser = endBy1 infoParser endOfLine
@@ -178,6 +184,20 @@ countNonBeaconPositionsInRow' y infos beaconPositions =
 getTuningSignal :: Pos -> Integer
 getTuningSignal (x, y) = fromIntegral x * 4000000 + fromIntegral y
 
+getNextXBySkippingCovered :: Info -> Pos -> Maybe X
+getNextXBySkippingCovered info@(Info (sx, sy) _ d) pos@(x, y)
+  | not (isCoveredBySensor' info pos) = Nothing
+  | otherwise = Just $ d - (x - sx) - abs(y - sy) + 1
+
+getNextXBySkippingCovered' :: [Info] -> Pos -> Maybe X
+getNextXBySkippingCovered' [] _ = Nothing
+getNextXBySkippingCovered' (i:is) pos =
+  case getNextXBySkippingCovered i pos of
+    Nothing -> getNextXBySkippingCovered' is pos
+    Just x' ->  case getNextXBySkippingCovered' is pos of
+      Nothing -> Just x'
+      Just x'' -> if x' > x'' then Just x' else Just x''
+
 day15 :: IO ()
 day15 = do
   -- let input = testInput
@@ -219,8 +239,24 @@ day15 = do
   -- dx: 7822080 dy: 7188893
   -- fieldSize: 56232096157440
 
+  let infos' = S.toList infos
+
   forM_ [0..4000000] $ \y -> do
     print y
+
+    -- processRow
+    let x = 0
+        nextX = getNextXBySkippingCovered' infos' (x, y)
+
+    let x' = case nextX of
+          Nothing ->
+            -- uncovered position, print position and stop (or continue with next position
+            if x + 1 > 4000000 then undefined -- x = 0, proceed with next row
+            else undefined -- x = x + 1
+          Just x' ->
+            if x' > 4000000 then undefined -- x = 0, proceed with next row
+            else undefined -- x = x + 1
+
     forM_ [0..4000000] $ \x -> do
       let covered = any (\i -> isCoveredBySensor' i (x, y)) infos
       if covered then pure ()

@@ -250,8 +250,8 @@ day15 = do
   -- putStrLn "---"
   -- print $ countNonBeaconPositionsInRow 10 beaconPositions coveredPositions
 
-  print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
   -- print $ countNonBeaconPositionsInRow' 10 infos beaconPositions
+  print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
 
   -- part 2
   -- iteratePositions 20 (S.toList infos) (0, 0)

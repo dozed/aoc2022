@@ -184,12 +184,12 @@ countNonBeaconPositionsInRow' y infos beaconPositions =
 getTuningSignal :: Pos -> Integer
 getTuningSignal (x, y) = fromIntegral x * 4000000 + fromIntegral y
 
-getSkippableX :: Info -> Pos -> Maybe X
+getSkippableX :: Info -> Pos -> Maybe Int
 getSkippableX info@(Info (sx, sy) _ d) pos@(x, y)
   | not (isCoveredBySensor' info pos) = Nothing
   | otherwise = Just $ d - (x - sx) - abs(y - sy) + 1
 
-getMaximumSkippableX :: [Info] -> Pos -> Maybe X
+getMaximumSkippableX :: [Info] -> Pos -> Maybe Int
 getMaximumSkippableX [] _ = Nothing
 getMaximumSkippableX (i:is) pos =
   case getSkippableX i pos of

@@ -2,9 +2,10 @@
 
 module Day15 where
 
-import Control.Monad (forM_, void)
+import Control.Monad (forM_, void, when)
 import Data.Function (on)
 import Data.List (intercalate, maximumBy, minimumBy)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.Parsec hiding (count)
@@ -196,6 +197,20 @@ getMaximumSkippableX (i:is) pos =
       Nothing -> Just skippable
       Just skippable' -> if skippable > skippable' then Just skippable else Just skippable'
 
+iteratePositions :: Int -> [Info] -> Pos -> IO ()
+iteratePositions fieldSize infos pos@(x, y) = do
+  let skippableM = getMaximumSkippableX infos pos
+      isUncovered = isNothing skippableM
+      skippableXPositions = fromMaybe 1 skippableM
+
+  when isUncovered $ putStrLn $ "uncovered position: " <> show pos <> " tuning signal: " <> show (getTuningSignal pos)
+
+  let pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y+1)
+                         else (x + skippableXPositions, y)
+
+  if y' > fieldSize then pure ()
+  else iteratePositions fieldSize infos pos'
+
 day15 :: IO ()
 day15 = do
   -- let input = testInput
@@ -207,9 +222,9 @@ day15 = do
 
   print infos
 
+  -- part 1
   let sensorPositions = S.map (\(Info sp _ _) -> sp) infos
       beaconPositions = S.map (\(Info _ bp _) -> bp) infos
-      -- coveredPositions = S.unions $ map (\(Info sp bp) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
 
   print sensorPositions
   print beaconPositions
@@ -221,7 +236,8 @@ day15 = do
   -- putStrLn "---"
   -- print $ countNonBeaconPositionsInRow 10 beaconPositions coveredPositions
 
-  -- print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
+  print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
+  -- print $ countNonBeaconPositionsInRow' 10 infos beaconPositions
 
   let minX = getMinXByInfos infos
       maxX = getMaxXByInfos infos
@@ -237,25 +253,6 @@ day15 = do
   -- dx: 7822080 dy: 7188893
   -- fieldSize: 56232096157440
 
-  let infos' = S.toList infos
-
-  forM_ [0..4000000] $ \y -> do
-    print y
-
-    -- processRow
-    let x = 0
-        skippable = getMaximumSkippableX infos' (x, y)
-
-    let x' = case skippable of
-          Nothing ->
-            -- uncovered position, print position and stop (or continue with next position
-            if x + 1 > 4000000 then undefined -- x = 0, proceed with next row
-            else undefined -- x = x + 1
-          Just x' ->
-            if x' > 4000000 then undefined -- x = 0, proceed with next row
-            else undefined -- x = x + 1
-
-    forM_ [0..4000000] $ \x -> do
-      let covered = any (\i -> isCoveredBySensor' i (x, y)) infos
-      if covered then pure ()
-      else putStrLn $ show (x, y) <> " - " <> show (getTuningSignal (x, y))
+  -- part 2
+  -- iteratePositions 20 (S.toList infos) (0, 0)
+  iteratePositions 4000000 (S.toList infos) (0, 0)

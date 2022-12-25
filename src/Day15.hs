@@ -191,10 +191,10 @@ getSkippableX info@(Info (sx, sy) _ d) pos@(x, y)
 
 getMaximumSkippableX :: [Info] -> Pos -> Maybe X
 getMaximumSkippableX [] _ = Nothing
-getMaximumSkippableX' (i:is) pos =
+getMaximumSkippableX (i:is) pos =
   case getSkippableX i pos of
-    Nothing -> getMaximumSkippableX' is pos
-    Just x' ->  case getMaximumSkippableX' is pos of
+    Nothing -> getMaximumSkippableX is pos
+    Just x' ->  case getMaximumSkippableX is pos of
       Nothing -> Just x'
       Just x'' -> if x' > x'' then Just x' else Just x''
 

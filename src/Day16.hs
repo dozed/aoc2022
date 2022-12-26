@@ -44,3 +44,5 @@ descParser = do
   toValves <- sepBy1 valveParser (string ", ")
   return $ Desc valve flowRate toValves
 
+descsParser :: Parser [Desc]
+descsParser = endBy1 descParser endOfLine

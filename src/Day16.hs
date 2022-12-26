@@ -14,7 +14,7 @@ import Text.Parsec hiding (label)
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse)
+import Util (lstrip, regularParse, windows)
 
 testInput :: String
 testInput = lstrip [r|
@@ -99,6 +99,21 @@ getPath predecessorsMap from to = case M.lookup from predecessorsMap of
   Nothing -> []
   Just m -> getPath' m to
 
+data PathAction = JustVisit Label
+                | VisitAndOpen Label
+                deriving (Eq, Show)
+
+toPathActions :: [Label] -> [PathAction]
+toPathActions path =
+  let from = VisitAndOpen $ head path
+      to = VisitAndOpen $ last path
+      mid = map JustVisit . init . tail $ path
+      path' = [from] ++ mid ++ [to]
+  in path'
+
+joinPathActions :: [[PathAction]] -> [PathAction]
+joinPathActions = undefined
+
 day16 :: IO ()
 day16 = do
   let input = testInput
@@ -110,22 +125,32 @@ day16 = do
   forM_ valves print
   putStrLn $ "Number of valves: " <> show (length valves)
 
-  let nonZeroFlowRateValves = filter hasNonZeroFlowRate valves
+  let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
+      valvesLabels = [getValveLabel v | v <- valves]
+      nonZeroFlowRateValves = [getValveLabel v | v <- valves, hasNonZeroFlowRate v]
+
+  startValve <- case M.lookup "AA" valvesMap of
+    Nothing -> fail "Could not find starting valve 'AA'"
+    Just v -> pure v
+
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
 
   let schedules = permutations nonZeroFlowRateValves
   putStrLn $ "Number of schedules: " <> show (length schedules)
   -- 720
 
-  let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
-
-  startValve <- case M.lookup "AA" valvesMap of
-    Nothing -> fail "Could not find starting valve 'AA'"
-    Just v -> pure v
-
-  let valvesLabels = [getValveLabel v | v <- valves]
-      getNeighbours a = S.fromList $ maybe [] getReachableValves (M.lookup a valvesMap)
+  let getNeighbours a = S.fromList $ maybe [] getReachableValves (M.lookup a valvesMap)
       predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
 
   print $ getPath predecessorsMap "AA" "CC"
   print $ getPath predecessorsMap "CC" "GG"
+
+  let schedule1 = head schedules
+  print schedule1
+
+  let pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule1
+      subPaths = map (uncurry (getPath predecessorsMap)) pairs
+      subPathActions = map toPathActions subPaths
+
+  print subPaths
+  print subPathActions

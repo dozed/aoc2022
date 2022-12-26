@@ -43,7 +43,7 @@ day16Spec = do
   describe "getPath" $ do
     it "should compute the shorted path between two valves" $ do
       let input = testInput
-    
+
       valves <- case regularParse valvesParser input of
         Left e -> fail $ show e
         Right xs -> pure xs
@@ -52,6 +52,10 @@ day16Spec = do
           valvesLabels = [getValveLabel v | v <- valves]
           getNeighbours a = S.fromList $ maybe [] getReachableValves (M.lookup a valvesMap)
           predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
-    
+
       getPath predecessorsMap "AA" "CC" `shouldBe` ["AA", "BB", "CC"]
       getPath predecessorsMap "CC" "GG" `shouldBe` ["CC", "DD", "EE", "FF", "GG"]
+
+  describe "toPathActions" $ do
+    it "should transform a sub-path to a list of PathActions" $ do
+      toPathActions ["EE", "FF", "GG", "HH"] `shouldBe` [VisitAndOpen "EE", JustVisit "FF", JustVisit "GG", VisitAndOpen "HH"]

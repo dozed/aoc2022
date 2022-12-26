@@ -1,9 +1,15 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Day16 where
 
 import Control.Monad (forM_, void)
 import Data.List (permutations)
+import Data.Map (Map)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import Data.Set (Set)
+import qualified Data.Set as S
 import Text.Parsec hiding (label)
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -28,6 +34,12 @@ type Label = String
 type FlowRate = Int
 data Valve = Valve Label FlowRate [Label]
              deriving (Eq, Show)
+
+getValveLabel :: Valve -> Label
+getValveLabel (Valve l _ _) = l
+
+getReachableValves :: Valve -> [Label]
+getReachableValves (Valve _ _ toValves) = toValves
 
 hasZeroFlowRate :: Valve -> Bool
 hasZeroFlowRate (Valve _ 0 _) = True
@@ -55,6 +67,38 @@ valveParser = do
 valvesParser :: Parser [Valve]
 valvesParser = endBy1 valveParser endOfLine
 
+type Predecessors a = Map a a
+
+bfs' :: Ord a => (a -> Set a) -> a -> [a] -> Set a -> Predecessors a -> Predecessors a
+bfs' getNeighbours current toVisit visited predecessors =
+  let visited' = S.insert current visited
+      reachablePositions = getNeighbours current
+      reachablePositionsNotVisited = S.difference reachablePositions visited'
+      reachablePositionsNotVisitedAndNotToVisit = S.difference reachablePositionsNotVisited (S.fromList toVisit)
+      toVisit' = toVisit ++ S.toList reachablePositionsNotVisitedAndNotToVisit
+      predecessors' = foldl (\acc x -> M.insert x current acc) predecessors reachablePositionsNotVisitedAndNotToVisit
+
+  in case toVisit' of
+    [] -> predecessors'
+    x:xs -> bfs' getNeighbours x xs visited' predecessors'
+
+bfs :: Ord a => (a -> Set a) -> a -> Predecessors a
+bfs getNeighbours current = bfs' getNeighbours current [] S.empty M.empty
+
+getPath'' :: Ord a => Predecessors a -> a -> [a] -> [a]
+getPath'' predecessors a path =
+  case M.lookup a predecessors of
+    Nothing -> a:path
+    Just p -> getPath'' predecessors p (a:path)
+
+getPath' :: Ord a => Predecessors a -> a -> [a]
+getPath' predecessors a = getPath'' predecessors a []
+
+getPath :: Ord a => Map a (Predecessors a) -> a -> a -> [a]
+getPath predecessorsMap from to = case M.lookup from predecessorsMap of
+  Nothing -> []
+  Just m -> getPath' m to
+
 day16 :: IO ()
 day16 = do
   let input = testInput
@@ -65,10 +109,23 @@ day16 = do
 
   forM_ valves print
   putStrLn $ "Number of valves: " <> show (length valves)
-  
-  let nonZeroFlowRateValves = filter hasNonZeroFlowRate valves 
+
+  let nonZeroFlowRateValves = filter hasNonZeroFlowRate valves
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
 
   let schedules = permutations nonZeroFlowRateValves
   putStrLn $ "Number of schedules: " <> show (length schedules)
   -- 720
+
+  let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
+
+  startValve <- case M.lookup "AA" valvesMap of
+    Nothing -> fail "Could not find starting valve 'AA'"
+    Just v -> pure v
+
+  let valvesLabels = [getValveLabel v | v <- valves]
+      getNeighbours a = S.fromList $ maybe [] getReachableValves (M.lookup a valvesMap)
+      predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
+
+  print $ getPath predecessorsMap "AA" "CC"
+  print $ getPath predecessorsMap "CC" "GG"

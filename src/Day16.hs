@@ -3,7 +3,7 @@
 module Day16 where
 
 import Control.Monad (forM_, void)
-import Data.List (length, permutations)
+import Data.List (permutations)
 import Text.Parsec hiding (label)
 import Text.Parsec.String
 import Text.RawString.QQ
@@ -28,6 +28,13 @@ type Label = String
 type FlowRate = Int
 data Valve = Valve Label FlowRate [Label]
              deriving (Eq, Show)
+
+hasZeroFlowRate :: Valve -> Bool
+hasZeroFlowRate (Valve _ 0 _) = True
+hasZeroFlowRate _ = False
+
+hasNonZeroFlowRate :: Valve -> Bool
+hasNonZeroFlowRate = not . hasZeroFlowRate
 
 labelParser :: Parser Label
 labelParser = do
@@ -57,8 +64,11 @@ day16 = do
     Right xs -> pure xs
 
   forM_ valves print
+  putStrLn $ "Number of valves: " <> show (length valves)
+  
+  let nonZeroFlowRateValves = filter hasNonZeroFlowRate valves 
+  putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
 
-  let schedules = permutations valves
-
+  let schedules = permutations nonZeroFlowRateValves
   putStrLn $ "Number of schedules: " <> show (length schedules)
-  -- 3628800
+  -- 720

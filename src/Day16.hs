@@ -126,7 +126,7 @@ getReleasedPressure valvesMap minute releasing released actions =
   let released' = released + releasing
   in if minute == 30 then released'
      else
-       let (additionalReleasing, nextActions) =
+       let (additionalReleasing, actions') =
              case actions of
                [] -> (0, [])
                (Visit _:xs) -> (0, xs)
@@ -135,7 +135,7 @@ getReleasedPressure valvesMap minute releasing released actions =
                    Nothing -> (0, xs)
                    Just valve -> (getValveFlowRate valve, xs)
            releasing' = releasing + additionalReleasing
-       in getReleasedPressure valvesMap (minute+1) releasing' released' nextActions
+       in getReleasedPressure valvesMap (minute+1) releasing' released' actions'
 
 day16 :: IO ()
 day16 = do

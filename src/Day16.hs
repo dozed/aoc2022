@@ -130,10 +130,10 @@ getReleasedPressure valvesMap minute releasing released actions =
              case actions of
                [] -> (0, [])
                (Visit _:xs) -> (0, xs)
-               (Open v:xs) ->
-                 case M.lookup v valvesMap of
+               (Open x:xs) ->
+                 case M.lookup x valvesMap of
                    Nothing -> (0, xs)
-                   Just valve -> (getValveFlowRate valve, xs)
+                   Just v -> (getValveFlowRate v, xs)
            releasing' = releasing + additionalReleasing
        in getReleasedPressure valvesMap (minute+1) releasing' released' actions'
 

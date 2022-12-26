@@ -76,10 +76,10 @@ day16Spec = do
         Right xs -> pure xs
 
       let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
-          pathActions' = [Visit "DD", Open "DD", Visit "CC", Visit "BB", Open "BB", Visit "AA", Visit "II", Visit "JJ", Open "JJ",
+          pathActions = [Visit "DD", Open "DD", Visit "CC", Visit "BB", Open "BB", Visit "AA", Visit "II", Visit "JJ", Open "JJ",
                           Visit "II", Visit "AA", Visit "DD", Visit "EE", Visit "FF", Visit "GG", Visit "HH", Open "HH", Visit "GG",
                           Visit "FF", Visit "EE", Open "EE", Visit "DD", Visit "CC", Open "CC"]
 
-      let releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions'
+      let releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions
 
       releasedPressure `shouldBe` 1651

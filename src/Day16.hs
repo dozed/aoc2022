@@ -162,7 +162,7 @@ day16 = do
   putStrLn $ "Number of schedules: " <> show (length schedules)
   -- 720
 
-  let getNeighbours a = S.fromList $ maybe [] getReachableValves (M.lookup a valvesMap)
+  let getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
       predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
 
   print $ getPath predecessorsMap "AA" "CC"

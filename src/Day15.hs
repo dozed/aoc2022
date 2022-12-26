@@ -254,7 +254,7 @@ day15 = do
   print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
 
   -- part 2
-  -- let uncoveredPos = iteratePositions 20 (S.toList infos) (0, 0)
+  -- let uncoveredPos = findUncoveredPos 20 (S.toList infos) (0, 0)
   let uncoveredPos = findUncoveredPos 4000000 (S.toList infos) (0, 0)
 
   case uncoveredPos of

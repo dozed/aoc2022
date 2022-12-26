@@ -99,24 +99,24 @@ getPath predecessorsMap from to = case M.lookup from predecessorsMap of
   Nothing -> []
   Just m -> getPath' m to
 
-data PathAction = JustVisit Label
-                | VisitAndOpen Label
+data PathAction = Visit Label
+                | Open Label
                 deriving (Eq, Show)
 
 toPathActions :: [Label] -> [PathAction]
 toPathActions path =
-  let from = VisitAndOpen $ head path
-      to = VisitAndOpen $ last path
-      mid = map JustVisit . init . tail $ path
-      path' = [from] ++ mid ++ [to]
+  let from = head path
+      to = last path
+      mid = map Visit . init . tail $ path
+      path' = [Visit from, Open from] ++ mid ++ [Visit to, Open to]
   in path'
 
 joinPathActions :: [[PathAction]] -> [PathAction]
-joinPathActions [] = [] 
-joinPathActions [xs] = xs 
+joinPathActions [] = []
+joinPathActions [xs] = xs
 joinPathActions (x:xs) =
-  let xs' = map tail xs 
-  in concat (x:xs') 
+  let xs' = map (drop 2) xs
+  in concat (x:xs')
 
 day16 :: IO ()
 day16 = do

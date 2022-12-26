@@ -58,11 +58,11 @@ day16Spec = do
 
   describe "toPathActions" $ do
     it "should transform a sub-path to a list of PathActions" $ do
-      toPathActions ["EE", "FF", "GG", "HH"] `shouldBe` [VisitAndOpen "EE", JustVisit "FF", JustVisit "GG", VisitAndOpen "HH"]
+      toPathActions ["EE", "FF", "GG", "HH"] `shouldBe` [Visit "EE", Open "EE", Visit "FF", Visit "GG", Visit "HH", Open "HH"]
 
   describe "joinPathActions" $ do
     it "should join sub-PathActions to a single list of PathActions" $ do
-      let subPathActions = [[VisitAndOpen "BB", VisitAndOpen "CC"], [VisitAndOpen "CC", JustVisit "FF", VisitAndOpen "HH"]]
-      let pathActions = [VisitAndOpen "BB", VisitAndOpen "CC", JustVisit "FF", VisitAndOpen "HH"]
+      let subPathActions = [[Visit "BB", Open "BB", Visit "CC", Open "CC"], [Visit "CC", Open "CC", Visit "FF", Visit "HH", Open "HH"]]
+      let pathActions = [Visit "BB", Open "BB", Visit "CC", Open "CC", Visit "FF", Visit "HH", Open "HH"]
 
       joinPathActions subPathActions `shouldBe` pathActions

@@ -2,12 +2,13 @@
 
 module Day16 where
 
-import Control.Monad (void)
-import Text.Parsec
+import Control.Monad (forM_, void)
+import Data.List (length, permutations)
+import Text.Parsec hiding (label)
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip)
+import Util (lstrip, regularParse)
 
 testInput :: String
 testInput = lstrip [r|
@@ -23,26 +24,41 @@ Valve II has flow rate=0; tunnels lead to valves AA, JJ
 Valve JJ has flow rate=21; tunnel leads to valve II
 |]
 
-type Valve = String
+type Label = String
 type FlowRate = Int
-data Desc = Desc Valve FlowRate [Valve]
-            deriving (Eq, Show)
+data Valve = Valve Label FlowRate [Label]
+             deriving (Eq, Show)
 
-valveParser :: Parser Valve
-valveParser = do
+labelParser :: Parser Label
+labelParser = do
   a <- upper
   b <- upper
   return [a, b]
 
-descParser :: Parser Desc
-descParser = do
+valveParser :: Parser Valve
+valveParser = do
   void $ string "Valve "
-  valve <- valveParser
+  label <- labelParser
   void $ string " has flow rate="
   flowRate <- read <$> many1 digit
-  void $ string "; tunnels lead to valves "
-  toValves <- sepBy1 valveParser (string ", ")
-  return $ Desc valve flowRate toValves
+  void $ try (string "; tunnels lead to valves ") <|> try (string "; tunnel leads to valve ")
+  toLabels <- sepBy1 labelParser (string ", ")
+  return $ Valve label flowRate toLabels
 
-descsParser :: Parser [Desc]
-descsParser = endBy1 descParser endOfLine
+valvesParser :: Parser [Valve]
+valvesParser = endBy1 valveParser endOfLine
+
+day16 :: IO ()
+day16 = do
+  let input = testInput
+
+  valves <- case regularParse valvesParser input of
+    Left e -> fail $ show e
+    Right xs -> pure xs
+
+  forM_ valves print
+
+  let schedules = permutations valves
+
+  putStrLn $ "Number of schedules: " <> show (length schedules)
+  -- 3628800

@@ -16,19 +16,21 @@ example2 :: String
 example2 = lstrip [r|
 Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
 Valve BB has flow rate=13; tunnels lead to valves CC, AA
+Valve HH has flow rate=22; tunnel leads to valve GG
 |]
 
 day16Spec :: Spec
 day16Spec = do
 
+  describe "labelParser" $ do
+    it "should parse a Valve" $ do
+      regularParse labelParser "AA" `shouldBe` Right "AA"
+
   describe "valveParser" $ do
     it "should parse a Valve" $ do
-      regularParse valveParser "AA" `shouldBe` Right "AA"
+      regularParse valveParser example1 `shouldBe` Right (Valve "AA" 0 ["DD", "II", "BB"])
 
-  describe "descParser" $ do
-    it "should parse a Desc" $ do
-      regularParse descParser example1 `shouldBe` Right (Desc "AA" 0 ["DD", "II", "BB"])
-
-  describe "descsParser" $ do
-    it "should parse a list of Descs" $ do
-      regularParse descsParser example2 `shouldBe` Right [Desc "AA" 0 ["DD", "II", "BB"], Desc "BB" 13 ["CC", "AA"]]
+  describe "valvesParser" $ do
+    it "should parse a list of Valves" $ do
+      let expected = [Valve "AA" 0 ["DD", "II", "BB"], Valve "BB" 13 ["CC", "AA"], Valve "HH" 22 ["GG"]]
+      regularParse valvesParser example2 `shouldBe` Right expected

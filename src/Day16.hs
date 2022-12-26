@@ -38,6 +38,9 @@ data Valve = Valve Label FlowRate [Label]
 getValveLabel :: Valve -> Label
 getValveLabel (Valve l _ _) = l
 
+getValveFlowRate :: Valve -> Int
+getValveFlowRate (Valve _ fr _) = fr
+
 getReachableValves :: Valve -> [Label]
 getReachableValves (Valve _ _ toValves) = toValves
 
@@ -118,6 +121,22 @@ joinPathActions (x:xs) =
   let xs' = map (drop 2) xs
   in concat (x:xs')
 
+getReleasedPressure :: Map Label Valve -> Int -> Int -> Int -> [PathAction] -> Int
+getReleasedPressure valvesMap minute releasing released actions =
+  let released' = released + releasing
+  in if minute == 30 then released'
+     else
+       let (additionalReleasing, nextActions) =
+             case actions of
+               [] -> (0, [])
+               (Visit _:xs) -> (0, xs)
+               (Open v:xs) ->
+                 case M.lookup v valvesMap of
+                   Nothing -> (0, xs)
+                   Just valve -> (getValveFlowRate valve, xs)
+           releasing' = releasing + additionalReleasing
+       in getReleasedPressure valvesMap (minute+1) releasing' released' nextActions
+
 day16 :: IO ()
 day16 = do
   let input = testInput
@@ -160,3 +179,12 @@ day16 = do
   print subPaths
   print subPathActions
   print pathActions
+  -- [Visit "BB",Open "BB",Visit "CC",Open "CC",Visit "DD",Open "DD",Visit "EE",Open "EE",Visit "FF",Visit "GG",Visit "HH",Open "HH",Visit "GG",Visit "FF",Visit "EE",Visit "DD",Visit "AA",Visit "II",Visit "JJ",Open "JJ"]
+
+  let pathActions' = [Visit "DD", Open "DD", Visit "CC", Visit "BB", Open "BB", Visit "AA", Visit "II", Visit "JJ", Open "JJ",
+                      Visit "II", Visit "AA", Visit "DD", Visit "EE", Visit "FF", Visit "GG", Visit "HH", Open "HH", Visit "GG",
+                      Visit "FF", Visit "EE", Open "EE", Visit "DD", Visit "CC", Open "CC"]
+
+  let releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions'
+  putStrLn $ "Released pressure: " <> show releasedPressure
+

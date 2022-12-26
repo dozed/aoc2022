@@ -2,7 +2,6 @@
 
 module Day15Spec (day15Spec) where
 
-import Control.Monad.IO.Class (liftIO)
 import qualified Data.Set as S
 import Text.RawString.QQ
 

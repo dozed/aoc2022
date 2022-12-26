@@ -112,7 +112,11 @@ toPathActions path =
   in path'
 
 joinPathActions :: [[PathAction]] -> [PathAction]
-joinPathActions = undefined
+joinPathActions [] = [] 
+joinPathActions [xs] = xs 
+joinPathActions (x:xs) =
+  let xs' = map tail xs 
+  in concat (x:xs') 
 
 day16 :: IO ()
 day16 = do
@@ -151,6 +155,8 @@ day16 = do
   let pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule1
       subPaths = map (uncurry (getPath predecessorsMap)) pairs
       subPathActions = map toPathActions subPaths
+      pathActions = joinPathActions subPathActions
 
   print subPaths
   print subPathActions
+  print pathActions

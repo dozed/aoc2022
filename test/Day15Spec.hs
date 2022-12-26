@@ -157,7 +157,7 @@ day15Spec = do
       getMaximumSkippableX sensors (11, 0) `shouldBe` Just 3
       getMaximumSkippableX sensors (2, 6) `shouldBe` Just 3
 
-  describe "iteratePositions" $ do
+  describe "findUncoveredPos" $ do
     it "should find uncovered position" $ do
       let input = testInput
 
@@ -165,7 +165,7 @@ day15Spec = do
         Left e -> fail $ show e
         Right xs -> pure xs
 
-      iteratePositions 20 infos (0, 0) `shouldBe` Just (14, 11)
+      findUncoveredPos 20 infos (0, 0) `shouldBe` Just (14, 11)
 
   describe "getTuningSignal" $ do
     it "should compute the tuning signal for a position" $ do

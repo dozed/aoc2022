@@ -197,8 +197,8 @@ getMaximumSkippableX (i:is) pos =
       Nothing -> Just skippable
       Just skippable' -> if skippable > skippable' then Just skippable else Just skippable'
 
-iteratePositions :: Int -> [Info] -> Pos -> Maybe Pos
-iteratePositions fieldSize infos pos@(x, y) = do
+findUncoveredPos :: Int -> [Info] -> Pos -> Maybe Pos
+findUncoveredPos fieldSize infos pos@(x, y) = do
   let skippableXPositionsMaybe = getMaximumSkippableX infos pos
       isUncovered = isNothing skippableXPositionsMaybe
 
@@ -208,7 +208,7 @@ iteratePositions fieldSize infos pos@(x, y) = do
         pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y + 1)
                         else (x + skippableXPositions, y)
         res = if y' > fieldSize then Nothing
-              else iteratePositions fieldSize infos pos'
+              else findUncoveredPos fieldSize infos pos'
     in res
 
 day15 :: IO ()
@@ -255,7 +255,7 @@ day15 = do
 
   -- part 2
   -- let uncoveredPos = iteratePositions 20 (S.toList infos) (0, 0)
-  let uncoveredPos = iteratePositions 4000000 (S.toList infos) (0, 0)
+  let uncoveredPos = findUncoveredPos 4000000 (S.toList infos) (0, 0)
 
   case uncoveredPos of
     Nothing -> putStrLn "No uncovered pos found"

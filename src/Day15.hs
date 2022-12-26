@@ -199,13 +199,13 @@ getMaximumSkippableX (i:is) pos =
 
 iteratePositions :: Int -> [Info] -> Pos -> Maybe Pos
 iteratePositions fieldSize infos pos@(x, y) = do
-  let skippableM = getMaximumSkippableX infos pos
-      isUncovered = isNothing skippableM
-      skippableXPositions = fromMaybe 1 skippableM
+  let skippableXPositionsMaybe = getMaximumSkippableX infos pos
+      isUncovered = isNothing skippableXPositionsMaybe
 
   if isUncovered then Just pos
   else
-    let pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y + 1)
+    let skippableXPositions = fromMaybe 1 skippableXPositionsMaybe
+        pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y + 1)
                         else (x + skippableXPositions, y)
         res = if y' > fieldSize then Nothing
               else iteratePositions fieldSize infos pos'

@@ -198,18 +198,17 @@ getMaximumSkippableX (i:is) pos =
       Just skippable' -> if skippable > skippable' then Just skippable else Just skippable'
 
 findUncoveredPos :: Int -> [Info] -> Pos -> Maybe Pos
-findUncoveredPos fieldSize infos pos@(x, y) = do
+findUncoveredPos fieldSize infos pos@(x, y) =
   let skippableXPositionsMaybe = getMaximumSkippableX infos pos
       isUncovered = isNothing skippableXPositionsMaybe
-
-  if isUncovered then Just pos
-  else
-    let skippableXPositions = fromMaybe 1 skippableXPositionsMaybe
-        pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y + 1)
-                        else (x + skippableXPositions, y)
-        res = if y' > fieldSize then Nothing
-              else findUncoveredPos fieldSize infos pos'
-    in res
+  in
+    if isUncovered then Just pos
+    else
+      let skippableXPositions = fromMaybe 1 skippableXPositionsMaybe
+          pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y + 1)
+                          else (x + skippableXPositions, y)
+      in if y' > fieldSize then Nothing
+         else findUncoveredPos fieldSize infos pos'
 
 day15 :: IO ()
 day15 = do

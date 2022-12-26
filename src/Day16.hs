@@ -75,11 +75,11 @@ type Predecessors a = Map a a
 bfs' :: Ord a => (a -> Set a) -> a -> [a] -> Set a -> Predecessors a -> Predecessors a
 bfs' getNeighbours current toVisit visited predecessors =
   let visited' = S.insert current visited
-      reachablePositions = getNeighbours current
-      reachablePositionsNotVisited = S.difference reachablePositions visited'
-      reachablePositionsNotVisitedAndNotToVisit = S.difference reachablePositionsNotVisited (S.fromList toVisit)
-      toVisit' = toVisit ++ S.toList reachablePositionsNotVisitedAndNotToVisit
-      predecessors' = foldl (\acc x -> M.insert x current acc) predecessors reachablePositionsNotVisitedAndNotToVisit
+      reachableNodes = getNeighbours current
+      reachableNodesNotVisited = S.difference reachableNodes visited'
+      reachableNodesNotVisitedAndNotToVisit = S.difference reachableNodesNotVisited (S.fromList toVisit)
+      toVisit' = toVisit ++ S.toList reachableNodesNotVisitedAndNotToVisit
+      predecessors' = foldl (\acc x -> M.insert x current acc) predecessors reachableNodesNotVisitedAndNotToVisit
 
   in case toVisit' of
     [] -> predecessors'

@@ -108,7 +108,7 @@ day15Spec = do
       let beaconPositions = S.fromList $ map (\(Info _ bp _) -> bp) infos
           -- coveredPositions = S.unions $ map (\(Info sp bp) -> getCoveredPositions sp (getManhattanDistance sp bp)) infos
 
-      countNonBeaconPositionsInRow' 10 (S.fromList infos) beaconPositions `shouldBe` 26
+      countNonBeaconPositionsInRow' 10 infos beaconPositions `shouldBe` 26
 
   describe "isCoveredBySensor" $ do
     it "should detect covered position" $ do

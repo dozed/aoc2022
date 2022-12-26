@@ -161,19 +161,19 @@ getMinYByInfo (Info (_, sy) _ d) = sy - d
 getMaxYByInfo :: Info -> Y
 getMaxYByInfo (Info (_, sy) _ d) = sy + d
 
-getMinXByInfos :: Set Info -> X
-getMinXByInfos infos = minimum $ S.map getMinXByInfo infos
+getMinXByInfos :: [Info] -> X
+getMinXByInfos infos = minimum $ map getMinXByInfo infos
 
-getMaxXByInfos :: Set Info -> X
-getMaxXByInfos infos = maximum $ S.map getMaxXByInfo infos
+getMaxXByInfos :: [Info] -> X
+getMaxXByInfos infos = maximum $ map getMaxXByInfo infos
 
-getMinYByInfos :: Set Info -> X
-getMinYByInfos infos = minimum $ S.map getMinYByInfo infos
+getMinYByInfos :: [Info] -> X
+getMinYByInfos infos = minimum $ map getMinYByInfo infos
 
-getMaxYByInfos :: Set Info -> X
-getMaxYByInfos infos = maximum $ S.map getMaxYByInfo infos
+getMaxYByInfos :: [Info] -> X
+getMaxYByInfos infos = maximum $ map getMaxYByInfo infos
 
-countNonBeaconPositionsInRow' :: Int -> Set Info -> Set Pos -> Int
+countNonBeaconPositionsInRow' :: Int -> [Info] -> Set Pos -> Int
 countNonBeaconPositionsInRow' y infos beaconPositions =
   let minX = getMinXByInfos infos
       maxX = getMaxXByInfos infos
@@ -217,7 +217,7 @@ day15 = do
 
   infos <- case regularParse infosParser input of
     Left e -> fail $ show e
-    Right xs -> pure $ S.fromList xs
+    Right xs -> pure xs
 
   print infos
 
@@ -236,8 +236,8 @@ day15 = do
   -- fieldSize: 56232096157440
 
   -- part 1
-  let sensorPositions = S.map (\(Info sp _ _) -> sp) infos
-      beaconPositions = S.map (\(Info _ bp _) -> bp) infos
+  let sensorPositions = S.fromList $ map (\(Info sp _ _) -> sp) infos
+      beaconPositions = S.fromList $ map (\(Info _ bp _) -> bp) infos
 
   print sensorPositions
   print beaconPositions
@@ -253,8 +253,8 @@ day15 = do
   print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
 
   -- part 2
-  -- let uncoveredPos = findUncoveredPos 20 (S.toList infos) (0, 0)
-  let uncoveredPos = findUncoveredPos 4000000 (S.toList infos) (0, 0)
+  -- let uncoveredPos = findUncoveredPos 20 infos (0, 0)
+  let uncoveredPos = findUncoveredPos 4000000 infos (0, 0)
 
   case uncoveredPos of
     Nothing -> putStrLn "No uncovered pos found"

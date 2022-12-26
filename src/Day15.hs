@@ -197,19 +197,19 @@ getMaximumSkippableX (i:is) pos =
       Nothing -> Just skippable
       Just skippable' -> if skippable > skippable' then Just skippable else Just skippable'
 
-iteratePositions :: Int -> [Info] -> Pos -> IO ()
+iteratePositions :: Int -> [Info] -> Pos -> Maybe Pos
 iteratePositions fieldSize infos pos@(x, y) = do
   let skippableM = getMaximumSkippableX infos pos
       isUncovered = isNothing skippableM
       skippableXPositions = fromMaybe 1 skippableM
 
-  when isUncovered $ putStrLn $ "uncovered position: " <> show pos <> " tuning signal: " <> show (getTuningSignal pos)
-
-  let pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y+1)
-                      else (x + skippableXPositions, y)
-
-  if y' > fieldSize then pure ()
-  else iteratePositions fieldSize infos pos'
+  if isUncovered then Just pos
+  else
+    let pos'@(x', y') = if x + skippableXPositions > fieldSize then (0, y + 1)
+                        else (x + skippableXPositions, y)
+        res = if y' > fieldSize then Nothing
+              else iteratePositions fieldSize infos pos'
+    in res
 
 day15 :: IO ()
 day15 = do
@@ -254,5 +254,9 @@ day15 = do
   print $ countNonBeaconPositionsInRow' 2000000 infos beaconPositions
 
   -- part 2
-  -- iteratePositions 20 (S.toList infos) (0, 0)
-  iteratePositions 4000000 (S.toList infos) (0, 0)
+  -- let uncoveredPos = iteratePositions 20 (S.toList infos) (0, 0)
+  let uncoveredPos = iteratePositions 4000000 (S.toList infos) (0, 0)
+
+  case uncoveredPos of
+    Nothing -> putStrLn "No uncovered pos found"
+    Just pos -> putStrLn $ "uncovered position: " <> show pos <> " tuning signal: " <> show (getTuningSignal pos)

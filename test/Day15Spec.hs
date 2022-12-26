@@ -156,3 +156,18 @@ day15Spec = do
       getMaximumSkippableX sensors (7, 4) `shouldBe` Nothing
       getMaximumSkippableX sensors (11, 0) `shouldBe` Just 3
       getMaximumSkippableX sensors (2, 6) `shouldBe` Just 3
+
+  describe "iteratePositions" $ do
+    it "should find uncovered position" $ do
+      let input = testInput
+
+      infos <- case regularParse infosParser input of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+
+      iteratePositions 20 infos (0, 0) `shouldBe` Just (14, 11)
+
+  describe "getTuningSignal" $ do
+    it "should compute the tuning signal for a position" $ do
+      getTuningSignal (14, 11) `shouldBe` 56000011
+      getTuningSignal (2595657, 2753392) `shouldBe` 10382630753392

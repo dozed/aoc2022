@@ -229,7 +229,7 @@ day16 = do
   --  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
   forM_ schedules $ \perm -> do
-    print perm
+    -- print perm
     return ()
 
   -- part 1

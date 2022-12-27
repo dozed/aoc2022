@@ -56,6 +56,7 @@ library
     , parsec
     , raw-strings-qq
     , split
+    , utility-ht
   default-language: Haskell2010
 
 executable aoc2022-exe

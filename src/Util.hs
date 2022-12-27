@@ -2,6 +2,7 @@
 
 module Util (
   buildCombinations,
+  buildPermutations,
   catPairs,
   count,
   deleteAt,
@@ -20,6 +21,7 @@ module Util (
 
 import Data.Foldable (toList)
 import Data.List (sort)
+import Data.List.HT (removeEach)
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
 import Text.Parsec (ParseError, parse)
@@ -132,3 +134,9 @@ buildCombinations maxLen len elems combs =
           return $ el:perm
     in buildCombinations maxLen (len+1) elems combs'
 
+buildPermutations :: [a] -> [[a]]
+buildPermutations [] = [[]]
+buildPermutations as = do
+  (x, xs) <- removeEach as
+  perm <- buildPermutations xs
+  return $ x:perm

@@ -36,6 +36,7 @@ library:
   - parsec
   - raw-strings-qq
   - split
+  - utility-ht
 
 executables:
   aoc2022-exe:

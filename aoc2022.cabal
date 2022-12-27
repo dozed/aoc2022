@@ -51,6 +51,7 @@ library
     , combinatorial
     , containers
     , extra
+    , matrix
     , parallel
     , parsec
     , raw-strings-qq

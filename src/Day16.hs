@@ -7,6 +7,8 @@ import Control.Monad (forM_, void, when)
 import Data.List (permutations)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Matrix (Matrix)
+import qualified Data.Matrix as MT
 import Data.Maybe (fromMaybe)
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -148,6 +150,40 @@ getReleasedPressureForSchedule valvesMap predecessorsMap schedule =
       releasedPressure = getReleasedPressureForPathActions valvesMap 1 0 0 pathActions'
   in releasedPressure
 
+getShortestPathLengths :: [Label] -> Map Label (Predecessors Label) -> Matrix Int
+getShortestPathLengths valveLabels predecessorsMap =
+  let xxs = [[length (getPath predecessorsMap x y) - 1 | x <- valveLabels] | y <- valveLabels]
+      matrix = MT.fromLists xxs
+  in matrix
+
+data Action = OpenIt Label
+            | TravelTo Label Int
+            deriving (Eq, Show)
+
+toActions :: Matrix Int -> Map Label Int -> [Label] -> [Action]
+toActions pathLengths labelIdx schedule =
+  let schedule' :: [Label] = "AA" : schedule
+      pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule'
+      getPathLength f t = MT.getElem (labelIdx M.! f) (labelIdx M.! t) pathLengths
+      actions = concatMap (\(f, t) -> [TravelTo t (getPathLength f t), OpenIt t]) pairs
+  in actions
+
+getReleasedPressureForPathActions' :: Map Label Valve -> Int -> Int -> Int -> [PathAction] -> Int
+getReleasedPressureForPathActions' valvesMap minute releasing released actions =
+  let released' = released + releasing
+  in if minute == 30 then released'
+     else
+       let (additionalReleasing, actions') =
+             case actions of
+               [] -> (0, [])
+               (Visit _:xs) -> (0, xs)
+               (Open x:xs) ->
+                 case M.lookup x valvesMap of
+                   Nothing -> (0, xs)
+                   Just v -> (getValveFlowRate v, xs)
+           releasing' = releasing + additionalReleasing
+       in getReleasedPressureForPathActions' valvesMap (minute+1) releasing' released' actions'
+
 day16 :: IO ()
 day16 = do
   let input = testInput
@@ -162,6 +198,7 @@ day16 = do
 
   let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
       valvesLabels = [getValveLabel v | v <- valves]
+      valvesIdxs = M.fromList $ valvesLabels `zip` [1..]
       nonZeroFlowRateValves = [getValveLabel v | v <- valves, hasNonZeroFlowRate v]
 
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
@@ -173,10 +210,17 @@ day16 = do
 
   let getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
       predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
+      shortestPathLengths = getShortestPathLengths valvesLabels predecessorsMap
 
   print $ getPath predecessorsMap "AA" "CC"
   print $ getPath predecessorsMap "CC" "GG"
+  print valvesLabels
+  print shortestPathLengths
+  print $ getPath predecessorsMap "AA" "AA"
+  print $ getPath predecessorsMap "AA" "BB"
+  print $ getPath predecessorsMap "AA" "DD"
+  print $ getPath predecessorsMap "DD" "BB"
 
   -- part 1
-  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule valvesMap predecessorsMap) $ schedules
-  putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure
+--  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule valvesMap predecessorsMap) $ schedules
+--  putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure

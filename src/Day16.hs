@@ -3,13 +3,12 @@
 
 module Day16 where
 
-import Control.Monad (forM_, void, when)
+import Control.Monad (forM_, void)
 import Data.List (permutations)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Matrix (Matrix)
 import qualified Data.Matrix as MT
-import Data.Maybe (fromMaybe)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.Parsec hiding (label)
@@ -229,10 +228,14 @@ day16 = do
   --  let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
   --  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
+  forM_ schedules $ \perm -> do
+    print perm
+    return ()
+
   -- part 1
-  forM_ (schedules `zip` [1..]) $ \(s, i) -> do
-    let rel = getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs s
-    putStrLn $ show i <> ": " <> show rel
+--  forM_ (schedules `zip` [1..]) $ \(s, i) -> do
+--    let rel = getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs s
+--    putStrLn $ show i <> ": " <> show rel
 
   --  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs) $ schedules
   --  putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure

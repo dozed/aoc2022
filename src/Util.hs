@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 
 module Util (
+  buildCombinations,
   catPairs,
   count,
   deleteAt,
@@ -119,3 +120,15 @@ count p = go 0
                      
 --count :: Eq a => a -> [a] -> Int
 --count x xs = length . filter (x ==) $ xs
+
+buildCombinations :: Int -> Int -> [a] -> [[a]] -> [[a]]
+buildCombinations maxLen 1 elems [] = buildCombinations maxLen 2 elems [[e] | e <- elems]
+buildCombinations maxLen len elems perms =
+  if len > maxLen then perms
+  else
+    let perms' = do
+          perm <- perms
+          el <- elems
+          return $ el:perm
+    in buildCombinations maxLen (len+1) elems perms'
+

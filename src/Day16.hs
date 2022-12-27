@@ -150,8 +150,8 @@ getReleasedPressureForSchedule valvesMap predecessorsMap schedule =
 
 day16 :: IO ()
 day16 = do
-  let input = testInput
---  input <- readFile "input/Day16.txt"
+  -- let input = testInput
+  input <- readFile "input/Day16.txt"
 
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e
@@ -163,10 +163,6 @@ day16 = do
   let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
       valvesLabels = [getValveLabel v | v <- valves]
       nonZeroFlowRateValves = [getValveLabel v | v <- valves, hasNonZeroFlowRate v]
-
-  startValve <- case M.lookup "AA" valvesMap of
-    Nothing -> fail "Could not find starting valve 'AA'"
-    Just v -> pure v
 
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
 
@@ -181,11 +177,6 @@ day16 = do
   print $ getPath predecessorsMap "AA" "CC"
   print $ getPath predecessorsMap "CC" "GG"
 
-  -- forM_ schedules $ \s -> do
-  --   getReleasedPressureForSchedule valvesMap predecessorsMap s
-
+  -- part 1
   let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule valvesMap predecessorsMap) $ schedules
   putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure
-
-  let schedule = ["DD", "BB", "JJ", "HH", "EE", "CC"]
-  putStrLn $ "Test: " <> show (getReleasedPressureForSchedule valvesMap predecessorsMap schedule)

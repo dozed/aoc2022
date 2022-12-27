@@ -67,7 +67,7 @@ day16Spec = do
 
       joinPathActions subPathActions `shouldBe` pathActions
 
-  describe "getReleasedPressure" $ do
+  describe "getReleasedPressureForPathActions" $ do
     it "should compute released pressure for a given PathAction list over 30 minutes" $ do
       let input = testInput
 
@@ -80,7 +80,7 @@ day16Spec = do
                           Visit "II", Visit "AA", Visit "DD", Visit "EE", Visit "FF", Visit "GG", Visit "HH", Open "HH", Visit "GG",
                           Visit "FF", Visit "EE", Open "EE", Visit "DD", Visit "CC", Open "CC"]
 
-      let releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions
+      let releasedPressure = getReleasedPressureForPathActions valvesMap 1 0 0 pathActions
 
       releasedPressure `shouldBe` 1651
 

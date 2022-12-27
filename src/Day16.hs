@@ -121,8 +121,8 @@ joinPathActions (x:xs) =
   let xs' = map (drop 2) xs
   in concat (x:xs')
 
-getReleasedPressure :: Map Label Valve -> Int -> Int -> Int -> [PathAction] -> Int
-getReleasedPressure valvesMap minute releasing released actions =
+getReleasedPressureForPathActions :: Map Label Valve -> Int -> Int -> Int -> [PathAction] -> Int
+getReleasedPressureForPathActions valvesMap minute releasing released actions =
   let released' = released + releasing
   in if minute == 30 then released'
      else
@@ -135,7 +135,7 @@ getReleasedPressure valvesMap minute releasing released actions =
                    Nothing -> (0, xs)
                    Just v -> (getValveFlowRate v, xs)
            releasing' = releasing + additionalReleasing
-       in getReleasedPressure valvesMap (minute+1) releasing' released' actions'
+       in getReleasedPressureForPathActions valvesMap (minute+1) releasing' released' actions'
 
 getReleasedPressureForSchedule :: Map Label Valve -> Map Label (Predecessors Label) -> [Label] -> Int
 getReleasedPressureForSchedule valvesMap predecessorsMap schedule =
@@ -145,13 +145,13 @@ getReleasedPressureForSchedule valvesMap predecessorsMap schedule =
       subPathActions = map toPathActions subPaths
       pathActions = joinPathActions subPathActions
       pathActions' = drop 2 pathActions
-      releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions'
+      releasedPressure = getReleasedPressureForPathActions valvesMap 1 0 0 pathActions'
   in releasedPressure
 
 day16 :: IO ()
 day16 = do
-  -- let input = testInput
-  input <- readFile "input/Day16.txt"
+  let input = testInput
+  -- input <- readFile "input/Day16.txt"
 
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e

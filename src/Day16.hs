@@ -104,6 +104,12 @@ getPath predecessorsMap from to = case M.lookup from predecessorsMap of
   Nothing -> []
   Just m -> getPath' m to
 
+getShortestPathLengths :: Ord a => [a] -> Map a (Predecessors a) -> Matrix Int
+getShortestPathLengths valveLabels predecessorsMap =
+  let xxs = [[length (getPath predecessorsMap x y) - 1 | x <- valveLabels] | y <- valveLabels]
+      matrix = MT.fromLists xxs
+  in matrix
+
 data PathAction = Visit Label
                 | Open Label
                 deriving (Eq, Show)
@@ -149,12 +155,6 @@ getReleasedPressureForSchedule valvesMap predecessorsMap schedule =
       pathActions' = drop 2 pathActions
       releasedPressure = getReleasedPressureForPathActions valvesMap 1 0 0 pathActions'
   in releasedPressure
-
-getShortestPathLengths :: [Label] -> Map Label (Predecessors Label) -> Matrix Int
-getShortestPathLengths valveLabels predecessorsMap =
-  let xxs = [[length (getPath predecessorsMap x y) - 1 | x <- valveLabels] | y <- valveLabels]
-      matrix = MT.fromLists xxs
-  in matrix
 
 data Action = OpenIt Label
             | TravelTo Label Int

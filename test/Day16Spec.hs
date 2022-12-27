@@ -118,3 +118,25 @@ day16Spec = do
       let schedule = ["DD", "BB"]
       let expected = [TravelTo "DD" 1, OpenIt "DD", TravelTo "BB" 2, OpenIt "BB"]
       toActions shortestPathLengths valvesIdxs schedule `shouldBe` expected
+
+      let schedule2 = ["DD", "BB", "JJ", "HH", "EE", "CC"]
+      let expected2 = [TravelTo "DD" 1,OpenIt "DD",TravelTo "BB" 2,OpenIt "BB",TravelTo "JJ" 3,OpenIt "JJ",TravelTo "HH" 7,OpenIt "HH",TravelTo "EE" 3,OpenIt "EE",TravelTo "CC" 2,OpenIt "CC"]
+      toActions shortestPathLengths valvesIdxs schedule2 `shouldBe` expected2
+
+  describe "getReleasedPressureForPathActions'" $ do
+    it "should compute the released pressure for a given Action list" $ do
+      let input = testInput
+
+      valves <- case regularParse valvesParser input of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+
+      let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
+          valvesLabels = [getValveLabel v | v <- valves]
+          valvesIdxs = M.fromList $ valvesLabels `zip` [1..]
+          getNeighbours a = S.fromList $ maybe [] getReachableValves (M.lookup a valvesMap)
+          predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
+          shortestPathLengths = getShortestPathLengths valvesLabels predecessorsMap
+
+      let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
+      getReleasedPressureForPathActions' valvesMap 1 0 0 actions `shouldBe` 1651

@@ -132,8 +132,8 @@ getReleasedPressureForPathActions valvesMap minute releasing released actions =
              case actions of
                [] -> (0, [])
                (Visit _:xs) -> (0, xs)
-               (Open x:xs) ->
-                 case M.lookup x valvesMap of
+               (Open l:xs) ->
+                 case M.lookup l valvesMap of
                    Nothing -> (0, xs)
                    Just v -> (getValveFlowRate v, xs)
            releasing' = releasing + additionalReleasing
@@ -161,14 +161,14 @@ data Action = OpenIt Label
             deriving (Eq, Show)
 
 toActions :: Matrix Int -> Map Label Int -> [Label] -> [Action]
-toActions pathLengths labelIdx schedule =
+toActions pathLengths valvesIdx schedule =
   let schedule' :: [Label] = "AA" : schedule
       pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule'
-      getPathLength f t = MT.getElem (labelIdx M.! f) (labelIdx M.! t) pathLengths
+      getPathLength f t = MT.getElem (valvesIdx M.! f) (valvesIdx M.! t) pathLengths
       actions = concatMap (\(f, t) -> [TravelTo t (getPathLength f t), OpenIt t]) pairs
   in actions
 
-getReleasedPressureForPathActions' :: Map Label Valve -> Int -> Int -> Int -> [PathAction] -> Int
+getReleasedPressureForPathActions' :: Map Label Valve -> Int -> Int -> Int -> [Action] -> Int
 getReleasedPressureForPathActions' valvesMap minute releasing released actions =
   let released' = released + releasing
   in if minute == 30 then released'
@@ -176,13 +176,25 @@ getReleasedPressureForPathActions' valvesMap minute releasing released actions =
        let (additionalReleasing, actions') =
              case actions of
                [] -> (0, [])
-               (Visit _:xs) -> (0, xs)
-               (Open x:xs) ->
-                 case M.lookup x valvesMap of
+               ((TravelTo _ 1):xs) -> (0, xs)
+               ((TravelTo v n):xs) -> (0, (TravelTo v (n-1)):xs)
+               (OpenIt l:xs) ->
+                 case M.lookup l valvesMap of
                    Nothing -> (0, xs)
                    Just v -> (getValveFlowRate v, xs)
            releasing' = releasing + additionalReleasing
        in getReleasedPressureForPathActions' valvesMap (minute+1) releasing' released' actions'
+
+getReleasedPressureForSchedule' :: Map Label Valve -> Map Label (Predecessors Label) -> [Label] -> Int
+getReleasedPressureForSchedule' valvesMap predecessorsMap schedule =
+  let schedule' = "AA" : schedule
+      pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule'
+      subPaths = map (uncurry (getPath predecessorsMap)) pairs
+      subPathActions = map toPathActions subPaths
+      pathActions = joinPathActions subPathActions
+      pathActions' = drop 2 pathActions
+      releasedPressure = getReleasedPressureForPathActions valvesMap 1 0 0 pathActions'
+  in releasedPressure
 
 day16 :: IO ()
 day16 = do
@@ -220,6 +232,10 @@ day16 = do
   print $ getPath predecessorsMap "AA" "BB"
   print $ getPath predecessorsMap "AA" "DD"
   print $ getPath predecessorsMap "DD" "BB"
+  print $ toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
+
+  let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
+  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
   -- part 1
 --  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule valvesMap predecessorsMap) $ schedules

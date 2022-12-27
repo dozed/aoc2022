@@ -83,3 +83,19 @@ day16Spec = do
       let releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions
 
       releasedPressure `shouldBe` 1651
+
+  describe "getReleasedPressureForSchedule" $ do
+    it "should compute the released pressure for a given schedule" $ do
+      let input = testInput
+
+      valves <- case regularParse valvesParser input of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+
+      let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
+          valvesLabels = [getValveLabel v | v <- valves]
+          getNeighbours a = S.fromList $ maybe [] getReachableValves (M.lookup a valvesMap)
+          predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
+
+      let schedule = ["DD", "BB", "JJ", "HH", "EE", "CC"]
+      getReleasedPressureForSchedule valvesMap predecessorsMap schedule `shouldBe` 1651

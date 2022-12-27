@@ -3,7 +3,7 @@
 
 module Day16 where
 
-import Control.Monad (forM_, void)
+import Control.Monad (forM_, void, when)
 import Data.List (permutations)
 import Data.Map (Map)
 import qualified Data.Map as M
@@ -137,9 +137,21 @@ getReleasedPressure valvesMap minute releasing released actions =
            releasing' = releasing + additionalReleasing
        in getReleasedPressure valvesMap (minute+1) releasing' released' actions'
 
+getReleasedPressureForSchedule :: Map Label Valve -> Map Label (Predecessors Label) -> [Label] -> Int
+getReleasedPressureForSchedule valvesMap predecessorsMap schedule =
+  let schedule' = "AA" : schedule
+      pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule'
+      subPaths = map (uncurry (getPath predecessorsMap)) pairs
+      subPathActions = map toPathActions subPaths
+      pathActions = joinPathActions subPathActions
+      pathActions' = drop 2 pathActions
+      releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions'
+  in releasedPressure
+
 day16 :: IO ()
 day16 = do
   let input = testInput
+--  input <- readFile "input/Day16.txt"
 
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e
@@ -159,8 +171,9 @@ day16 = do
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
 
   let schedules = permutations nonZeroFlowRateValves
-  putStrLn $ "Number of schedules: " <> show (length schedules)
-  -- 720
+  -- putStrLn $ "Number of schedules: " <> show (length schedules)
+  -- test input:  6! = 720
+  -- real input: 15! = 1.3 * 10^12
 
   let getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
       predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
@@ -168,23 +181,11 @@ day16 = do
   print $ getPath predecessorsMap "AA" "CC"
   print $ getPath predecessorsMap "CC" "GG"
 
-  let schedule1 = head schedules
-  print schedule1
+  -- forM_ schedules $ \s -> do
+  --   getReleasedPressureForSchedule valvesMap predecessorsMap s
 
-  let pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule1
-      subPaths = map (uncurry (getPath predecessorsMap)) pairs
-      subPathActions = map toPathActions subPaths
-      pathActions = joinPathActions subPathActions
+  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule valvesMap predecessorsMap) $ schedules
+  putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure
 
-  print subPaths
-  print subPathActions
-  print pathActions
-  -- [Visit "BB",Open "BB",Visit "CC",Open "CC",Visit "DD",Open "DD",Visit "EE",Open "EE",Visit "FF",Visit "GG",Visit "HH",Open "HH",Visit "GG",Visit "FF",Visit "EE",Visit "DD",Visit "AA",Visit "II",Visit "JJ",Open "JJ"]
-
-  let pathActions' = [Visit "DD", Open "DD", Visit "CC", Visit "BB", Open "BB", Visit "AA", Visit "II", Visit "JJ", Open "JJ",
-                      Visit "II", Visit "AA", Visit "DD", Visit "EE", Visit "FF", Visit "GG", Visit "HH", Open "HH", Visit "GG",
-                      Visit "FF", Visit "EE", Open "EE", Visit "DD", Visit "CC", Open "CC"]
-
-  let releasedPressure = getReleasedPressure valvesMap 1 0 0 pathActions'
-  putStrLn $ "Released pressure: " <> show releasedPressure
-
+  let schedule = ["DD", "BB", "JJ", "HH", "EE", "CC"]
+  putStrLn $ "Test: " <> show (getReleasedPressureForSchedule valvesMap predecessorsMap schedule)

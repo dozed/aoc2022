@@ -131,8 +131,8 @@ getReleasedPressureForPathActions valvesMap minute releasing released actions =
        let (additionalReleasing, actions') =
              case actions of
                [] -> (0, [])
-               (Visit _:xs) -> (0, xs)
-               (Open l:xs) ->
+               ((Visit _):xs) -> (0, xs)
+               ((Open l):xs) ->
                  case M.lookup l valvesMap of
                    Nothing -> (0, xs)
                    Just v -> (getValveFlowRate v, xs)
@@ -177,29 +177,23 @@ getReleasedPressureForPathActions' valvesMap minute releasing released actions =
              case actions of
                [] -> (0, [])
                ((TravelTo _ 1):xs) -> (0, xs)
-               ((TravelTo v n):xs) -> (0, (TravelTo v (n-1)):xs)
-               (OpenIt l:xs) ->
+               ((TravelTo v n):xs) -> (0, TravelTo v (n-1):xs)
+               ((OpenIt l):xs) ->
                  case M.lookup l valvesMap of
                    Nothing -> (0, xs)
                    Just v -> (getValveFlowRate v, xs)
            releasing' = releasing + additionalReleasing
        in getReleasedPressureForPathActions' valvesMap (minute+1) releasing' released' actions'
 
-getReleasedPressureForSchedule' :: Map Label Valve -> Map Label (Predecessors Label) -> [Label] -> Int
-getReleasedPressureForSchedule' valvesMap predecessorsMap schedule =
-  let schedule' = "AA" : schedule
-      pairs = map (\xs -> (head xs, head . tail $ xs)) . windows 2 $ schedule'
-      subPaths = map (uncurry (getPath predecessorsMap)) pairs
-      subPathActions = map toPathActions subPaths
-      pathActions = joinPathActions subPathActions
-      pathActions' = drop 2 pathActions
-      releasedPressure = getReleasedPressureForPathActions valvesMap 1 0 0 pathActions'
-  in releasedPressure
+getReleasedPressureForSchedule' :: Map Label Valve -> Matrix Int -> Map Label Int -> [Label] -> Int
+getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs schedule =
+  let actions = toActions shortestPathLengths valvesIdxs schedule
+  in getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
 day16 :: IO ()
 day16 = do
-  let input = testInput
-  -- input <- readFile "input/Day16.txt"
+  -- let input = testInput
+  input <- readFile "input/Day16.txt"
 
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e
@@ -224,19 +218,22 @@ day16 = do
       predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
       shortestPathLengths = getShortestPathLengths valvesLabels predecessorsMap
 
-  print $ getPath predecessorsMap "AA" "CC"
-  print $ getPath predecessorsMap "CC" "GG"
-  print valvesLabels
-  print shortestPathLengths
-  print $ getPath predecessorsMap "AA" "AA"
-  print $ getPath predecessorsMap "AA" "BB"
-  print $ getPath predecessorsMap "AA" "DD"
-  print $ getPath predecessorsMap "DD" "BB"
-  print $ toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
-
-  let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
-  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
+  --  print $ getPath predecessorsMap "AA" "CC"
+  --  print $ getPath predecessorsMap "CC" "GG"
+  --  print valvesLabels
+  --  print shortestPathLengths
+  --  print $ getPath predecessorsMap "AA" "AA"
+  --  print $ getPath predecessorsMap "AA" "BB"
+  --  print $ getPath predecessorsMap "AA" "DD"
+  --  print $ getPath predecessorsMap "DD" "BB"
+  --  print $ toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
+  --  let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
+  --  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
   -- part 1
---  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule valvesMap predecessorsMap) $ schedules
---  putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure
+  forM_ (schedules `zip` [1..]) $ \(s, i) -> do
+    let rel = getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs s
+    putStrLn $ show i <> ": " <> show rel
+
+  --  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs) $ schedules
+  --  putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure

@@ -206,6 +206,9 @@ day16 = do
       valvesLabels = [getValveLabel v | v <- valves]
       valvesIdxs = M.fromList $ valvesLabels `zip` [1..]
       nonZeroFlowRateValves = [getValveLabel v | v <- valves, hasNonZeroFlowRate v]
+      getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
+      predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
+      shortestPathLengths = getShortestPathLengths valvesLabels predecessorsMap
 
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
 
@@ -213,10 +216,6 @@ day16 = do
   -- putStrLn $ "Number of schedules: " <> show (length schedules)
   -- test input:  6! = 720
   -- real input: 15! = 1.3 * 10^12
-
-  let getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
-      predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
-      shortestPathLengths = getShortestPathLengths valvesLabels predecessorsMap
 
   --  print $ getPath predecessorsMap "AA" "CC"
   --  print $ getPath predecessorsMap "CC" "GG"

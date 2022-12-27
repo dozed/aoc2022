@@ -1,7 +1,7 @@
 module UtilSpec where
 
 import qualified Data.Set as S
-  
+
 import Test.Hspec
 
 import Util (buildCombinations)

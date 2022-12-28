@@ -15,7 +15,7 @@ import Text.Parsec hiding (label)
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse, windows)
+import Util (findElem, lstrip, regularParse, windows)
 
 testInput :: String
 testInput = lstrip [r|
@@ -189,10 +189,63 @@ getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs schedul
   let actions = toActions shortestPathLengths valvesIdxs schedule
   in getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
+type AdjacencyMap a = Map a [a]
+type AdjacencyMapWithDistance a = Map a [(a, Int)]
+
+getAdjacencyMap :: [Valve] -> AdjacencyMap Label
+getAdjacencyMap valves = M.fromList $ map (\v -> (getValveLabel v, getReachableValves v)) valves
+
+maybeInsertEdge :: (Label, Label, Int) -> AdjacencyMapWithDistance Label -> AdjacencyMapWithDistance Label
+maybeInsertEdge (from, to, distance) adjMap =
+  case M.lookup from adjMap of
+    Nothing -> M.insert from [(to, distance)] adjMap
+    Just xs -> case findElem (\(x, _) -> x == to) xs of
+      Nothing -> M.insert from ((to, distance):xs) adjMap
+      Just ((_, oldDistance), xs') ->
+        if distance < oldDistance then M.insert from ((to, distance):xs') adjMap
+        else adjMap
+
+removeNode :: Label -> AdjacencyMapWithDistance Label -> AdjacencyMapWithDistance Label
+removeNode valveLabel adjacencyMap =
+  let adjacentNodes = adjacencyMap M.! valveLabel
+      -- delete node from adjacencyMap
+      adjacencyMap' = M.delete valveLabel adjacencyMap
+      -- delete entries to valveLabel in adjacencyMap
+      adjacencyMap'' = M.map (filter (\(x, _) -> x /= valveLabel)) adjacencyMap'
+      -- generate new edges between all adjacentNodes
+      xs :: [(Label, Label, Int)] = [(v1, v2, d1 + d2) | (v1, d1) <- adjacentNodes, (v2, d2) <- adjacentNodes, v1 /= v2]
+      -- maybe add new edges with new distance to adjacencyMap
+      adjacencyMap''' = foldl (flip maybeInsertEdge) adjacencyMap'' xs
+  in adjacencyMap'''
+
+initAdjacencyMapWithDistances :: AdjacencyMap a -> AdjacencyMapWithDistance a
+initAdjacencyMapWithDistances am = M.map (\xs -> map (\x -> (x, 1)) xs) am
+
+getPotentialPressureRelease :: Matrix Int -> Map Label Int -> Map Label Valve -> Int -> Label -> Label -> Int
+getPotentialPressureRelease distances valvesIdx valvesMap remainingMinutes from to =
+  let fromIdx = valvesIdx M.! from
+      toIdx = valvesIdx M.! to
+      toValve = valvesMap M.! to
+      flowRate = getValveFlowRate toValve
+      distance = distances MT.! (fromIdx, toIdx)
+      ppr = (remainingMinutes - distance - 1) * flowRate
+  in ppr
+
+getPotentialPressureRelease' :: Matrix Int -> Map Label Int -> Map Label Valve -> Int -> Label -> Label -> IO Int
+getPotentialPressureRelease' distances valvesIdx valvesMap remainingMinutes from to = do
+  let fromIdx = valvesIdx M.! from
+      toIdx = valvesIdx M.! to
+      toValve = valvesMap M.! to
+      flowRate = getValveFlowRate toValve
+      distance = distances MT.! (fromIdx, toIdx)
+      ppr = (remainingMinutes - distance - 1) * flowRate
+  putStrLn $ "r: " <> show remainingMinutes <> " d: " <> show distance <> " f: " <> show flowRate <> " ppr: " <> show ppr
+  return ppr
+
 day16 :: IO ()
 day16 = do
-  -- let input = testInput
-  input <- readFile "input/Day16.txt"
+  let input = testInput
+  -- input <- readFile "input/Day16.txt"
 
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e
@@ -201,15 +254,95 @@ day16 = do
   forM_ valves print
   putStrLn $ "Number of valves: " <> show (length valves)
 
+--  let valves = [
+--          Valve "AA" 0 ["DD","BB","JJ"],
+--          Valve "BB" 13 ["AA"],
+--          Valve "DD" 20 ["AA"],
+--          -- Valve "II" 0 ["AA","JJ"],
+--          Valve "JJ" 21 ["AA"]
+--        ]
+
+--  let valves = [
+--          Valve "AA" 0 ["DD","II","BB"],
+--          Valve "BB" 13 ["AA"],
+--          Valve "DD" 20 ["AA"],
+--          Valve "II" 0 ["AA","JJ"],
+--          Valve "JJ" 21 ["II"]
+--        ]
+
+  let valves = [
+          Valve "AA" 0 ["DD","II"],
+          Valve "DD" 20 ["AA"],
+          Valve "II" 0 ["AA","JJ"],
+          Valve "JJ" 30 ["II"]
+        ]
+
   let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
       valvesLabels = [getValveLabel v | v <- valves]
-      valvesIdxs = M.fromList $ valvesLabels `zip` [1..]
+      valvesIdx = M.fromList $ valvesLabels `zip` [1..]
       nonZeroFlowRateValves = [getValveLabel v | v <- valves, hasNonZeroFlowRate v]
       getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
       predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
-      shortestPathLengths = getShortestPathLengths valvesLabels predecessorsMap
+      distances = getShortestPathLengths valvesLabels predecessorsMap
 
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
+
+  void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "DD"
+  void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "JJ"
+
+  -- startValve <- case M.lookup "AA" valvesMap of
+  --   Nothing -> fail "Could not find start valve"
+  --   Just v -> pure v
+
+--   potential pressure release strategy
+--  let pprs = map (\n -> (n, getPotentialPressureRelease distances valvesIdx valvesMap 30 "AA" n)) valvesLabels
+--  print pprs
+--
+--  putStrLn "1:"
+--  void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "JJ"
+--  void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "DD"
+--
+--  putStrLn "1:"
+--  forM_ (map (getPotentialPressureRelease distances valvesIdx valvesMap 30 "AA") valvesLabels `zip` valvesLabels) $ \(ppr, n) -> do
+--    putStrLn $ n <> " - " <> show ppr <> " - " <> show (distances MT.! (valvesIdx M.! "AA", valvesIdx M.! n))
+--
+--  putStrLn "2:"
+--  forM_ (map (getPotentialPressureRelease distances valvesIdx valvesMap 27 "JJ") valvesLabels `zip` valvesLabels) $ \(ppr, n) -> do
+--    putStrLn $ n <> " - " <> show ppr <> " - " <> show (distances MT.! (valvesIdx M.! "JJ", valvesIdx M.! n))
+--
+--  putStrLn "3:"
+--  forM_ (map (getPotentialPressureRelease distances valvesIdx valvesMap 23 "DD") valvesLabels `zip` valvesLabels) $ \(ppr, n) -> do
+--    putStrLn $ n <> " - " <> show ppr <> " - " <> show (distances MT.! (valvesIdx M.! "DD", valvesIdx M.! n))
+--
+--  putStrLn "4:"
+--  forM_ (map (getPotentialPressureRelease distances valvesIdx valvesMap 18 "HH") valvesLabels `zip` valvesLabels) $ \(ppr, n) -> do
+--    putStrLn $ n <> " - " <> show ppr <> " - " <> show (distances MT.! (valvesIdx M.! "HH", valvesIdx M.! n))
+--
+--  putStrLn "5:"
+--  forM_ (map (getPotentialPressureRelease distances valvesIdx valvesMap 14 "EE") valvesLabels `zip` valvesLabels) $ \(ppr, n) -> do
+--    putStrLn $ n <> " - " <> show ppr <> " - " <> show (distances MT.! (valvesIdx M.! "EE", valvesIdx M.! n))
+--
+--  putStrLn "6:"
+--  forM_ (map (getPotentialPressureRelease distances valvesIdx valvesMap 10 "BB") valvesLabels `zip` valvesLabels) $ \(ppr, n) -> do
+--    putStrLn $ n <> " - " <> show ppr <> " - " <> show (distances MT.! (valvesIdx M.! "BB", valvesIdx M.! n))
+
+  -- graph distances
+  --  let adjacencyMap = getAdjacencyMap valves
+  --      adjacencyMapWithDistances = initAdjacencyMapWithDistances adjacencyMap
+  --      adjacencyMapWithDistances' = removeNode "BB" adjacencyMapWithDistances
+  --
+  --  print adjacencyMap
+  --  print adjacencyMapWithDistances
+  --  print adjacencyMapWithDistances'
+  --
+  --  let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
+  --  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
+  --
+  --  let actions = toActions shortestPathLengths valvesIdxs ["JJ", "BB", "DD", "HH", "EE", "CC"]
+  --  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
+  --
+  --  let actions = toActions shortestPathLengths valvesIdxs ["JJ", "DD", "BB", "HH", "EE", "CC"]
+  --  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
   let schedules = permutations nonZeroFlowRateValves
   -- putStrLn $ "Number of schedules: " <> show (length schedules)
@@ -228,14 +361,14 @@ day16 = do
   --  let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
   --  print $ getReleasedPressureForPathActions' valvesMap 1 0 0 actions
 
-  forM_ schedules $ \perm -> do
-    -- print perm
-    return ()
+--  forM_ schedules $ \perm -> do
+--    -- print perm
+--    return ()
 
   -- part 1
---  forM_ (schedules `zip` [1..]) $ \(s, i) -> do
---    let rel = getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs s
---    putStrLn $ show i <> ": " <> show rel
+  forM_ (schedules `zip` [1..]) $ \(s, i) -> do
+    let rel = getReleasedPressureForSchedule' valvesMap distances valvesIdx s
+    putStrLn $ show i <> ": " <> show rel <> " - " <> show s
 
   --  let maxReleasedPressure = maximum . map (getReleasedPressureForSchedule' valvesMap shortestPathLengths valvesIdxs) $ schedules
   --  putStrLn $ "Maximum released pressure: " <> show maxReleasedPressure

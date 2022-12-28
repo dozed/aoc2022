@@ -6,6 +6,7 @@ module Util (
   catPairs,
   count,
   deleteAt,
+  findElem,
   intersect,
   lstrip,
   maxIndex,
@@ -140,3 +141,12 @@ buildPermutations as = do
   (x, xs) <- removeEach as
   perm <- buildPermutations xs
   return $ x:perm
+
+-- https://hackage.haskell.org/package/hxt-9.3.1.22/docs/src/Text.XML.HXT.Arrow.Pickle.Xml.html#findElem
+findElem       :: (a -> Bool) -> [a] -> Maybe (a, [a])
+findElem p     = find' id
+    where
+      find' _ []         = Nothing
+      find' prefix (x : xs)
+          | p x          = Just (x, prefix xs)
+          | otherwise    = find' (prefix . (x:)) xs

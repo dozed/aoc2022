@@ -12,7 +12,7 @@ import Text.RawString.QQ
 
 import Test.Hspec
 
-import Day16
+import Day16 hiding (example1, example2, example3)
 import Util (lstrip, regularParse)
 
 example1 :: String
@@ -171,3 +171,9 @@ day16Spec = do
 
       getCandidates valveLabels valveIdxs previousValves 3 "JJ" `shouldBe` ["DD", "BB"]
       getCandidates valveLabels valveIdxs previousValves 3 "DD" `shouldBe` ["JJ"]
+
+  describe "appendColumn" $ do
+    it "should append a column with a default value to a matrix" $ do
+      let m = MT.fromLists [[2], [3]]
+
+      appendColumn 0 m `shouldBe` MT.fromLists [[2, 0], [3, 0]]

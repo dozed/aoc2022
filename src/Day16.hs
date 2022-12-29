@@ -238,7 +238,7 @@ getPotentialPressureRelease distances valvesIdx valvesMap remainingMinutes from 
       ppr = remainingMinutes' * flowRate
   in (ppr, remainingMinutes')
 
-getPotentialPressureRelease' :: Matrix Int -> Map Label Int -> Map Label Valve -> Int -> Label -> Label -> IO Int
+getPotentialPressureRelease' :: Matrix Int -> Map Label Int -> Map Label Valve -> Int -> Label -> Label -> IO PPR
 getPotentialPressureRelease' distances valvesIdx valvesMap remainingMinutes from to = do
   let fromIdx = valvesIdx M.! from
       toIdx = valvesIdx M.! to
@@ -265,14 +265,14 @@ getCandidates valveLabels valveIdxs previousValves pathLength valve =
       candidates' = map fst . filter (\(c, p) -> valve `notElem` p) $ (candidates `zip` paths)
   in candidates'
 
-viterbiStepForValve :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix Int -> Matrix Int -> Int -> Label -> (Matrix Label, Matrix Int, Matrix Int)
+viterbiStepForValve :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix PPR -> Matrix RemainingMinutes -> Int -> Label -> (Matrix Label, Matrix PPR, Matrix RemainingMinutes)
 viterbiStepForValve distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep@1 toValve =
   let valveIdx = valveIdxs M.! toValve
       (maxLabel, (maxPPR, maxRemaining)) = ("AA", getPotentialPressureRelease distances valveIdxs valveMap 30 "AA" toValve)
       previousValves' = MT.setElem maxLabel (valveIdx, timestep) previousValves
       remainingMinutes' = MT.setElem maxRemaining (valveIdx, timestep) remainingMinutes
       pprs' = MT.setElem maxPPR (valveIdx, timestep) pprs
-  in (previousValves', remainingMinutes', pprs')
+  in (previousValves', pprs', remainingMinutes')
 viterbiStepForValve distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep toValve =
   -- some valves dont have previous values -> paths ends
   -- have a matrix of tuples instead of three matrices
@@ -291,7 +291,161 @@ viterbiStepForValve distances valveLabels valveIdxs valveMap previousValves pprs
       -- keep a matrix of remaining minutes
       remainingMinutes' = MT.setElem maxRemaining (valveIdx, timestep) remainingMinutes
       pprs' = MT.setElem maxPPR (valveIdx, timestep) pprs
-  in (previousValves', remainingMinutes', pprs')
+  in (previousValves', pprs', remainingMinutes')
+
+viterbiRound :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix PPR -> Matrix RemainingMinutes -> Int -> (Matrix Label, Matrix PPR, Matrix RemainingMinutes)
+viterbiRound distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep =
+  let valveLabels' = filter (/= "AA") valveLabels
+  in foldl (\(pv, pprs, rms) v -> viterbiStepForValve distances valveLabels valveIdxs valveMap pv pprs rms timestep v) (previousValves, pprs, remainingMinutes) valveLabels'
+
+viterbi :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix PPR -> Matrix RemainingMinutes -> Int -> (Matrix Label, Matrix PPR, Matrix RemainingMinutes)
+viterbi distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep =
+  undefined
+
+appendColumn :: a -> Matrix a -> Matrix a
+appendColumn a m =
+  let as = MT.toLists m
+      as' = map (\xs -> xs ++ [a]) as
+      m' = MT.fromLists as'
+  in m'
+
+example3 :: IO ()
+example3 = do
+  putStrLn "example3"
+
+  let valves = [
+          Valve "AA" 0 ["DD","II"],
+          Valve "DD" 20 ["AA"],
+          Valve "II" 0 ["AA","JJ"],
+          Valve "JJ" 21 ["II"]
+        ]
+
+  let valveMap = M.fromList [(getValveLabel v, v) | v <- valves]
+      valveLabels = [getValveLabel v | v <- valves]
+      valveIdxs = M.fromList $ valveLabels `zip` [1..]
+      nonZeroFlowRateValveLabels = [getValveLabel v | v <- valves, hasNonZeroFlowRate v] ++ ["AA"]
+      nonZeroFlowRateValveIdxs = M.fromList $ nonZeroFlowRateValveLabels `zip` [1..]
+      getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valveMap)
+      predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valveLabels
+      distances = getShortestPathLengths valveLabels predecessorsMap
+      nonZeroFlowRateDistances = MT.fromLists [[distances MT.! (valveIdxs M.! u, valveIdxs M.! v) | u <- nonZeroFlowRateValveLabels] | v <- nonZeroFlowRateValveLabels]
+
+  putStrLn $ "valves: " <> show valves
+  putStrLn $ "valveLabels: " <> show valveLabels
+  putStrLn $ "valveIdxs: " <> show valveIdxs
+  putStrLn $ "nonZeroFlowRateValveLabels: " <> show nonZeroFlowRateValveLabels
+  putStrLn $ "nonZeroFlowRateValveIdxs: " <> show nonZeroFlowRateValveIdxs
+  putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValveLabels)
+  putStrLn "distances:"
+  print distances
+  putStrLn "nonZeroFlowRateDistances:"
+  print nonZeroFlowRateDistances
+
+  print $ getPath predecessorsMap "DD" "JJ"
+
+  void $ getPotentialPressureRelease' nonZeroFlowRateDistances nonZeroFlowRateValveIdxs valveMap 30 "AA" "DD"
+  void $ getPotentialPressureRelease' nonZeroFlowRateDistances nonZeroFlowRateValveIdxs valveMap 30 "AA" "JJ"
+
+  let previousValves =
+        MT.fromLists [
+          ["--", "--"],
+          ["--", "--"]
+        ]
+
+  let remainingMinutes =
+        MT.fromLists  [
+          [0, 0],
+          [0, 0]
+        ]
+
+  let pprs =
+        MT.fromLists  [
+          [0, 0],
+          [0, 0]
+        ]
+
+  let (previousValves1, pprs1, remainingMinutes1) =
+        viterbiRound nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves pprs remainingMinutes 1
+  print "step1"
+  print previousValves1
+  print remainingMinutes1
+  print pprs1
+
+  let (previousValves2, pprs2, remainingMinutes2) =
+        viterbiRound nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves1 pprs1 remainingMinutes1 2
+  print "step2"
+  print previousValves2
+  print remainingMinutes2
+  print pprs2
+
+example2 :: IO ()
+example2 = do
+  putStrLn "example2"
+
+  let valves = [
+          Valve "AA" 0 ["DD","II"],
+          Valve "DD" 20 ["AA"],
+          Valve "II" 0 ["AA","JJ"],
+          Valve "JJ" 21 ["II"]
+        ]
+
+  let valveMap = M.fromList [(getValveLabel v, v) | v <- valves]
+      valveLabels = [getValveLabel v | v <- valves]
+      valveIdxs = M.fromList $ valveLabels `zip` [1..]
+      nonZeroFlowRateValveLabels = [getValveLabel v | v <- valves, hasNonZeroFlowRate v] ++ ["AA"]
+      nonZeroFlowRateValveIdxs = M.fromList $ nonZeroFlowRateValveLabels `zip` [1..]
+      getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valveMap)
+      predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valveLabels
+      distances = getShortestPathLengths valveLabels predecessorsMap
+      nonZeroFlowRateDistances = MT.fromLists [[distances MT.! (valveIdxs M.! u, valveIdxs M.! v) | u <- nonZeroFlowRateValveLabels] | v <- nonZeroFlowRateValveLabels]
+
+  putStrLn $ "valves: " <> show valves
+  putStrLn $ "valveLabels: " <> show valveLabels
+  putStrLn $ "valveIdxs: " <> show valveIdxs
+  putStrLn $ "nonZeroFlowRateValveLabels: " <> show nonZeroFlowRateValveLabels
+  putStrLn $ "nonZeroFlowRateValveIdxs: " <> show nonZeroFlowRateValveIdxs
+  putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValveLabels)
+  putStrLn "distances:"
+  print distances
+  putStrLn "nonZeroFlowRateDistances:"
+  print nonZeroFlowRateDistances
+
+  print $ getPath predecessorsMap "DD" "JJ"
+
+  void $ getPotentialPressureRelease' nonZeroFlowRateDistances nonZeroFlowRateValveIdxs valveMap 30 "AA" "DD"
+  void $ getPotentialPressureRelease' nonZeroFlowRateDistances nonZeroFlowRateValveIdxs valveMap 30 "AA" "JJ"
+
+  let previousValves =
+        MT.fromLists [
+          ["--", "--"],
+          ["--", "--"]
+        ]
+
+  let remainingMinutes =
+        MT.fromLists  [
+          [0, 0],
+          [0, 0]
+        ]
+
+  let pprs =
+        MT.fromLists  [
+          [0, 0],
+          [0, 0]
+        ]
+
+  let (previousValves1, pprs1, remainingMinutes1) =
+        viterbiRound nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves pprs remainingMinutes 1
+  print "step1"
+  print previousValves1
+  print remainingMinutes1
+  print pprs1
+
+  let (previousValves2, pprs2, remainingMinutes2) =
+        viterbiRound nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves1 pprs1 remainingMinutes1 2
+  print "step2"
+  print previousValves2
+  print remainingMinutes2
+  print pprs2
 
 example1 :: IO ()
 example1 = do
@@ -348,14 +502,14 @@ example1 = do
           [0, 0]
         ]
 
-  let (previousValves1, remainingMinutes1, pprs1) =
+  let (previousValves1, pprs1, remainingMinutes1) =
         viterbiStepForValve nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves pprs remainingMinutes 1 "DD"
   print "step1.1"
   print previousValves1
   print remainingMinutes1
   print pprs1
 
-  let (previousValves2, remainingMinutes2, pprs2) =
+  let (previousValves2, pprs2, remainingMinutes2) =
         viterbiStepForValve nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves1 pprs1 remainingMinutes1 1 "JJ"
   print "step1.2"
   print previousValves2
@@ -365,15 +519,14 @@ example1 = do
 --  print $ getPathTo previousValves2 nonZeroFlowRateValveIdxs "DD" 1
 --  print $ getPathTo previousValves2 nonZeroFlowRateValveIdxs "AA" 1
 
-  let (previousValves3, remainingMinutes3, pprs3) =
+  let (previousValves3, pprs3, remainingMinutes3) =
         viterbiStepForValve nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves2 pprs2 remainingMinutes2 2 "DD"
   print "step2.1"
   print previousValves3
-  -- TODO remainingMinutes3 is not correct
   print remainingMinutes3
   print pprs3
 
-  let (previousValves4, remainingMinutes4, pprs4) =
+  let (previousValves4, pprs4, remainingMinutes4) =
         viterbiStepForValve nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves3 pprs3 remainingMinutes3 2 "JJ"
   print "step2.2"
   print previousValves4
@@ -404,6 +557,10 @@ day16 = do
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e
     Right xs -> pure xs
+
+  -- example1
+  example2
+
 
 --  forM_ valves print
 --  putStrLn $ "Number of valves: " <> show (length valves)
@@ -478,7 +635,6 @@ day16 = do
 --  let path = getPathTo previousValves nonZeroFlowRateValveIdxs "DD" 3
 --  print path
 
-  example1
 
   -- startValve <- case M.lookup "AA" valvesMap of
   --   Nothing -> fail "Could not find start valve"

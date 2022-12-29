@@ -300,7 +300,19 @@ viterbiRound distances valveLabels valveIdxs valveMap previousValves pprs remain
 
 viterbi :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix PPR -> Matrix RemainingMinutes -> Int -> (Matrix Label, Matrix PPR, Matrix RemainingMinutes)
 viterbi distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep =
-  undefined
+  let previousValves' = appendColumn "--" previousValves
+      pprs' = appendColumn 0 pprs
+      remainingMinutes' = appendColumn 0 remainingMinutes
+      (previousValves'', pprs'', remainingMinutes'') = viterbiRound distances valveLabels valveIdxs valveMap previousValves' pprs' remainingMinutes' timestep
+      noRemainingMinutes = all (<= 0) (getLastColumn remainingMinutes'')
+  in if noRemainingMinutes then (previousValves'', pprs'', remainingMinutes'')
+     else viterbi distances valveLabels valveIdxs valveMap previousValves'' pprs'' remainingMinutes'' (timestep + 1)
+
+getLastColumn :: Matrix a -> [a]
+getLastColumn m =
+  let as = MT.toLists m
+      xs = map last as
+  in xs
 
 appendColumn :: a -> Matrix a -> Matrix a
 appendColumn a m =
@@ -364,19 +376,11 @@ example3 = do
           [0, 0]
         ]
 
-  let (previousValves1, pprs1, remainingMinutes1) =
-        viterbiRound nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves pprs remainingMinutes 1
-  print "step1"
-  print previousValves1
-  print remainingMinutes1
-  print pprs1
-
-  let (previousValves2, pprs2, remainingMinutes2) =
-        viterbiRound nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves1 pprs1 remainingMinutes1 2
-  print "step2"
-  print previousValves2
-  print remainingMinutes2
-  print pprs2
+  let (previousValves', pprs', remainingMinutes') =
+        viterbi nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves pprs remainingMinutes 1
+  print previousValves'
+  print remainingMinutes'
+  print pprs'
 
 example2 :: IO ()
 example2 = do

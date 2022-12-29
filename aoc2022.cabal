@@ -94,5 +94,6 @@ test-suite aoc2022-test
     , base >=4.7 && <5
     , containers
     , hspec
+    , matrix
     , raw-strings-qq
   default-language: Haskell2010

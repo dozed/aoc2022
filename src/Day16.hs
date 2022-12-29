@@ -4,9 +4,11 @@
 module Day16 where
 
 import Control.Monad (forM_, void)
+import Data.Function (on)
 import Data.List (permutations)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.List (maximumBy)
 import Data.Matrix (Matrix)
 import qualified Data.Matrix as MT
 import Data.Set (Set)
@@ -221,15 +223,19 @@ removeNode valveLabel adjacencyMap =
 initAdjacencyMapWithDistances :: AdjacencyMap a -> AdjacencyMapWithDistance a
 initAdjacencyMapWithDistances am = M.map (\xs -> map (\x -> (x, 1)) xs) am
 
-getPotentialPressureRelease :: Matrix Int -> Map Label Int -> Map Label Valve -> Int -> Label -> Label -> Int
+type PPR = Int
+type RemainingMinutes = Int
+
+getPotentialPressureRelease :: Matrix Int -> Map Label Int -> Map Label Valve -> Int -> Label -> Label -> (PPR, RemainingMinutes)
 getPotentialPressureRelease distances valvesIdx valvesMap remainingMinutes from to =
   let fromIdx = valvesIdx M.! from
       toIdx = valvesIdx M.! to
       toValve = valvesMap M.! to
       flowRate = getValveFlowRate toValve
       distance = distances MT.! (fromIdx, toIdx)
-      ppr = (remainingMinutes - distance - 1) * flowRate
-  in ppr
+      remainingMinutes' = remainingMinutes - distance - 1
+      ppr = remainingMinutes' * flowRate
+  in (ppr, remainingMinutes')
 
 getPotentialPressureRelease' :: Matrix Int -> Map Label Int -> Map Label Valve -> Int -> Label -> Label -> IO Int
 getPotentialPressureRelease' distances valvesIdx valvesMap remainingMinutes from to = do
@@ -241,6 +247,89 @@ getPotentialPressureRelease' distances valvesIdx valvesMap remainingMinutes from
       ppr = (remainingMinutes - distance - 1) * flowRate
   putStrLn $ "r: " <> show remainingMinutes <> " d: " <> show distance <> " f: " <> show flowRate <> " ppr: " <> show ppr
   return ppr
+
+getPathTo :: Matrix Label -> Map Label Int -> Label -> Int -> [Label]
+getPathTo _ _ x 0 = [x]
+getPathTo previousValves valveIdxs valve i =
+  let valveIdx = valveIdxs M.! valve
+      x = previousValves MT.! (valveIdx, i)
+  in valve : getPathTo previousValves valveIdxs x (i-1)
+
+getCandidates :: [Label] -> Map Label Int -> Matrix Label -> Int -> Label -> [Label]
+getCandidates valveLabels valveIdxs previousValves pathLength valve =
+  let candidates = filter (/= valve) valveLabels  -- the same valve cant be the previous valve
+      paths = map (\v -> getPathTo previousValves valveIdxs v (pathLength - 1)) candidates
+      -- a previous valve which contains valve on its path cant be the previous valve
+      candidates' = map fst . filter (\(c, p) -> valve `notElem` p) $ (candidates `zip` paths)
+  in candidates'
+
+viterbiForValve :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix Int -> Matrix Int -> Int -> Label -> (Matrix Label, Matrix Int, Matrix Int)
+viterbiForValve distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep toValve =
+  -- some valves dont have previous values -> paths ends
+  let valveIdx = valveIdxs M.! toValve
+      candidates = getCandidates valveLabels valveIdxs previousValves timestep toValve
+      candidatesIdxs = map (valveIdxs M.!) candidates
+      remainings = map (\ci -> remainingMinutes MT.! (ci, timestep - 1)) candidatesIdxs
+      getAccPPRAndRemaining fromValve fromRemaining =
+        let (curPpr, currentRemaining) = getPotentialPressureRelease distances valveIdxs valveMap fromRemaining fromValve toValve
+            prevPpr = pprs MT.! (valveIdxs M.! fromValve, timestep - 1)
+        in (prevPpr + curPpr, currentRemaining)
+      pprsRemainings = map (uncurry getAccPPRAndRemaining) (candidates `zip` remainings)
+      (maxLabel, (maxPPR, maxRemaining)) = maximumBy (compare `on` (fst . snd)) (candidates `zip` pprsRemainings)
+      -- map of previous valve at a given timestep for a given valve
+      previousValves' = MT.setElem maxLabel (valveIdx, timestep) previousValves
+      -- keep a matrix of remaining minutes
+      remainingMinutes' = MT.setElem maxRemaining (valveIdx, timestep) remainingMinutes
+      pprs' = MT.setElem maxPPR (valveIdx, timestep) pprs
+  in (previousValves', remainingMinutes', pprs')
+
+example1 :: IO ()
+example1 = do
+  let valves = [
+          Valve "AA" 0 ["DD","BB","II"],
+          Valve "DD" 20 ["AA"],
+          Valve "BB" 13 ["AA"],
+          Valve "II" 0 ["AA","JJ"],
+          Valve "JJ" 21 ["II"]
+        ]
+
+  let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
+      valvesLabels = [getValveLabel v | v <- valves]
+      valvesIdx = M.fromList $ valvesLabels `zip` [1..]
+      nonZeroFlowRateValves = [getValveLabel v | v <- valves, hasNonZeroFlowRate v]
+      nonZeroFlowRateValvesIdx = M.fromList $ nonZeroFlowRateValves `zip` [1..]
+      getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
+      predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
+      distances = getShortestPathLengths valvesLabels predecessorsMap
+
+  putStrLn $ "valves: " <> show valves
+  putStrLn $ "valvesIdx: " <> show valvesIdx
+  putStrLn $ "nonZeroFlowRateValves: " <> show nonZeroFlowRateValves
+  putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
+
+  void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "DD"
+  void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "JJ"
+
+  let previousValves =
+        MT.fromLists [
+          ["AA", "--"],
+          ["AA", "--"]
+        ]
+
+  let remainingTimes =
+        MT.fromLists  [
+          [30, 0],
+          [30, 0]
+        ]
+
+  let pprs =
+        MT.fromLists  [
+          [0, 0],
+          [0, 0]
+        ]
+  
+  pure ()
+
 
 day16 :: IO ()
 day16 = do
@@ -263,32 +352,66 @@ day16 = do
 --        ]
 
 --  let valves = [
---          Valve "AA" 0 ["DD","II","BB"],
---          Valve "BB" 13 ["AA"],
+--          Valve "AA" 0 ["DD","II"],
 --          Valve "DD" 20 ["AA"],
 --          Valve "II" 0 ["AA","JJ"],
 --          Valve "JJ" 21 ["II"]
 --        ]
 
   let valves = [
-          Valve "AA" 0 ["DD","II"],
+          Valve "AA" 0 ["DD","BB","II"],
           Valve "DD" 20 ["AA"],
+          Valve "BB" 13 ["AA"],
           Valve "II" 0 ["AA","JJ"],
-          Valve "JJ" 30 ["II"]
+          Valve "JJ" 21 ["II"]
         ]
 
   let valvesMap = M.fromList [(getValveLabel v, v) | v <- valves]
       valvesLabels = [getValveLabel v | v <- valves]
       valvesIdx = M.fromList $ valvesLabels `zip` [1..]
       nonZeroFlowRateValves = [getValveLabel v | v <- valves, hasNonZeroFlowRate v]
+      nonZeroFlowRateValvesIdx = M.fromList $ nonZeroFlowRateValves `zip` [1..]
       getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valvesMap)
       predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valvesLabels
       distances = getShortestPathLengths valvesLabels predecessorsMap
 
+  putStrLn $ "valves: " <> show valves
+  putStrLn $ "valvesIdx: " <> show valvesIdx
+  putStrLn $ "nonZeroFlowRateValves: " <> show nonZeroFlowRateValves
   putStrLn $ "Number of valves with non-zero flow rate: " <> show (length nonZeroFlowRateValves)
 
   void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "DD"
   void $ getPotentialPressureRelease' distances valvesIdx valvesMap 30 "AA" "JJ"
+
+  let previousValves =
+        MT.fromLists [
+          ["AA", "BB", "JJ"],
+          ["AA", "DD", "--"],
+          ["AA", "BB", "BB"]
+        ]
+
+  let remainingTimes =
+        MT.fromLists  [
+          [30, 0, 0],
+          [30, 0, 0],
+          [30, 0, 0]
+        ]
+
+  let pprs =
+        MT.fromLists  [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0]
+        ]
+
+  let valveIdx = valvesIdx M.! "DD"
+      x = previousValves MT.! (valveIdx, 3)
+
+  putStrLn $ "valveIdx: " <> show valveIdx
+  putStrLn $ "x: " <> show x
+
+  let path = getPathTo previousValves nonZeroFlowRateValvesIdx "DD" 3
+  print path
 
   -- startValve <- case M.lookup "AA" valvesMap of
   --   Nothing -> fail "Could not find start valve"

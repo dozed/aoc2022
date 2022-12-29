@@ -5,6 +5,7 @@ module Day16Spec where
 
 import Data.Map (Map)
 import qualified Data.Map as M
+import qualified Data.Matrix as MT
 import Data.Set (Set)
 import qualified Data.Set as S
 import Text.RawString.QQ
@@ -140,3 +141,33 @@ day16Spec = do
 
       let actions = toActions shortestPathLengths valvesIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
       getReleasedPressureForPathActions' valvesMap 1 0 0 actions `shouldBe` 1651
+
+  -- Viterbi
+  describe "getPathTo" $ do
+    it "should get path from previous valve matrix" $ do
+      let valveLabels = ["DD", "BB", "JJ"]
+          valveIdxs = M.fromList $ valveLabels `zip` [1..]
+          previousValves = MT.fromLists [
+              ["AA", "BB", "JJ"],
+              ["AA", "DD", "--"],
+              ["AA", "BB", "BB"]
+            ]
+
+      let path1 = getPathTo previousValves valveIdxs "DD" 3
+      path1 `shouldBe` ["DD", "JJ", "BB", "AA"]
+
+      let path2 = getPathTo previousValves valveIdxs "JJ" 1
+      path2 `shouldBe` ["JJ", "AA"]
+
+  describe "getCandidates" $ do
+    it "should get candidates" $ do
+      let valveLabels = ["DD", "BB", "JJ"]
+          valveIdxs = M.fromList $ valveLabels `zip` [1..]
+          previousValves = MT.fromLists [
+              ["AA", "BB", "JJ"],
+              ["AA", "DD", "--"],
+              ["AA", "BB", "BB"]
+            ]
+
+      getCandidates valveLabels valveIdxs previousValves 3 "JJ" `shouldBe` ["DD", "BB"]
+      getCandidates valveLabels valveIdxs previousValves 3 "DD" `shouldBe` ["JJ"]

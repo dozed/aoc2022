@@ -278,35 +278,38 @@ viterbiStepForValve distances valveLabels valveIdxs valveMap previousValves pprs
   -- have a matrix of tuples instead of three matrices
   let valveIdx = valveIdxs M.! toValve
       candidates = getCandidates valveLabels valveIdxs previousValves timestep toValve
-      candidatesIdxs = map (valveIdxs M.!) candidates
-      remainings = map (\ci -> remainingMinutes MT.! (ci, timestep - 1)) candidatesIdxs
-      getAccPPRAndRemaining fromValve fromRemaining =
-        let (curPpr, currentRemaining) = getPotentialPressureRelease distances valveIdxs valveMap fromRemaining fromValve toValve
-            prevPpr = pprs MT.! (valveIdxs M.! fromValve, timestep - 1)
-        in (prevPpr + curPpr, currentRemaining)
-      pprsRemainings = map (uncurry getAccPPRAndRemaining) (candidates `zip` remainings)
-      (maxLabel, (maxPPR, maxRemaining)) = maximumBy (compare `on` (fst . snd)) (candidates `zip` pprsRemainings)
-      -- map of previous valve at a given timestep for a given valve
-      previousValves' = MT.setElem maxLabel (valveIdx, timestep) previousValves
-      -- keep a matrix of remaining minutes
-      remainingMinutes' = MT.setElem maxRemaining (valveIdx, timestep) remainingMinutes
-      pprs' = MT.setElem maxPPR (valveIdx, timestep) pprs
-  in (previousValves', pprs', remainingMinutes')
+  in if length candidates > 0 then
+       let candidatesIdxs = map (valveIdxs M.!) candidates
+           remainings = map (\ci -> remainingMinutes MT.! (ci, timestep - 1)) candidatesIdxs
+           getAccPPRAndRemaining fromValve fromRemaining =
+             let (curPpr, currentRemaining) = getPotentialPressureRelease distances valveIdxs valveMap fromRemaining fromValve toValve
+                 prevPpr = pprs MT.! (valveIdxs M.! fromValve, timestep - 1)
+             in (prevPpr + curPpr, currentRemaining)
+           pprsRemainings = map (uncurry getAccPPRAndRemaining) (candidates `zip` remainings)
+           (maxLabel, (maxPPR, maxRemaining)) = maximumBy (compare `on` (fst . snd)) (candidates `zip` pprsRemainings)
+           -- map of previous valve at a given timestep for a given valve
+           previousValves' = MT.setElem maxLabel (valveIdx, timestep) previousValves
+           -- keep a matrix of remaining minutes
+           remainingMinutes' = MT.setElem maxRemaining (valveIdx, timestep) remainingMinutes
+           pprs' = MT.setElem maxPPR (valveIdx, timestep) pprs
+       in (previousValves', pprs', remainingMinutes')
+     else (previousValves, pprs, remainingMinutes)
 
 viterbiRound :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix PPR -> Matrix RemainingMinutes -> Int -> (Matrix Label, Matrix PPR, Matrix RemainingMinutes)
 viterbiRound distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep =
   let valveLabels' = filter (/= "AA") valveLabels
   in foldl (\(pv, pprs, rms) v -> viterbiStepForValve distances valveLabels valveIdxs valveMap pv pprs rms timestep v) (previousValves, pprs, remainingMinutes) valveLabels'
 
-viterbi :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix PPR -> Matrix RemainingMinutes -> Int -> (Matrix Label, Matrix PPR, Matrix RemainingMinutes)
-viterbi distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep =
+viterbi :: Matrix Int -> [Label] -> Map Label Int -> Map Label Valve -> Matrix Label -> Matrix PPR -> Matrix RemainingMinutes -> Int -> IO (Matrix Label, Matrix PPR, Matrix RemainingMinutes)
+viterbi distances valveLabels valveIdxs valveMap previousValves pprs remainingMinutes timestep = do
+  putStrLn $ "timestep: " <> show timestep
   let previousValves' = appendColumn "--" previousValves
       pprs' = appendColumn 0 pprs
       remainingMinutes' = appendColumn 0 remainingMinutes
       (previousValves'', pprs'', remainingMinutes'') = viterbiRound distances valveLabels valveIdxs valveMap previousValves' pprs' remainingMinutes' timestep
       noRemainingMinutes = all (<= 0) (getLastColumn remainingMinutes'')
-  in if noRemainingMinutes then (previousValves'', pprs'', remainingMinutes'')
-     else viterbi distances valveLabels valveIdxs valveMap previousValves'' pprs'' remainingMinutes'' (timestep + 1)
+  if noRemainingMinutes then return (previousValves'', pprs'', remainingMinutes'')
+  else viterbi distances valveLabels valveIdxs valveMap previousValves'' pprs'' remainingMinutes'' (timestep + 1)
 
 getLastColumn :: Matrix a -> [a]
 getLastColumn m =
@@ -358,25 +361,11 @@ example3 = do
   void $ getPotentialPressureRelease' nonZeroFlowRateDistances nonZeroFlowRateValveIdxs valveMap 30 "AA" "DD"
   void $ getPotentialPressureRelease' nonZeroFlowRateDistances nonZeroFlowRateValveIdxs valveMap 30 "AA" "JJ"
 
-  let previousValves =
-        MT.fromLists [
-          ["--", "--"],
-          ["--", "--"]
-        ]
+  let previousValves = MT.fromLists $ replicate (length nonZeroFlowRateValveLabels - 1) []
+  let remainingMinutes = MT.fromLists $ replicate (length nonZeroFlowRateValveLabels - 1) []
+  let pprs = MT.fromLists $ replicate (length nonZeroFlowRateValveLabels - 1) []
 
-  let remainingMinutes =
-        MT.fromLists  [
-          [0, 0],
-          [0, 0]
-        ]
-
-  let pprs =
-        MT.fromLists  [
-          [0, 0],
-          [0, 0]
-        ]
-
-  let (previousValves', pprs', remainingMinutes') =
+  (previousValves', pprs', remainingMinutes') <-
         viterbi nonZeroFlowRateDistances nonZeroFlowRateValveLabels nonZeroFlowRateValveIdxs valveMap previousValves pprs remainingMinutes 1
   print previousValves'
   print remainingMinutes'
@@ -563,7 +552,8 @@ day16 = do
     Right xs -> pure xs
 
   -- example1
-  example2
+  -- example2
+  example3
 
 
 --  forM_ valves print

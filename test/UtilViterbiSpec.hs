@@ -163,12 +163,10 @@ utilViterbiSpec = do
         isFinished = \i m t -> all ((<= 0) . fst . snd) (getLastColumn m)
       }
 
-      let previous = MT.fromLists $ replicate (length nonZeroFlowRateValveLabels - 1) []
-
-      previous' <- liftIO $ viterbi info previous 1
-      let previous'' = dropLastColumn previous'
+      previous <- liftIO $ viterbi info
+      let previous' = dropLastColumn previous
 
       let expected = MT.fromLists [[("AA", (28, 560)), ("JJ", (23, 1027))],
                                    [("AA", (27, 567)), ("DD", (24, 1064))]]
 
-      previous'' `shouldBe` expected
+      previous' `shouldBe` expected

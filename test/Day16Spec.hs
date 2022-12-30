@@ -71,6 +71,6 @@ day16Spec = do
       let xs = search fieldInfo (S.singleton "AA") 30 ["AA"] "AA" 0
       length xs `shouldBe` 720
 
-      let (maxPath, maxReleasePressure) = maximumBy (compare `on` snd) xs
+      let (maxPath, maxReleasablePressure) = maximumBy (compare `on` snd) xs
       maxPath `shouldBe` ["AA","DD","BB","JJ","HH","EE","CC"]
-      maxReleasePressure `shouldBe` 1651
+      maxReleasablePressure `shouldBe` 1651

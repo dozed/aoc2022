@@ -16,6 +16,9 @@ import Day16Spec
 main :: IO ()
 main = hspec $ do
   describe "Util" utilSpec
+  describe "UtilGraphSearch" utilGraphSearchSpec
+  describe "UtilMatrix" utilMatrixSpec
+  describe "UtilViterbi" utilViterbiSpec
   describe "Day9" day9Spec
   describe "Day10" day10Spec
   describe "Day11" day11Spec
@@ -24,6 +27,3 @@ main = hspec $ do
   describe "Day14" day14Spec
   describe "Day15" day15Spec
   describe "Day16" day16Spec
-  describe "UtilGraphSearch" utilGraphSearchSpec
-  describe "UtilMatrix" utilMatrixSpec
-  describe "UtilViterbi" utilViterbiSpec

@@ -2,9 +2,6 @@ module Day11Spec (day11Spec) where
 
 import Test.Hspec
 
-import Control.Monad (foldM)
-import Control.Monad.IO.Class (liftIO)
-
 import Day11
 import Util (regularParse)
 

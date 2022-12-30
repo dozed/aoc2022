@@ -41,6 +41,7 @@ library
       Day8
       Day9
       Util
+      UtilGraphSearch
       UtilMatrix
   other-modules:
       Paths_aoc2022
@@ -84,6 +85,7 @@ test-suite aoc2022-test
       Day15Spec
       Day16Spec
       Day9Spec
+      UtilMatrixSpec
       UtilSpec
       Paths_aoc2022
   hs-source-dirs:

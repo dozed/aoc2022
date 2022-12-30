@@ -19,7 +19,7 @@ import Text.Parsec.String
 import Text.RawString.QQ
 
 import Util (lstrip, regularParse)
-import UtilGraphSearch
+import UtilGraphSearch (Predecessors, bfs, getShortestPathLengths)
 
 testInput :: String
 testInput = lstrip [r|

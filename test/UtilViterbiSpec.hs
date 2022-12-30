@@ -80,7 +80,7 @@ getValveCandidates ViterbiInfo { values, indexes } previous timestep valve =
       -- the same valve cant be the previous valve
       paths = map (\v -> getPathTo indexes previous v (timestep - 1)) candidates
       -- a previous valve which contains valve on its path cant be the previous valve
-      candidates' = map fst . filter (\(c, p) -> valve `notElem` p) $ (candidates `zip` paths)
+      candidates' = map fst . filter (\(_, p) -> valve `notElem` p) $ (candidates `zip` paths)
   in candidates'
 
 utilViterbiSpec :: Spec
@@ -119,7 +119,7 @@ utilViterbiSpec = do
         mkEmpty = ("--", (0, 0)),
         getCandidates = getValveCandidates,
         getB = getRemainingMinutesAndPressureRelease (MT.zero 3 3) M.empty,
-        isFinished = (\i m t -> undefined)
+        isFinished = undefined
       }
 
       getValveCandidates info previousValves 3 "JJ" `shouldBe` ["DD", "BB"]
@@ -151,7 +151,7 @@ utilViterbiSpec = do
         mkEmpty = ("--", (0, 0)),
         getCandidates = getValveCandidates,
         getB = getRemainingMinutesAndPressureRelease nonZeroFlowRateDistances valveMap,
-        isFinished = \i m t -> all ((<= 0) . fst . snd) (getLastColumn m)
+        isFinished = \_ m _ -> all ((<= 0) . fst . snd) (getLastColumn m)
       }
 
       let previous = dropLastColumn . viterbi $ info

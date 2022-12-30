@@ -48,24 +48,15 @@ getB' :: Matrix Int
       -> Label  -- ^ The `from` value for which the `b` should be computed
       -> Label  -- ^ The `to` value for which the `b` should be computed
       -> (RemainingMinutes, PPR)  -- ^ The `b` for the current edge
-getB' distances valves ViterbiInfo { indexes } _ 1 fromValveLabel toValveLabel =
-  let fromIdx = indexes M.! fromValveLabel
-      toIdx = indexes M.! toValveLabel
-      toValve = valves M.! toValveLabel
-      flowRate = getValveFlowRate toValve
-      distance = distances MT.! (fromIdx, toIdx)
-      remainingMinutes = 30
-      prevPpr = 0
-      remainingMinutes' = remainingMinutes - distance - 1
-      ppr = remainingMinutes' * flowRate
-  in (remainingMinutes', prevPpr + ppr)
 getB' distances valves ViterbiInfo { indexes } previous timestep fromValveLabel toValveLabel =
   let fromIdx = indexes M.! fromValveLabel
       toIdx = indexes M.! toValveLabel
       toValve = valves M.! toValveLabel
       flowRate = getValveFlowRate toValve
       distance = distances MT.! (fromIdx, toIdx)
-      (_, (remainingMinutes, prevPpr)) = previous MT.! (fromIdx, timestep - 1)
+      (remainingMinutes, prevPpr) = 
+        if timestep == 1 then (30, 0)
+        else let (_, (r, p)) = previous MT.! (fromIdx, timestep - 1) in (r, p)
       remainingMinutes' = remainingMinutes - distance - 1
       ppr = remainingMinutes' * flowRate
   in (remainingMinutes', prevPpr + ppr)

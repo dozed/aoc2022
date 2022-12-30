@@ -43,6 +43,7 @@ library
       Util
       UtilGraphSearch
       UtilMatrix
+      UtilViterbi
   other-modules:
       Paths_aoc2022
   hs-source-dirs:
@@ -85,8 +86,10 @@ test-suite aoc2022-test
       Day15Spec
       Day16Spec
       Day9Spec
+      UtilGraphSearchSpec
       UtilMatrixSpec
       UtilSpec
+      UtilViterbiSpec
       Paths_aoc2022
   hs-source-dirs:
       test

@@ -39,8 +39,9 @@ hasNonZeroFlowRate = not . hasZeroFlowRate
 type RemainingMinutes = Int
 type PPR = Int
 type ViterbiInfo' = ViterbiInfo Label (RemainingMinutes, PPR)
+type Distance = Int
 
-getRemainingMinutesAndPPR :: Matrix Int
+getRemainingMinutesAndPPR :: Matrix Distance
       -> Map Label Valve
       -> ViterbiInfo'  -- ^ The info about the structure Viterbi is applied to
       -> Matrix (Label, (RemainingMinutes, PPR))  -- ^ The current matrix of tagged, previous values

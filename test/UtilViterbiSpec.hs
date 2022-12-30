@@ -1,15 +1,20 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module UtilViterbiSpec where
 
+import Control.Monad.IO.Class (liftIO)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Matrix (Matrix)
 import qualified Data.Matrix as MT
+import qualified Data.Set as S
 
 import Test.Hspec
 
 import UtilViterbi
+import UtilGraphSearch (Predecessors, bfs, getShortestPathLengths)
+import UtilMatrix (getLastColumn)
 
 type Label = String
 type FlowRate = Int
@@ -54,7 +59,7 @@ getB' distances valves ViterbiInfo { indexes } _ 1 fromValveLabel toValveLabel =
       prevPpr = 0
       remainingMinutes' = remainingMinutes - distance - 1
       ppr = remainingMinutes' * flowRate
-  in (prevPpr + ppr, remainingMinutes')
+  in (remainingMinutes', prevPpr + ppr)
 getB' distances valves ViterbiInfo { indexes } previous timestep fromValveLabel toValveLabel =
   let fromIdx = indexes M.! fromValveLabel
       toIdx = indexes M.! toValveLabel
@@ -64,7 +69,7 @@ getB' distances valves ViterbiInfo { indexes } previous timestep fromValveLabel 
       (_, (remainingMinutes, prevPpr)) = previous MT.! (fromIdx, timestep - 1)
       remainingMinutes' = remainingMinutes - distance - 1
       ppr = remainingMinutes' * flowRate
-  in (prevPpr + ppr, remainingMinutes')
+  in (remainingMinutes', prevPpr + ppr)
 
 getPathTo :: Map Label Int -> Matrix (Label, (RemainingMinutes, PPR)) -> Label -> Int -> [Label]
 getPathTo _ _ x 0 = [x]
@@ -129,3 +134,40 @@ utilViterbiSpec = do
       getCandidates' info previousValves 3 "JJ" `shouldBe` ["DD", "BB"]
       getCandidates' info previousValves 3 "DD" `shouldBe` ["JJ"]
 
+  describe "viterbi" $ do
+    it "should compute viterbi state matrix" $ do
+      let valves = [
+              Valve "AA" 0 ["DD","II"],
+              Valve "DD" 20 ["AA"],
+              Valve "II" 0 ["AA","JJ"],
+              Valve "JJ" 21 ["II"]
+            ]
+
+      let valveMap = M.fromList [(getValveLabel v, v) | v <- valves]
+          valveLabels = [getValveLabel v | v <- valves]
+          valveIdxs = M.fromList $ valveLabels `zip` [1..]
+          nonZeroFlowRateValveLabels = [getValveLabel v | v <- valves, hasNonZeroFlowRate v] ++ ["AA"]
+          nonZeroFlowRateValveIdxs = M.fromList $ nonZeroFlowRateValveLabels `zip` [1..]
+          getNeighbours v = S.fromList $ maybe [] getReachableValves (M.lookup v valveMap)
+          predecessorsMap :: Map Label (Predecessors Label) = foldl (\acc v -> M.insert v (bfs getNeighbours v) acc) M.empty valveLabels
+          distances = getShortestPathLengths valveLabels predecessorsMap
+          nonZeroFlowRateDistances = MT.fromLists [[distances MT.! (valveIdxs M.! u, valveIdxs M.! v) | u <- nonZeroFlowRateValveLabels] | v <- nonZeroFlowRateValveLabels]
+
+      let info = ViterbiInfo {
+        values = nonZeroFlowRateValveLabels,
+        indexes = nonZeroFlowRateValveIdxs,
+        mkStart = "AA",
+        mkEmpty = ("--", (0, 0)),
+        getCandidates = getCandidates',
+        getB = getB' nonZeroFlowRateDistances valveMap,
+        isFinished = \i m t -> all ((<= 0) . fst . snd) (getLastColumn m)
+      }
+
+      let previous = MT.fromLists $ replicate (length nonZeroFlowRateValveLabels - 1) []
+
+      previous' <- liftIO $ viterbi info previous 1
+
+      let expected = MT.fromLists [[("AA", (28, 560)), ("JJ", (23, 1027)), ("--", (0, 0))],
+                                   [("AA", (27, 567)), ("DD", (24, 1064)), ("--",(0,0))]]
+
+      previous' `shouldBe` expected

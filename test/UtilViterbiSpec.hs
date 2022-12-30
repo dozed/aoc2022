@@ -14,7 +14,7 @@ import Test.Hspec
 
 import UtilViterbi
 import UtilGraphSearch (Predecessors, bfs, getShortestPathLengths)
-import UtilMatrix (getLastColumn)
+import UtilMatrix (dropLastColumn, getLastColumn)
 
 type Label = String
 type FlowRate = Int
@@ -166,8 +166,9 @@ utilViterbiSpec = do
       let previous = MT.fromLists $ replicate (length nonZeroFlowRateValveLabels - 1) []
 
       previous' <- liftIO $ viterbi info previous 1
+      let previous'' = dropLastColumn previous'
 
-      let expected = MT.fromLists [[("AA", (28, 560)), ("JJ", (23, 1027)), ("--", (0, 0))],
-                                   [("AA", (27, 567)), ("DD", (24, 1064)), ("--",(0,0))]]
+      let expected = MT.fromLists [[("AA", (28, 560)), ("JJ", (23, 1027))],
+                                   [("AA", (27, 567)), ("DD", (24, 1064))]]
 
-      previous' `shouldBe` expected
+      previous'' `shouldBe` expected

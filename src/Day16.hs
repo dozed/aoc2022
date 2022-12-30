@@ -82,17 +82,17 @@ type Visited = Set Label
 
 data FieldInfo = FieldInfo {
   distances :: Matrix Int,
-  labelIdxs :: Map Label Int,
+  indexes :: Map Label Int,
   valves :: Map Label Valve,
   labels :: Set Label
 }
 
 search :: FieldInfo -> Visited -> RemainingMinutes -> Path -> Label -> Emission -> [(Path, Int)]
-search fieldInfo@FieldInfo { distances, labelIdxs, valves, labels } visited remaining path current emission =
+search fieldInfo@FieldInfo { distances, indexes, valves, labels } visited remaining path current emission =
   let toVisit = S.toList $ S.difference labels visited
       expand v =
         let visited' = S.insert v visited
-            d = distances MT.! (labelIdxs M.! current, labelIdxs M.! v)
+            d = distances MT.! (indexes M.! current, indexes M.! v)
             remaining' = remaining - (d + 1)
         in
           if remaining' >= 0 then
@@ -137,7 +137,7 @@ day16 = do
 
   let fieldInfo = FieldInfo {
     distances = nonZeroFlowRateDistances,
-    labelIdxs = nonZeroFlowRateValveIdxs,
+    indexes = nonZeroFlowRateValveIdxs,
     valves = valveMap,
     labels = S.fromList nonZeroFlowRateValveLabels
   }

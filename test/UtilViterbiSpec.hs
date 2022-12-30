@@ -40,7 +40,7 @@ type RemainingMinutes = Int
 type PPR = Int
 type ViterbiInfo' = ViterbiInfo Label (RemainingMinutes, PPR)
 
-getB' :: Matrix Int
+getRemainingMinutesAndPPR :: Matrix Int
       -> Map Label Valve
       -> ViterbiInfo'  -- ^ The info about the structure Viterbi is applied to
       -> Matrix (Label, (RemainingMinutes, PPR))  -- ^ The current matrix of tagged, previous values
@@ -48,13 +48,13 @@ getB' :: Matrix Int
       -> Label  -- ^ The `from` value for which the `b` should be computed
       -> Label  -- ^ The `to` value for which the `b` should be computed
       -> (RemainingMinutes, PPR)  -- ^ The `b` for the current edge
-getB' distances valves ViterbiInfo { indexes } previous timestep fromValveLabel toValveLabel =
+getRemainingMinutesAndPPR distances valves ViterbiInfo { indexes } previous timestep fromValveLabel toValveLabel =
   let fromIdx = indexes M.! fromValveLabel
       toIdx = indexes M.! toValveLabel
       toValve = valves M.! toValveLabel
       flowRate = getValveFlowRate toValve
       distance = distances MT.! (fromIdx, toIdx)
-      (remainingMinutes, prevPpr) = 
+      (remainingMinutes, prevPpr) =
         if timestep == 1 then (30, 0)
         else let (_, (r, p)) = previous MT.! (fromIdx, timestep - 1) in (r, p)
       remainingMinutes' = remainingMinutes - distance - 1
@@ -68,13 +68,13 @@ getPathTo indexes previous valve i =
       (x, _) = previous MT.! (valveIdx, i)
   in valve : getPathTo indexes previous x (i-1)
 
-getCandidates' :: ViterbiInfo' -- ^ The info about the structure Viterbi is applied to
+getValveCandidates :: ViterbiInfo' -- ^ The info about the structure Viterbi is applied to
                -> Matrix (Label, (RemainingMinutes, PPR))  -- ^ The current matrix of tagged, previous values
                -> Timestep  -- ^ The current timestep
                -> Label  -- ^ The value for which the candidate should be found
                -> [Label]  -- ^ The list of candidates for that value at the current timestep
-getCandidates' _ _ 0 _ = ["AA"]
-getCandidates' ViterbiInfo { values, indexes } previous timestep valve =
+getValveCandidates _ _ 0 _ = ["AA"]
+getValveCandidates ViterbiInfo { values, indexes } previous timestep valve =
   let candidates = filter (\v -> v /= valve && v /= "AA" && fst (previous MT.! (indexes M.! v, timestep - 1)) /= "--") values
       -- the same valve cant be the previous valve
       paths = map (\v -> getPathTo indexes previous v (timestep - 1)) candidates
@@ -116,13 +116,13 @@ utilViterbiSpec = do
         indexes = valveIdxs,
         mkStart = "AA",
         mkEmpty = ("--", (0, 0)),
-        getCandidates = getCandidates',
-        getB = getB' (MT.zero 3 3) M.empty,
+        getCandidates = getValveCandidates,
+        getB = getRemainingMinutesAndPPR (MT.zero 3 3) M.empty,
         isFinished = (\i m t -> undefined)
       }
 
-      getCandidates' info previousValves 3 "JJ" `shouldBe` ["DD", "BB"]
-      getCandidates' info previousValves 3 "DD" `shouldBe` ["JJ"]
+      getValveCandidates info previousValves 3 "JJ" `shouldBe` ["DD", "BB"]
+      getValveCandidates info previousValves 3 "DD" `shouldBe` ["JJ"]
 
   describe "viterbi" $ do
     it "should compute viterbi state matrix" $ do
@@ -148,8 +148,8 @@ utilViterbiSpec = do
         indexes = nonZeroFlowRateValveIdxs,
         mkStart = "AA",
         mkEmpty = ("--", (0, 0)),
-        getCandidates = getCandidates',
-        getB = getB' nonZeroFlowRateDistances valveMap,
+        getCandidates = getValveCandidates,
+        getB = getRemainingMinutesAndPPR nonZeroFlowRateDistances valveMap,
         isFinished = \i m t -> all ((<= 0) . fst . snd) (getLastColumn m)
       }
 

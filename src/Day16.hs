@@ -312,6 +312,8 @@ viterbi distances valveLabels valveIdxs valveMap previousValves pprs remainingMi
       noRemainingMinutes = all (<= 0) (getLastColumn remainingMinutes'')
   print previousValves''
   print pprs''
+  print remainingMinutes''
+  putStrLn "-----"
   if noRemainingMinutes then return (previousValves'', pprs'', remainingMinutes'')
   else viterbi distances valveLabels valveIdxs valveMap previousValves'' pprs'' remainingMinutes'' (timestep + 1)
 
@@ -383,25 +385,25 @@ example4 = do
   print pprs'
   print $ MT.toLists previousValves'
 
-  let prev = MT.fromLists [
-          ["AA","DD","JJ","HH","EE","--","--"],
-          ["AA","DD","JJ","HH","HH","EE","--"],
-          ["AA","JJ","--","--","--","--","--"],
-          ["AA","DD","HH","HH","HH","CC","--"],
-          ["AA","DD","DD","BB","--","--","--"],
-          ["AA","DD","HH","EE","--","--","--"]
-        ]
-
-  -- ["BB","CC","DD","EE","HH","JJ"]
-  print $ getPathTo prev nonZeroFlowRateValveIdxs "BB" 5
-  print $ getPathTo prev nonZeroFlowRateValveIdxs "CC" 6
-  print $ getPathTo prev nonZeroFlowRateValveIdxs "DD" 2
-  print $ getPathTo prev nonZeroFlowRateValveIdxs "EE" 6
-  print $ getPathTo prev nonZeroFlowRateValveIdxs "HH" 4
-  print $ getPathTo prev nonZeroFlowRateValveIdxs "JJ" 4
-
-  print $ getReleasedPressureForSchedule' valveMap nonZeroFlowRateDistances nonZeroFlowRateValveIdxs ["DD", "JJ", "BB", "HH", "EE", "CC"]
-  print $ getReleasedPressureForSchedule' valveMap nonZeroFlowRateDistances nonZeroFlowRateValveIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
+  --  let prev = MT.fromLists [
+  --          ["AA","DD","JJ","HH","EE","--","--"],
+  --          ["AA","DD","JJ","HH","HH","EE","--"],
+  --          ["AA","JJ","--","--","--","--","--"],
+  --          ["AA","DD","HH","HH","HH","CC","--"],
+  --          ["AA","DD","DD","BB","--","--","--"],
+  --          ["AA","DD","HH","EE","--","--","--"]
+  --        ]
+  --
+  --  -- ["BB","CC","DD","EE","HH","JJ"]
+  --  print $ getPathTo prev nonZeroFlowRateValveIdxs "BB" 5
+  --  print $ getPathTo prev nonZeroFlowRateValveIdxs "CC" 6
+  --  print $ getPathTo prev nonZeroFlowRateValveIdxs "DD" 2
+  --  print $ getPathTo prev nonZeroFlowRateValveIdxs "EE" 6
+  --  print $ getPathTo prev nonZeroFlowRateValveIdxs "HH" 4
+  --  print $ getPathTo prev nonZeroFlowRateValveIdxs "JJ" 4
+  --
+  --  print $ getReleasedPressureForSchedule' valveMap nonZeroFlowRateDistances nonZeroFlowRateValveIdxs ["DD", "JJ", "BB", "HH", "EE", "CC"]
+  --  print $ getReleasedPressureForSchedule' valveMap nonZeroFlowRateDistances nonZeroFlowRateValveIdxs ["DD", "BB", "JJ", "HH", "EE", "CC"]
 
 example3 :: IO ()
 example3 = do

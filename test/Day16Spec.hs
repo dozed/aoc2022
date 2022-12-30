@@ -1,18 +1,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Day16Spec where
+module Day16Spec (day16Spec) where
 
-import Data.Map (Map)
-import qualified Data.Map as M
-import qualified Data.Matrix as MT
-import Data.Set (Set)
-import qualified Data.Set as S
 import Text.RawString.QQ
 
 import Test.Hspec
 
-import Day16 hiding (example1, example2, example3)
+import Day16
 import Util (lstrip, regularParse)
 
 example1 :: String

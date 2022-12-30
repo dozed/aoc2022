@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module UtilViterbiSpec where
+module UtilViterbiSpec (utilViterbiSpec) where
 
 import Data.Map (Map)
 import qualified Data.Map as M

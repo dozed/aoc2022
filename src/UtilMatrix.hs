@@ -15,3 +15,11 @@ appendColumn a m =
       as' = map (\xs -> xs ++ [a]) as
       m' = MT.fromLists as'
   in m'
+
+dropLastColumn :: Matrix a -> Matrix a
+dropLastColumn m =
+  let as = MT.toLists m
+      as' = map (\xs -> init xs) as
+      m' = MT.fromLists as'
+  in m'
+

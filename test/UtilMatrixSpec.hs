@@ -1,6 +1,5 @@
-module UtilMatrixSpec where
+module UtilMatrixSpec (utilMatrixSpec) where
 
-import Data.Matrix (Matrix)
 import qualified Data.Matrix as MT
 
 import Test.Hspec

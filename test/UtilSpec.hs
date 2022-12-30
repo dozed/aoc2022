@@ -1,4 +1,4 @@
-module UtilSpec where
+module UtilSpec (utilSpec) where
 
 import qualified Data.Set as S
 

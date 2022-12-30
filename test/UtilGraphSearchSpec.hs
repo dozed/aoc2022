@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module UtilGraphSearchSpec where
+module UtilGraphSearchSpec (utilGraphSearchSpec) where
 
 import Data.Map (Map)
 import qualified Data.Map as M

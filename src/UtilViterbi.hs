@@ -14,20 +14,36 @@ import UtilMatrix (appendColumn)
 type Timestep = Int
 
 data ViterbiInfo a b = ViterbiInfo {
+  -- | The possible `a` values
   values :: [a],
+  -- | The indexes of the `a`'s
   indexes :: Map a Int,
-  distances :: Matrix Int,
-  start :: a,
+  -- | The start value for each sequence
+  mkStart :: a,
+  -- | Used to fill an empty column when a new Viterbi iteration starts
   mkEmpty :: (a, b),
-  getCandidates :: ViterbiInfo a b -> Matrix (a, b) -> Timestep -> a -> [a],
-  getB :: ViterbiInfo a b -> Timestep -> a -> a -> b,
+  -- | Get possible previous candidates for the `a` at the current timestep
+  -- There might be not all `a`'s possible candidates, e.g. if they exist on the current path already
+  getCandidates
+    :: ViterbiInfo a b  -- ^ The info about the structure Viterbi is applied to
+    -> Matrix (a, b)  -- ^ The current matrix of tagged, previous values
+    -> Timestep  -- ^ The current timestep
+    -> a  -- ^ The value for which the candidate should be found
+    -> [a],  -- ^ The list of candidates for that value at the current timestep
+  -- | Get a `b` given from/to `a`s
+  getB
+    :: ViterbiInfo a b  -- ^ The info about the structure Viterbi is applied to
+    -> Timestep  -- ^ The current timestep
+    -> a  -- ^ The `from` value for which the `b` should be computed
+    -> a  -- ^ The `to` value for which the `b` should be computed
+    -> b,  -- ^ The `b` for the current edge
   isFinished :: ViterbiInfo a b -> Matrix (a, b) -> Timestep -> Bool
 }
 
 viterbiStepForValue :: (Ord a, Ord b) => ViterbiInfo a b -> Matrix (a, b) -> Int -> a -> Matrix (a, b)
-viterbiStepForValue info@ViterbiInfo { indexes, start, getB } previousValves timestep@1 toValve =
+viterbiStepForValue info@ViterbiInfo { indexes, mkStart, getB } previousValves timestep@1 toValve =
   let valveIdx = indexes M.! toValve
-      (maxPrev, b) = (start, getB info timestep start toValve)
+      (maxPrev, b) = (mkStart, getB info timestep mkStart toValve)
       previousValves' = MT.setElem (maxPrev, b) (valveIdx, timestep) previousValves
   in previousValves'
 viterbiStepForValue info@ViterbiInfo { indexes, getCandidates, getB } previousValves timestep toValve =
@@ -43,8 +59,8 @@ viterbiStepForValue info@ViterbiInfo { indexes, getCandidates, getB } previousVa
        in previousValves'
 
 viterbiRound :: (Ord a, Ord b) => ViterbiInfo a b -> Matrix (a, b) -> Int -> Matrix (a, b)
-viterbiRound info@ViterbiInfo { start, values } previousValves timestep =
-  let valveLabels' = filter (/= start) values
+viterbiRound info@ViterbiInfo { mkStart, values } previousValves timestep =
+  let valveLabels' = filter (/= mkStart) values
   in foldl (\pv v -> viterbiStepForValue info pv timestep v) previousValves valveLabels'
 
 viterbi :: (Ord a, Show a, Ord b, Show b) => ViterbiInfo a b -> Matrix (a, b) -> Int -> IO (Matrix (a, b))
@@ -58,6 +74,8 @@ viterbi info@ViterbiInfo { indexes, mkEmpty, isFinished } previousValves timeste
   if isFinished info previousValves'' timestep then return previousValves''
   else viterbi info previousValves'' (timestep + 1)
 
+-- distances :: Matrix Int,
+--
 -- getAccPPRAndRemaining fromValve toValve =
 --   let fromIdx = indexes M.! fromValve
 --       fromRemaining = remainingMinutes MT.! (fromIdx, timestep - 1)

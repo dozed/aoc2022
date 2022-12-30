@@ -3,7 +3,6 @@
 
 module UtilViterbiSpec where
 
-import Control.Monad.IO.Class (liftIO)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Matrix (Matrix)
@@ -163,10 +162,9 @@ utilViterbiSpec = do
         isFinished = \i m t -> all ((<= 0) . fst . snd) (getLastColumn m)
       }
 
-      previous <- liftIO $ viterbi info
-      let previous' = dropLastColumn previous
+      let previous = dropLastColumn . viterbi $ info
 
       let expected = MT.fromLists [[("AA", (28, 560)), ("JJ", (23, 1027))],  -- row: AA -> JJ -> DD
                                    [("AA", (27, 567)), ("DD", (24, 1064))]]  -- row: AA -> DD -> JJ
 
-      previous' `shouldBe` expected
+      previous `shouldBe` expected

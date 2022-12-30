@@ -64,19 +64,17 @@ viterbiRound info@ViterbiInfo { mkStart, values } previous timestep =
   let values' = filter (/= mkStart) values
   in foldl (\pv v -> viterbiStepForValue info pv timestep v) previous values'
 
-viterbi' :: (Ord a, Show a, Ord b, Show b) => ViterbiInfo a b -> Matrix (a, b) -> Int -> IO (Matrix (a, b))
-viterbi' info@ViterbiInfo { indexes, mkEmpty, isFinished } previous timestep = do
-  putStrLn $ "timestep: " <> show timestep
-  print indexes
+viterbi' :: (Ord a, Show a, Ord b, Show b) => ViterbiInfo a b -> Matrix (a, b) -> Int -> Matrix (a, b)
+viterbi' info@ViterbiInfo { mkEmpty, isFinished } previous timestep =
   let previous' = appendColumn mkEmpty previous
       previous'' = viterbiRound info previous' timestep
-  print previous''
-  putStrLn "-----"
-  if isFinished info previous'' timestep then return previous''
-  else viterbi' info previous'' (timestep + 1)
+      previous''' = if isFinished info previous'' timestep then previous''
+                    else viterbi' info previous'' (timestep + 1)
+  in previous'''
 
-viterbi :: (Ord a, Show a, Ord b, Show b) => ViterbiInfo a b -> IO (Matrix (a, b))
-viterbi info@ViterbiInfo { values } = do
+viterbi :: (Ord a, Show a, Ord b, Show b) => ViterbiInfo a b -> Matrix (a, b)
+viterbi info@ViterbiInfo { values } =
   let previous = MT.fromLists $ replicate (length values - 1) []
-  viterbi' info previous 1
+      previous' = viterbi' info previous 1
+  in previous'
 

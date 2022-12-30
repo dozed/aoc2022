@@ -166,7 +166,7 @@ utilViterbiSpec = do
       previous <- liftIO $ viterbi info
       let previous' = dropLastColumn previous
 
-      let expected = MT.fromLists [[("AA", (28, 560)), ("JJ", (23, 1027))],
-                                   [("AA", (27, 567)), ("DD", (24, 1064))]]
+      let expected = MT.fromLists [[("AA", (28, 560)), ("JJ", (23, 1027))],  -- DD row
+                                   [("AA", (27, 567)), ("DD", (24, 1064))]]  -- JJ row
 
       previous' `shouldBe` expected

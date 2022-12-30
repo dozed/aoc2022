@@ -63,7 +63,7 @@ day16Spec = do
 
       let fieldInfo = FieldInfo {
         distances = nonZeroFlowRateDistances,
-        labelIdxs = nonZeroFlowRateValveIdxs,
+        indexes = nonZeroFlowRateValveIdxs,
         valves = valveMap,
         labels = S.fromList nonZeroFlowRateValveLabels
       }

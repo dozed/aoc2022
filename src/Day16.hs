@@ -87,7 +87,7 @@ data FieldInfo = FieldInfo {
   labels :: Set Label
 }
 
-search :: FieldInfo -> Visited -> RemainingMinutes -> Path -> Label -> Emission -> [(Path, Int)]
+search :: FieldInfo -> Visited -> RemainingMinutes -> Path -> Label -> Emission -> [(Path, Emission)]
 search fieldInfo@FieldInfo { distances, indexes, valves, labels } visited remaining path current emission =
   let toVisit = S.toList $ S.difference labels visited
       expand v =

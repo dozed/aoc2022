@@ -6,10 +6,10 @@ module Day16 where
 
 import Control.Monad (void)
 import Data.Function (on)
+import Data.List (maximumBy)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
-import Data.List (maximumBy)
 import Data.Matrix (Matrix)
 import qualified Data.Matrix as MT
 import Data.Set (Set)
@@ -101,14 +101,14 @@ search fieldInfo@FieldInfo { distances, labelIdxs, valves, labels } visited rema
             in Just (visited', remaining', v:path, v, emission')
           else Nothing
       remainings = mapMaybe expand toVisit
-      paths = if null remainings then [(path, emission)]
+      paths = if null remainings then [(reverse path, emission)]
               else concatMap (\(vs, r, p, v, e) -> search fieldInfo vs r p v e) remainings
   in paths
 
 day16 :: IO ()
 day16 = do
-  -- let input = testInput
-  input <- readFile "input/Day16.txt"
+  let input = testInput
+  -- input <- readFile "input/Day16.txt"
 
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e

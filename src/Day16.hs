@@ -5,7 +5,7 @@
 module Day16 where
 
 import Combinatorics
-import Control.Monad (void)
+import Control.Monad (void, when)
 import Data.Function (on)
 import Data.List (maximumBy)
 import Data.Map (Map)
@@ -117,10 +117,10 @@ search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited curre
         let d = distances MT.! (indexes M.! from, indexes M.! to)
             remaining' = remaining - (d + 1)
         in
-          if remaining' >= 0 then
+          if remaining' > 0 then
             let flowRate = getValveFlowRate (valves M.! to)
-                emission' = flowRate * remaining'
-            in Just (to:path, to, remaining', emission')
+                emissionPart = flowRate * remaining'
+            in Just (to:path, to, remaining', emissionPart)
           else Nothing
   let expansions :: [[(Path, Label, RemainingMinutes, Emission)]] =
         filter (not . null) $ map (\xs -> mapMaybe (\((path, from, remaining), to) -> expand remaining path from to) (currentHeads `zip` xs)) toVisit

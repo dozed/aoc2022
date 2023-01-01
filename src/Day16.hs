@@ -96,7 +96,7 @@ search fieldInfo@FieldInfo { distances, indexes, valves, labels } visited remain
             d = distances MT.! (indexes M.! current, indexes M.! v)
             remaining' = remaining - (d + 1)
         in
-          if remaining' >= 0 then
+          if remaining' > 0 then
             let flowRate = getValveFlowRate (valves M.! v)
                 emission' = emission + flowRate * remaining'
             in Just (visited', remaining', v:path, v, emission')
@@ -111,8 +111,9 @@ search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited curre
   let numActiveHeads = length currentHeads
       -- TODO for more numActiveHeads than nodes to visit, variate will return an empty list
       -- this can be alleviated by not scheduling all heads
-      toVisit = if numActiveHeads == 0 then []
+      toVisit :: [[Label]] = if numActiveHeads == 0 then []
                 else variate numActiveHeads . S.toList $ S.difference labels visited
+      expand :: RemainingMinutes -> Label -> Label -> Maybe (Label, RemainingMinutes, Emission)
       expand remaining from to =
         let d = distances MT.! (indexes M.! from, indexes M.! to)
             remaining' = remaining - (d + 1)
@@ -171,6 +172,7 @@ day16 = do
     labels = S.fromList nonZeroFlowRateValveLabels
   }
 
+  -- part 1
   let xs = search fieldInfo (S.singleton "AA") 30 ["AA"] "AA" 0
   print $ length xs
 
@@ -180,7 +182,7 @@ day16 = do
   -- part 2
   ys <- search2 fieldInfo (S.fromList ["AA", "AA"]) [("AA", 26), ("AA", 26)] 0
   -- ys <- search2 fieldInfo (S.fromList ["AA"]) [("AA", 30)] 0
-  -- print $ length ys
+  print $ length ys
 
   let mx2 = maximum ys
   print mx2

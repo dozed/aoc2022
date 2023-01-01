@@ -4,6 +4,7 @@
 
 module Day16 where
 
+import Combinatorics
 import Control.Monad (void)
 import Data.Function (on)
 import Data.List (maximumBy)
@@ -105,10 +106,34 @@ search fieldInfo@FieldInfo { distances, indexes, valves, labels } visited remain
               else concatMap (\(vs, r, p, v, e) -> search fieldInfo vs r p v e) remainings
   in paths
 
+search2 :: FieldInfo -> Visited -> [(Path, Label, RemainingMinutes)] -> Emission -> [([Path], Emission)]
+search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited currentHeads emission =
+  let numActiveHeads = length currentHeads
+      -- TODO for more numActiveHeads than nodes to visit, variate will return an empty list
+      -- this can be alleviated by not scheduling all heads
+      toVisit = variate numActiveHeads . S.toList $ S.difference labels visited
+      expand remaining path from to =
+        let d = distances MT.! (indexes M.! from, indexes M.! to)
+            remaining' = remaining - (d + 1)
+        in
+          if remaining' >= 0 then
+            let flowRate = getValveFlowRate (valves M.! to)
+                emission' = flowRate * remaining'
+            in Just (remaining', to:path, to, emission')
+          else Nothing
+      expansions :: [[(RemainingMinutes, Path, Label, Emission)]] =
+        map (\xs -> mapMaybe (\((path, from, remaining), to) -> expand remaining path from to) (currentHeads `zip` xs)) toVisit
+      expansions' :: [[(Path, Label, RemainingMinutes)]] = map (\xs -> map (\(r, p, l, _) -> (p, l, r)) xs) expansions
+      emissions :: [Emission] = map (\xs -> emission + sum (map (\(_, _, _, e) -> e) xs)) expansions
+      visited' :: [Visited] = map (\xs -> S.union visited (S.fromList $ map (\(_, _, v, _) -> v) xs)) expansions
+      paths = if null expansions then [(map (\(p, _, _) -> p) currentHeads, emission)] 
+              else concatMap (\(xs, e, vs) -> search2 fieldInfo vs xs e) (zip3 expansions' emissions visited')
+  in paths
+
 day16 :: IO ()
 day16 = do
-  let input = testInput
-  -- input <- readFile "input/Day16.txt"
+  -- let input = testInput
+  input <- readFile "input/Day16.txt"
 
   valves <- case regularParse valvesParser input of
     Left e -> fail $ show e
@@ -147,3 +172,10 @@ day16 = do
 
   let mx = maximumBy (compare `on` snd) xs
   print mx
+
+  -- part 2
+  let ys = search2 fieldInfo (S.fromList ["AA", "AA"]) [(["AA"], "AA", 26), (["AA"], "AA", 26)] 0
+  print $ length ys
+
+  let mx2 = maximumBy (compare `on` snd) ys
+  print mx2

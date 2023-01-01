@@ -1,4 +1,4 @@
-module UtilGraphSearch where
+module UtilGraphSearch (Predecessors, bfs, getShortestPathLengths) where
 
 import Data.Map (Map)
 import qualified Data.Map as M

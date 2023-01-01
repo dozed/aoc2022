@@ -1,4 +1,4 @@
-module UtilMatrix where
+module UtilMatrix (getLastColumn, appendColumn, dropLastColumn) where
 
 import Data.Matrix (Matrix)
 import qualified Data.Matrix as MT

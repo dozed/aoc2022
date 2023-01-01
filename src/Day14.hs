@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Day14 where
+module Day14 (day14) where
 
 import Control.Monad (void)
 import Data.Function (on)

@@ -5,7 +5,7 @@
 module Day16 where
 
 import Combinatorics
-import Control.Monad (void, when)
+import Control.Monad (forM_, void, when)
 import Data.Function (on)
 import Data.List (maximumBy)
 import Data.Map (Map)
@@ -106,31 +106,31 @@ search fieldInfo@FieldInfo { distances, indexes, valves, labels } visited remain
               else concatMap (\(vs, r, p, v, e) -> search fieldInfo vs r p v e) remainings
   in paths
 
-search2 :: FieldInfo -> Visited -> [(Path, Label, RemainingMinutes)] -> Emission -> IO [([Path], Emission)]
+search2 :: FieldInfo -> Visited -> [(Label, RemainingMinutes)] -> Emission -> IO [Emission]
 search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited currentHeads emission = do
   let numActiveHeads = length currentHeads
       -- TODO for more numActiveHeads than nodes to visit, variate will return an empty list
       -- this can be alleviated by not scheduling all heads
       toVisit = if numActiveHeads == 0 then []
                 else variate numActiveHeads . S.toList $ S.difference labels visited
-      expand remaining path from to =
+      expand remaining from to =
         let d = distances MT.! (indexes M.! from, indexes M.! to)
             remaining' = remaining - (d + 1)
         in
           if remaining' > 0 then
             let flowRate = getValveFlowRate (valves M.! to)
                 emissionPart = flowRate * remaining'
-            in Just (to:path, to, remaining', emissionPart)
+            in Just (to, remaining', emissionPart)
           else Nothing
-  let expansions :: [[(Path, Label, RemainingMinutes, Emission)]] =
-        filter (not . null) $ map (\xs -> mapMaybe (\((path, from, remaining), to) -> expand remaining path from to) (currentHeads `zip` xs)) toVisit
-      expansions' :: [[(Path, Label, RemainingMinutes)]] = map (\xs -> map (\(p, l, r, _) -> (p, l, r)) xs) expansions
-      emissions :: [Emission] = map (\xs -> emission + sum (map (\(_, _, _, e) -> e) xs)) expansions
-      visited' :: [Visited] = map (\xs -> S.union visited (S.fromList $ map (\(_, v, _, _) -> v) xs)) expansions
+  let expansions :: [[(Label, RemainingMinutes, Emission)]] =
+        filter (not . null) $ map (\xs -> mapMaybe (\((from, remaining), to) -> expand remaining from to) (currentHeads `zip` xs)) toVisit
+      expansions' :: [[(Label, RemainingMinutes)]] = map (\xs -> map (\(l, r, _) -> (l, r)) xs) expansions
+      emissions :: [Emission] = map (\xs -> emission + sum (map (\(_, _, e) -> e) xs)) expansions
+      visited' :: [Visited] = map (\xs -> S.union visited (S.fromList $ map (\(v, _, _) -> v) xs)) expansions
       -- TODO if one expansion cant be done for that head, then this one will be lost
   -- putStrLn $ show currentHeads <> " - " <> show (S.toList $ S.difference labels visited) <> " - " <> show toVisit <> " - " <> show expansions
   -- putStrLn $ show currentHeads <> " - " <> show (S.toList $ S.difference labels visited)
-  paths <- if null expansions then return [(map (\(p, _, _) -> reverse p) currentHeads, emission)]
+  paths <- if null expansions then return [emission]
            else concat <$> mapM (\(vs, xs, e) -> search2 fieldInfo vs xs e) (zip3 visited' expansions' emissions)
   return paths
 
@@ -178,8 +178,9 @@ day16 = do
   print mx
 
   -- part 2
-  ys <- search2 fieldInfo (S.fromList ["AA", "AA"]) [(["AA"], "AA", 26), (["AA"], "AA", 26)] 0
-  print $ length ys
+  ys <- search2 fieldInfo (S.fromList ["AA", "AA"]) [("AA", 26), ("AA", 26)] 0
+  -- ys <- search2 fieldInfo (S.fromList ["AA"]) [("AA", 30)] 0
+  -- print $ length ys
 
-  let mx2 = maximumBy (compare `on` snd) ys
+  let mx2 = maximum ys
   print mx2

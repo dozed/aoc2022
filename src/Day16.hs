@@ -123,7 +123,7 @@ search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited curre
             in Just (to:path, to, remaining', emission')
           else Nothing
   let expansions :: [[(Path, Label, RemainingMinutes, Emission)]] =
-        map (\xs -> mapMaybe (\((path, from, remaining), to) -> expand remaining path from to) (currentHeads `zip` xs)) toVisit
+        filter (not . null) $ map (\xs -> mapMaybe (\((path, from, remaining), to) -> expand remaining path from to) (currentHeads `zip` xs)) toVisit
       expansions' :: [[(Path, Label, RemainingMinutes)]] = map (\xs -> map (\(p, l, r, _) -> (p, l, r)) xs) expansions
       emissions :: [Emission] = map (\xs -> emission + sum (map (\(_, _, _, e) -> e) xs)) expansions
       visited' :: [Visited] = map (\xs -> S.union visited (S.fromList $ map (\(_, v, _, _) -> v) xs)) expansions

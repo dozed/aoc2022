@@ -106,12 +106,13 @@ search fieldInfo@FieldInfo { distances, indexes, valves, labels } visited remain
               else concatMap (\(vs, r, p, v, e) -> search fieldInfo vs r p v e) remainings
   in paths
 
-search2 :: FieldInfo -> Visited -> [(Path, Label, RemainingMinutes)] -> Emission -> [([Path], Emission)]
-search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited currentHeads emission =
+search2 :: FieldInfo -> Visited -> [(Path, Label, RemainingMinutes)] -> Emission -> IO [([Path], Emission)]
+search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited currentHeads emission = do
   let numActiveHeads = length currentHeads
       -- TODO for more numActiveHeads than nodes to visit, variate will return an empty list
       -- this can be alleviated by not scheduling all heads
-      toVisit = variate numActiveHeads . S.toList $ S.difference labels visited
+      toVisit = if numActiveHeads == 0 then []
+                else variate numActiveHeads . S.toList $ S.difference labels visited
       expand remaining path from to =
         let d = distances MT.! (indexes M.! from, indexes M.! to)
             remaining' = remaining - (d + 1)
@@ -121,14 +122,17 @@ search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited curre
                 emission' = flowRate * remaining'
             in Just (to:path, to, remaining', emission')
           else Nothing
-      expansions :: [[(Path, Label, RemainingMinutes, Emission)]] =
+  let expansions :: [[(Path, Label, RemainingMinutes, Emission)]] =
         map (\xs -> mapMaybe (\((path, from, remaining), to) -> expand remaining path from to) (currentHeads `zip` xs)) toVisit
       expansions' :: [[(Path, Label, RemainingMinutes)]] = map (\xs -> map (\(p, l, r, _) -> (p, l, r)) xs) expansions
       emissions :: [Emission] = map (\xs -> emission + sum (map (\(_, _, _, e) -> e) xs)) expansions
       visited' :: [Visited] = map (\xs -> S.union visited (S.fromList $ map (\(_, v, _, _) -> v) xs)) expansions
-      paths = if null expansions then [(map (\(p, _, _) -> p) currentHeads, emission)] 
-              else concatMap (\(vs, xs, e) -> search2 fieldInfo vs xs e) (zip3 visited' expansions' emissions)
-  in paths
+      -- TODO if one expansion cant be done for that head, then this one will be lost
+  -- putStrLn $ show currentHeads <> " - " <> show (S.toList $ S.difference labels visited) <> " - " <> show toVisit <> " - " <> show expansions
+  -- putStrLn $ show currentHeads <> " - " <> show (S.toList $ S.difference labels visited)
+  paths <- if null expansions then return [(map (\(p, _, _) -> reverse p) currentHeads, emission)]
+           else concat <$> mapM (\(vs, xs, e) -> search2 fieldInfo vs xs e) (zip3 visited' expansions' emissions)
+  return paths
 
 day16 :: IO ()
 day16 = do
@@ -174,7 +178,7 @@ day16 = do
   print mx
 
   -- part 2
-  let ys = search2 fieldInfo (S.fromList ["AA", "AA"]) [(["AA"], "AA", 26), (["AA"], "AA", 26)] 0
+  ys <- search2 fieldInfo (S.fromList ["AA", "AA"]) [(["AA"], "AA", 26), (["AA"], "AA", 26)] 0
   print $ length ys
 
   let mx2 = maximumBy (compare `on` snd) ys

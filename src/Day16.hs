@@ -119,15 +119,15 @@ search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited curre
           if remaining' >= 0 then
             let flowRate = getValveFlowRate (valves M.! to)
                 emission' = flowRate * remaining'
-            in Just (remaining', to:path, to, emission')
+            in Just (to:path, to, remaining', emission')
           else Nothing
-      expansions :: [[(RemainingMinutes, Path, Label, Emission)]] =
+      expansions :: [[(Path, Label, RemainingMinutes, Emission)]] =
         map (\xs -> mapMaybe (\((path, from, remaining), to) -> expand remaining path from to) (currentHeads `zip` xs)) toVisit
-      expansions' :: [[(Path, Label, RemainingMinutes)]] = map (\xs -> map (\(r, p, l, _) -> (p, l, r)) xs) expansions
+      expansions' :: [[(Path, Label, RemainingMinutes)]] = map (\xs -> map (\(p, l, r, _) -> (p, l, r)) xs) expansions
       emissions :: [Emission] = map (\xs -> emission + sum (map (\(_, _, _, e) -> e) xs)) expansions
-      visited' :: [Visited] = map (\xs -> S.union visited (S.fromList $ map (\(_, _, v, _) -> v) xs)) expansions
+      visited' :: [Visited] = map (\xs -> S.union visited (S.fromList $ map (\(_, v, _, _) -> v) xs)) expansions
       paths = if null expansions then [(map (\(p, _, _) -> p) currentHeads, emission)] 
-              else concatMap (\(xs, e, vs) -> search2 fieldInfo vs xs e) (zip3 expansions' emissions visited')
+              else concatMap (\(vs, xs, e) -> search2 fieldInfo vs xs e) (zip3 visited' expansions' emissions)
   in paths
 
 day16 :: IO ()

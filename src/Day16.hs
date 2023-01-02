@@ -6,7 +6,7 @@ module Day16 (day16, Valve(..), FieldInfo(..), Label, search, getValveLabel, get
               valveParser, labelParser, valvesParser, testInput) where
 
 import Combinatorics
-import Control.Monad (foldM, forM_, void, when)
+import Control.Monad (void)
 import Data.Function (on)
 import Data.List (maximumBy)
 import Data.Map (Map)
@@ -179,7 +179,7 @@ day16 = do
   print mx
 
   -- mx1 <- search2 fieldInfo (S.fromList ["AA"]) [("AA", 30)] 0
-  -- print mx2
+  -- print mx1
 
   -- part 2
   let mx2 = search2 fieldInfo (S.fromList ["AA", "AA"]) [("AA", 26), ("AA", 26)] 0

@@ -1,6 +1,8 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Day14 (day14) where
+module Day14 (day14, Elem(..), Orientation(..), posParser, pathParser, pathsParser, getFieldMaxY, mkPathSegment,
+              getOrientation, getRange, expandPathSegment, expandPath, expandPaths, getDownPos, getDownLeftPos,
+              getDownRightPos, isBlockedPos, isFreePos, isComeToRest, sandFallsIntoEndlessVoid, testInput1) where
 
 import Control.Monad (void)
 import Data.Function (on)

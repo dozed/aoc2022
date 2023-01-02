@@ -111,7 +111,7 @@ search2 fieldInfo@FieldInfo { distances, indexes, valves, labels } visited curre
   let numActiveHeads = length currentHeads
       -- TODO for more numActiveHeads than nodes to visit, variate will return an empty list
       -- this can be alleviated by not scheduling all heads
-      toVisit :: [[Label]] = if numActiveHeads == 0 then []
+      toVisit :: [[Label]] = if numActiveHeads == 0 then error "numActiveHeads == 0"
                 else variate numActiveHeads . S.toList $ S.difference labels visited
       expand :: RemainingMinutes -> Label -> Label -> Maybe (Label, RemainingMinutes, Emission)
       expand remaining from to =

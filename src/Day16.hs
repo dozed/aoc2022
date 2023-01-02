@@ -2,7 +2,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Day16 (day16) where
+module Day16 (day16, Valve(..), FieldInfo(..), Label, search, getValveLabel, getReachableValves, hasNonZeroFlowRate,
+              valveParser, labelParser, valvesParser, testInput) where
 
 import Combinatorics
 import Control.Monad (foldM, forM_, void, when)

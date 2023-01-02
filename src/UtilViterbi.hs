@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module UtilViterbi (ViterbiInfo, viterbi) where
+module UtilViterbi (ViterbiInfo(..), Timestep, viterbi) where
 
 import Data.Function (on)
 import Data.List (maximumBy)

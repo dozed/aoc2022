@@ -77,12 +77,11 @@ getStartPos field = (3, getMaxY field + 4)
 
 canMove :: (Pos -> Pos) -> Field -> Block -> Pos -> Bool
 canMove adjust field block pos =
-  let blockPos = materialize block pos
-      blockPos' = S.map adjust blockPos
-      isNotBlockedByFieldRock = S.disjoint field blockPos'
-      isNotBlockedByLeftWall = all (\(x, _) -> x >= 1) blockPos'
-      isNotBlockedByRightWall = all (\(x, _) -> x <= 7) blockPos'
-      isNotBlockedByFloor = all (\(_, y) -> y >= 1) blockPos'
+  let blocks = materialize block (adjust pos)
+      isNotBlockedByFieldRock = S.disjoint field blocks
+      isNotBlockedByLeftWall = all (\(x, _) -> x >= 1) blocks
+      isNotBlockedByRightWall = all (\(x, _) -> x <= 7) blocks
+      isNotBlockedByFloor = all (\(_, y) -> y >= 1) blocks
       isNotBlocked = isNotBlockedByFieldRock && isNotBlockedByLeftWall && isNotBlockedByRightWall && isNotBlockedByFloor
   in isNotBlocked
 
@@ -114,7 +113,7 @@ takeBlockTurn field (jet:jets) block pos =
       in takeBlockTurn field jets block pos''
 
 takeBlocksTurn :: Field -> [Jet] -> [Block] -> Int -> Field
--- takeBlocksTurn field jets blocks blocksLeft | trace (show blocksLeft) False = undefined
+-- takeBlocksTurn field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
 takeBlocksTurn field _ _ 0 = field
 takeBlocksTurn _ _ [] _ = undefined
 takeBlocksTurn field jets (block:blocks) blocksLeft =
@@ -135,7 +134,7 @@ day17 = do
       blocks = mkBlocks
 
   -- part 1
-  let field' = takeBlocksTurn field jets blocks 2
+  let field' = takeBlocksTurn field jets blocks 2022
       height = getHeight field'
 
   putStrLn "Field:"

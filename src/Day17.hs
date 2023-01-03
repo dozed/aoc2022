@@ -79,10 +79,8 @@ canMove :: (Pos -> Pos) -> Field -> Block -> Pos -> Bool
 canMove adjust field block pos =
   let blocks = materialize block (adjust pos)
       isNotBlockedByFieldRock = S.disjoint field blocks
-      isNotBlockedByLeftWall = all (\(x, _) -> x >= 1) blocks
-      isNotBlockedByRightWall = all (\(x, _) -> x <= 7) blocks
-      isNotBlockedByFloor = all (\(_, y) -> y >= 1) blocks
-      isNotBlocked = isNotBlockedByFieldRock && isNotBlockedByLeftWall && isNotBlockedByRightWall && isNotBlockedByFloor
+      isBlockedByWalls = any (\(x, y) -> x < 1 || x > 7 || y < 1) blocks
+      isNotBlocked = isNotBlockedByFieldRock && not isBlockedByWalls
   in isNotBlocked
 
 canMoveDown :: Field -> Block -> Pos -> Bool

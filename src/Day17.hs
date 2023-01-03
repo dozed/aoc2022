@@ -73,7 +73,7 @@ getHeight :: Field -> Int
 getHeight = getMaxY
 
 getStartPos :: Field -> Pos
-getStartPos field = (2, getMaxY field + 4)
+getStartPos field = (3, getMaxY field + 4)
 
 canMove :: (Pos -> Pos) -> Field -> Block -> Pos -> Bool
 canMove adjust field block pos =
@@ -100,6 +100,7 @@ applyJet field JetLeft block pos = if canMoveLeft field block pos then getLeftPo
 applyJet field JetRight block pos = if canMoveRight field block pos then getRightPos pos else pos
 
 takeBlockTurn :: Field -> [Jet] -> Block -> Pos -> (Field, [Jet])
+-- takeBlockTurn field jets block pos | trace (drawField (S.union field (materialize block pos))) False = undefined
 takeBlockTurn _ [] _ _ = undefined
 takeBlockTurn field (jet:jets) block pos =
   let pos' = applyJet field jet block pos
@@ -123,8 +124,8 @@ takeBlocksTurn field jets (block:blocks) blocksLeft =
 
 day17 :: IO ()
 day17 = do
-  let input = testInput
-  -- input <- readFile "input/Day17.txt"
+  -- let input = testInput
+  input <- readFile "input/Day17.txt"
 
   jets <- case regularParse jetsParser input of
     Left e -> fail $ show e

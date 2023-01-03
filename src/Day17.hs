@@ -34,11 +34,8 @@ type Field = Set Pos
 mkField :: Field
 mkField = S.fromList [(x,0) | x <- [0..8]]
 
-mkBlocks :: [Block]
-mkBlocks = cycle [HLine, Plus, L, VLine, Square]
-
-mkJets :: [Jet] -> [Jet]
-mkJets = cycle
+getBaseBlocks :: [Block]
+getBaseBlocks = [HLine, Plus, L, VLine, Square]
 
 getDownPos :: Pos -> Pos
 getDownPos (x, y) = (x, y - 1)
@@ -111,7 +108,7 @@ takeBlockTurn field (jet:jets) block pos =
       in takeBlockTurn field jets block pos''
 
 takeBlocksTurn :: Field -> [Jet] -> [Block] -> Int -> Field
--- takeBlocksTurn field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
+takeBlocksTurn field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
 takeBlocksTurn field _ _ 0 = field
 takeBlocksTurn _ _ [] _ = undefined
 takeBlocksTurn field jets (block:blocks) blocksLeft =
@@ -124,15 +121,21 @@ day17 = do
   -- let input = testInput
   input <- readFile "input/Day17.txt"
 
-  jets <- case regularParse jetsParser input of
+  baseJets <- case regularParse jetsParser input of
     Left e -> fail $ show e
-    Right xs -> pure $ mkJets xs
+    Right xs -> pure xs
 
   let field = mkField
-      blocks = mkBlocks
+      blocks = cycle getBaseBlocks
+      jets = cycle baseJets
+      cycleSize = length getBaseBlocks * length baseJets
+
+  print cycleSize
+  print $ take 100 (blocks `zip` jets)
+  print $ take 100 $ drop cycleSize (blocks `zip` jets)
 
   -- part 1
-  let field' = takeBlocksTurn field jets blocks 2022
+  let field' = takeBlocksTurn field jets blocks 1000000000000
       height = getHeight field'
 
   putStrLn "Field:"

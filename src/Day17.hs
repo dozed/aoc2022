@@ -124,6 +124,7 @@ takeBlocksTurn field jets (block:blocks) blocksLeft =
       (field', jets') = takeBlockTurn field jets block startPos
   in takeBlocksTurn field' jets' blocks (blocksLeft-1)
 
+-- bit-based approach
 type BlockCoords = [Word8]
 type FieldCoords = [Word8]
 type YShift = Int
@@ -139,7 +140,15 @@ data FieldInfo = FieldInfo {
   fieldHeight :: Int
 }
 
--- bit-based approach
+drawField' :: FieldInfo -> String
+drawField' FieldInfo { fieldCoords, fieldHeight } =
+  let getPixel x y
+        | y == 0 = if x == 0 || x == 8 then '+' else '-'
+        | x == 0 || x == 8 = '|'
+        | testBit (fieldCoords !! (y-1)) (x-1) = '#'
+        | otherwise = '.'
+  in intercalate "\n" [[getPixel x y | x <- [0..8]] | y <- [fieldHeight,fieldHeight-1..0]]
+
 mkBlockCoords :: Block -> BlockCoords
 mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
 mkBlockCoords Plus = [bit 2, bit 1 .|. bit 2 .|. bit 3, bit 2]
@@ -194,11 +203,13 @@ canMoveDown' fieldCoords blockInfo =
   in not (isBlocked blockInfo' fieldCoords)
 
 mergeBlockIntoField :: BlockInfo -> FieldInfo -> FieldInfo
+--mergeBlockIntoField BlockInfo { blockCoords, yShift, blockHeight } fieldInfo@FieldInfo { fieldCoords, fieldHeight }
+--  | trace ("yShift: " <> show yShift <> " blockHeight: " <> show blockHeight <> " fieldHeight: " <> show fieldHeight) False = undefined
 mergeBlockIntoField BlockInfo { blockCoords, yShift, blockHeight } fieldInfo@FieldInfo { fieldCoords, fieldHeight } =
   let rowsToAdd = max 0 ((yShift + blockHeight) - fieldHeight)
       fieldHeight' = fieldHeight + rowsToAdd
       fieldCoords' = fieldCoords ++ replicate rowsToAdd zeroBits
-      modRow row i = if yShift <= i && i <= yShift + blockHeight then row .|. (blockCoords !! (i - yShift)) else row
+      modRow row i = if yShift <= i && i < yShift + blockHeight then row .|. (blockCoords !! (i - yShift)) else row
       fieldCoords'' = reverse $ foldl (\acc (row, i) -> modRow row i:acc) [] (fieldCoords' `zip` [0..])
       fieldInfo' = fieldInfo { fieldCoords = fieldCoords'', fieldHeight = fieldHeight' }
   in fieldInfo'
@@ -216,47 +227,49 @@ takeBlockTurn' fieldInfo@FieldInfo { fieldCoords } (jet:jets) blockInfo =
       let blockInfo'' = blockInfo { yShift = yShift blockInfo - 1 }
       in takeBlockTurn' fieldInfo jets blockInfo''
 
-drawField' :: FieldInfo -> String
-drawField' FieldInfo { fieldCoords, fieldHeight } =
-  let getPixel x y
-        | y == 0 = if x == 0 || x == 8 then '+' else '-'
-        | x == 0 || x == 8 = '|'
-        | testBit (fieldCoords !! (y-1)) (x-1) = '#'
-        | otherwise = '.'
-  in intercalate "\n" [[getPixel x y | x <- [0..8]] | y <- [fieldHeight,fieldHeight-1..0]]
+getStartYShift :: FieldInfo -> Int
+getStartYShift FieldInfo { fieldHeight } = fieldHeight + 3
+
+takeBlocksTurn' :: FieldInfo -> [Jet] -> [Block] -> Int -> FieldInfo
+-- takeBlocksTurn' field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
+takeBlocksTurn' fieldInfo _ _ 0 = fieldInfo
+takeBlocksTurn' _ _ [] _ = undefined
+takeBlocksTurn' fieldInfo jets (block:blocks) blocksLeft =
+  let startYShift = getStartYShift fieldInfo
+      blockInfo = (mkBlockInfo block) { yShift = startYShift }
+      (fieldInfo', jets') = takeBlockTurn' fieldInfo jets blockInfo
+  in takeBlocksTurn' fieldInfo' jets' blocks (blocksLeft-1)
 
 day17 :: IO ()
 day17 = do
-  let input = testInput
-  -- input <- readFile "input/Day17.txt"
+  -- let input = testInput
+  input <- readFile "input/Day17.txt"
 
   baseJets <- case regularParse jetsParser input of
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
+  let field = mkField
       blocks = cycle getBaseBlocks
       jets = cycle baseJets
-      blockInfo = (mkBlockInfo Square) { yShift = 3 }
-      fieldInfo' = mergeBlockIntoField blockInfo fieldInfo
 
-  putStrLn $ drawField' fieldInfo'
+  -- part 1
+  let field' = takeBlocksTurn field jets blocks 2022
+      height = getHeight field'
 
---  let field = mkField
---      blocks = cycle getBaseBlocks
---      jets = cycle baseJets
---      cycleSize = length getBaseBlocks * length baseJets
---
---  -- part 1
---  let field' = takeBlocksTurn field jets blocks 2022
---      height = getHeight field'
---
---  putStrLn "Field:"
---  putStrLn $ drawField field'
---
---  putStrLn $ "Height: " <> show height
---
---  -- part 2
---  putStrLn $ "cycleSize: " <> show cycleSize
---  print $ take 100 (blocks `zip` jets)
---  print $ take 100 $ drop cycleSize (blocks `zip` jets)
+  putStrLn "Field:"
+  putStrLn $ drawField field'
+
+  putStrLn $ "Height: " <> show height
+
+  -- part 2
+  --  let cycleSize = length getBaseBlocks * length baseJets
+  --  putStrLn $ "cycleSize: " <> show cycleSize
+  --  print $ take 100 (blocks `zip` jets)
+  --  print $ take 100 $ drop cycleSize (blocks `zip` jets)
+
+  let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits], fieldHeight = 1 }
+  let field'' = takeBlocksTurn' fieldInfo jets blocks 2022
+
+  putStrLn $ "Field height: " <> show (fieldHeight field'')
+

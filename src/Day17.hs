@@ -62,22 +62,26 @@ type FieldCoords = [Word8]
 
 mkBlockCoords :: Block -> BlockCoords
 mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
-mkBlockCoords Plus = [bit 3, bit 2 .|. bit 3 .|. bit 4, bit 3]
+mkBlockCoords Plus = [bit 2, bit 1 .|. bit 2 .|. bit 3, bit 2]
 mkBlockCoords L = [bit 2 .|. bit 3 .|. bit 4, bit 4, bit 4]
 mkBlockCoords VLine = [bit 2, bit 2, bit 2, bit 2]
 mkBlockCoords Square = [bit 2 .|. bit 3, bit 2 .|. bit 3]
 
 isAtLeftWall :: BlockCoords -> Bool
-isAtLeftWall = any (`testBit` 6)
+isAtLeftWall = any (`testBit` 0)
 
 isAtRightWall :: BlockCoords -> Bool
-isAtRightWall = any (`testBit` 0)
+isAtRightWall = any (`testBit` 6)
 
 shiftBlockCoordsLeft :: BlockCoords -> BlockCoords
-shiftBlockCoordsLeft = map (`shiftL` 1)
+shiftBlockCoordsLeft coords
+  | isAtLeftWall coords = coords
+  | otherwise = map (`shiftR` 1) coords
 
 shiftBlockCoordsRight :: BlockCoords -> BlockCoords
-shiftBlockCoordsRight = map (`shiftR` 1)
+shiftBlockCoordsRight coords
+  | isAtRightWall coords = coords
+  | otherwise = map (`shiftL` 1) coords
 
 getMaxY :: Field -> Y
 getMaxY = snd . maximumBy (compare `on` snd)

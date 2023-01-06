@@ -1,9 +1,13 @@
-module Day17 (Jet(..), day17, jetsParser) where
+module Day17 (Block(..), Jet(..), day17, jetsParser,
+              BlockCoords, FieldCoords, mkBlockCoords, isAtLeftWall, isAtRightWall, shiftBlockCoordsLeft, shiftBlockCoordsRight
+              ) where
 
+import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR)
 import Data.Function (on)
 import Data.List (intercalate, maximumBy)
 import Data.Set (Set)
 import qualified Data.Set as S
+import Data.Word (Word8)
 import Debug.Trace (trace)
 import Text.Parsec
 import Text.Parsec.String
@@ -52,6 +56,28 @@ materialize Plus (x, y) = S.fromList [(x+1, y), (x, y+1), (x+1, y+1), (x+2, y+1)
 materialize L (x, y) = S.fromList [(x, y), (x+1, y), (x+2, y), (x+2, y+1), (x+2, y+2)]
 materialize VLine (x, y) = S.fromList [(x, y), (x, y+1), (x, y+2), (x, y+3)]
 materialize Square (x, y) = S.fromList [(x, y), (x+1, y), (x, y+1), (x+1, y+1)]
+
+type BlockCoords = [Word8]
+type FieldCoords = [Word8]
+
+mkBlockCoords :: Block -> BlockCoords
+mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
+mkBlockCoords Plus = [bit 3, bit 2 .|. bit 3 .|. bit 4, bit 3]
+mkBlockCoords L = [bit 2 .|. bit 3 .|. bit 4, bit 4, bit 4]
+mkBlockCoords VLine = [bit 2, bit 2, bit 2, bit 2]
+mkBlockCoords Square = [bit 2 .|. bit 3, bit 2 .|. bit 3]
+
+isAtLeftWall :: BlockCoords -> Bool
+isAtLeftWall = any (`testBit` 6)
+
+isAtRightWall :: BlockCoords -> Bool
+isAtRightWall = any (`testBit` 0)
+
+shiftBlockCoordsLeft :: BlockCoords -> BlockCoords
+shiftBlockCoordsLeft = map (`shiftL` 1)
+
+shiftBlockCoordsRight :: BlockCoords -> BlockCoords
+shiftBlockCoordsRight = map (`shiftR` 1)
 
 getMaxY :: Field -> Y
 getMaxY = snd . maximumBy (compare `on` snd)
@@ -118,8 +144,8 @@ takeBlocksTurn field jets (block:blocks) blocksLeft =
 
 day17 :: IO ()
 day17 = do
-  -- let input = testInput
-  input <- readFile "input/Day17.txt"
+  let input = testInput
+  -- input <- readFile "input/Day17.txt"
 
   baseJets <- case regularParse jetsParser input of
     Left e -> fail $ show e
@@ -130,15 +156,16 @@ day17 = do
       jets = cycle baseJets
       cycleSize = length getBaseBlocks * length baseJets
 
-  print cycleSize
-  print $ take 100 (blocks `zip` jets)
-  print $ take 100 $ drop cycleSize (blocks `zip` jets)
-
   -- part 1
-  let field' = takeBlocksTurn field jets blocks 1000000000000
+  let field' = takeBlocksTurn field jets blocks 2022
       height = getHeight field'
 
   putStrLn "Field:"
   putStrLn $ drawField field'
 
   putStrLn $ "Height: " <> show height
+
+  -- part 2
+  putStrLn $ "cycleSize: " <> show cycleSize
+  print $ take 100 (blocks `zip` jets)
+  print $ take 100 $ drop cycleSize (blocks `zip` jets)

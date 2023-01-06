@@ -5,7 +5,7 @@ module Day17 (Block(..), Jet(..), day17, jetsParser,
               BlockInfo(..), mkBlockInfo, isBlocked, canMoveDown'
               ) where
 
-import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR)
+import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR, complement, zeroBits)
 import Data.Function (on)
 import Data.List (intercalate, maximumBy)
 import Data.Set (Set)
@@ -192,6 +192,15 @@ canMoveDown' fieldCoords blockInfo =
   let blockInfo' = blockInfo { yShift = yShift blockInfo - 1 }
   in not (isBlocked blockInfo' fieldCoords)
 
+drawField' :: FieldInfo -> String
+drawField' FieldInfo { fieldCoords, fieldHeight } =
+  let getPixel x y
+        | y == 0 = if x == 0 || x == 8 then '+' else '-'
+        | x == 0 || x == 8 = '|'
+        | testBit (fieldCoords !! (y-1)) (x-1) = '#'
+        | otherwise = '.'
+  in intercalate "\n" [[getPixel x y | x <- [0..8]] | y <- [fieldHeight,fieldHeight-1..0]]
+
 day17 :: IO ()
 day17 = do
   let input = testInput
@@ -201,21 +210,27 @@ day17 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  let field = mkField
+  let field = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
       blocks = cycle getBaseBlocks
       jets = cycle baseJets
-      cycleSize = length getBaseBlocks * length baseJets
 
-  -- part 1
-  let field' = takeBlocksTurn field jets blocks 2022
-      height = getHeight field'
+  putStrLn $ drawField' field
 
-  putStrLn "Field:"
-  putStrLn $ drawField field'
-
-  putStrLn $ "Height: " <> show height
-
-  -- part 2
-  putStrLn $ "cycleSize: " <> show cycleSize
-  print $ take 100 (blocks `zip` jets)
-  print $ take 100 $ drop cycleSize (blocks `zip` jets)
+--  let field = mkField
+--      blocks = cycle getBaseBlocks
+--      jets = cycle baseJets
+--      cycleSize = length getBaseBlocks * length baseJets
+--
+--  -- part 1
+--  let field' = takeBlocksTurn field jets blocks 2022
+--      height = getHeight field'
+--
+--  putStrLn "Field:"
+--  putStrLn $ drawField field'
+--
+--  putStrLn $ "Height: " <> show height
+--
+--  -- part 2
+--  putStrLn $ "cycleSize: " <> show cycleSize
+--  print $ take 100 (blocks `zip` jets)
+--  print $ take 100 $ drop cycleSize (blocks `zip` jets)

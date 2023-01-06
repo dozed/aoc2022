@@ -59,16 +59,32 @@ day17Spec = do
       isBlocked blockInfo field `shouldBe` True
 
       let blockInfo' = (mkBlockInfo Square) { yShift = 1 }
-          blockInfo'' = blockInfo' { coords = shiftBlockCoordsLeft (coords blockInfo') }
+          blockInfo'' = blockInfo' { blockCoords = shiftBlockCoordsLeft (blockCoords blockInfo') }
           field' = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
       isBlocked blockInfo'' field' `shouldBe` True
 
     it "should detect a non-blocked position" $ do
-      let blockInfo = (mkBlockInfo Square) { yShift = 1 }
-          field = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
-      isBlocked blockInfo field `shouldBe` False
+      let blockInfo1 = (mkBlockInfo Square) { yShift = 1 }
+          field1 = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
+      isBlocked blockInfo1 field1 `shouldBe` False
 
-      let blockInfo' = (mkBlockInfo Square) { yShift = 1 }
-          blockInfo'' = blockInfo' { coords = shiftBlockCoordsRight (coords blockInfo') }
-          field' = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
-      isBlocked blockInfo'' field' `shouldBe` False
+      let blockInfo2 = (mkBlockInfo Square) { yShift = 1 }
+          blockInfo2' = blockInfo2 { blockCoords = shiftBlockCoordsRight (blockCoords blockInfo2) }
+          field2 = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
+      isBlocked blockInfo2' field2 `shouldBe` False
+
+      let blockInfo3 = (mkBlockInfo Square) { yShift = 2 }
+          field3 = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
+      isBlocked blockInfo3 field3 `shouldBe` False
+
+  describe "canMoveDown'" $ do
+    it "should detect that a block can move down" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 3 }
+          field = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
+
+      canMoveDown' field blockInfo `shouldBe` True
+
+      let blockInfo2 = (mkBlockInfo Square) { yShift = 3 }
+          field2 = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
+
+      canMoveDown' field2 blockInfo2 `shouldBe` True

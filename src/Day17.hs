@@ -2,7 +2,7 @@
 
 module Day17 (Block(..), Jet(..), day17, jetsParser,
               BlockCoords, FieldCoords, mkBlockCoords, isAtLeftWall, isAtRightWall, shiftBlockCoordsLeft, shiftBlockCoordsRight,
-              BlockInfo(..), mkBlockInfo, isBlocked
+              BlockInfo(..), mkBlockInfo, isBlocked, canMoveDown'
               ) where
 
 import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR)
@@ -59,51 +59,6 @@ materialize Plus (x, y) = S.fromList [(x+1, y), (x, y+1), (x+1, y+1), (x+2, y+1)
 materialize L (x, y) = S.fromList [(x, y), (x+1, y), (x+2, y), (x+2, y+1), (x+2, y+2)]
 materialize VLine (x, y) = S.fromList [(x, y), (x, y+1), (x, y+2), (x, y+3)]
 materialize Square (x, y) = S.fromList [(x, y), (x+1, y), (x, y+1), (x+1, y+1)]
-
-type BlockCoords = [Word8]
-type FieldCoords = [Word8]
-type YShift = Int
-
-data BlockInfo = BlockInfo {
-  coords :: BlockCoords,
-  yShift :: Int,
-  height :: Int
-}
-
-mkBlockCoords :: Block -> BlockCoords
-mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
-mkBlockCoords Plus = [bit 2, bit 1 .|. bit 2 .|. bit 3, bit 2]
-mkBlockCoords L = [bit 2 .|. bit 3 .|. bit 4, bit 4, bit 4]
-mkBlockCoords VLine = [bit 2, bit 2, bit 2, bit 2]
-mkBlockCoords Square = [bit 2 .|. bit 3, bit 2 .|. bit 3]
-
-mkBlockInfo :: Block -> BlockInfo
-mkBlockInfo HLine = BlockInfo { coords = mkBlockCoords HLine, height = 1, yShift = 0 }
-mkBlockInfo Plus = BlockInfo { coords = mkBlockCoords Plus, height = 3, yShift = 0 }
-mkBlockInfo L = BlockInfo { coords = mkBlockCoords L, height = 3, yShift = 0 }
-mkBlockInfo VLine = BlockInfo { coords = mkBlockCoords VLine, height = 4, yShift = 0 }
-mkBlockInfo Square = BlockInfo { coords = mkBlockCoords Square, height = 2, yShift = 0 }
-
-isAtLeftWall :: BlockCoords -> Bool
-isAtLeftWall = any (`testBit` 0)
-
-isAtRightWall :: BlockCoords -> Bool
-isAtRightWall = any (`testBit` 6)
-
-shiftBlockCoordsLeft :: BlockCoords -> BlockCoords
-shiftBlockCoordsLeft coords
-  | isAtLeftWall coords = coords
-  | otherwise = map (`shiftR` 1) coords
-
-shiftBlockCoordsRight :: BlockCoords -> BlockCoords
-shiftBlockCoordsRight coords
-  | isAtRightWall coords = coords
-  | otherwise = map (`shiftL` 1) coords
-
-isBlocked :: BlockInfo -> FieldCoords -> Bool
-isBlocked BlockInfo { coords, yShift, height } fieldCoords =
-  let relevantFieldCoords = drop yShift fieldCoords
-  in any (\(bs, fs) -> bs .&. fs > 0) $ coords `zip` relevantFieldCoords
 
 getMaxY :: Field -> Y
 getMaxY = snd . maximumBy (compare `on` snd)
@@ -167,6 +122,75 @@ takeBlocksTurn field jets (block:blocks) blocksLeft =
   let startPos = getStartPos field
       (field', jets') = takeBlockTurn field jets block startPos
   in takeBlocksTurn field' jets' blocks (blocksLeft-1)
+
+type BlockCoords = [Word8]
+type FieldCoords = [Word8]
+type YShift = Int
+
+data BlockInfo = BlockInfo {
+  blockCoords :: BlockCoords,
+  yShift :: Int,
+  blockHeight :: Int
+}
+
+data FieldInfo = FieldInfo {
+  fieldCoords :: FieldCoords,
+  fieldHeight :: Int
+}
+
+-- bit-based approach
+mkBlockCoords :: Block -> BlockCoords
+mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
+mkBlockCoords Plus = [bit 2, bit 1 .|. bit 2 .|. bit 3, bit 2]
+mkBlockCoords L = [bit 2 .|. bit 3 .|. bit 4, bit 4, bit 4]
+mkBlockCoords VLine = [bit 2, bit 2, bit 2, bit 2]
+mkBlockCoords Square = [bit 2 .|. bit 3, bit 2 .|. bit 3]
+
+mkBlockInfo :: Block -> BlockInfo
+mkBlockInfo HLine = BlockInfo { blockCoords = mkBlockCoords HLine, blockHeight = 1, yShift = 0 }
+mkBlockInfo Plus = BlockInfo { blockCoords = mkBlockCoords Plus, blockHeight = 3, yShift = 0 }
+mkBlockInfo L = BlockInfo { blockCoords = mkBlockCoords L, blockHeight = 3, yShift = 0 }
+mkBlockInfo VLine = BlockInfo { blockCoords = mkBlockCoords VLine, blockHeight = 4, yShift = 0 }
+mkBlockInfo Square = BlockInfo { blockCoords = mkBlockCoords Square, blockHeight = 2, yShift = 0 }
+
+isAtLeftWall :: BlockCoords -> Bool
+isAtLeftWall = any (`testBit` 0)
+
+isAtRightWall :: BlockCoords -> Bool
+isAtRightWall = any (`testBit` 6)
+
+shiftBlockCoordsLeft :: BlockCoords -> BlockCoords
+shiftBlockCoordsLeft coords
+  | isAtLeftWall coords = coords
+  | otherwise = map (`shiftR` 1) coords
+
+shiftBlockCoordsRight :: BlockCoords -> BlockCoords
+shiftBlockCoordsRight coords
+  | isAtRightWall coords = coords
+  | otherwise = map (`shiftL` 1) coords
+
+isBlocked :: BlockInfo -> FieldCoords -> Bool
+isBlocked BlockInfo { blockCoords, yShift } fieldCoords =
+  let relevantFieldCoords = drop yShift fieldCoords
+      toCompare = blockCoords `zip` relevantFieldCoords
+  in any (\(bs, fs) -> bs .&. fs > 0) toCompare
+
+applyJet' :: FieldCoords -> Jet -> BlockInfo -> BlockInfo
+applyJet' fieldCoords JetLeft blockInfo@BlockInfo { blockCoords } =
+  let blockCoords' = shiftBlockCoordsLeft blockCoords
+      blockInfo' = blockInfo { blockCoords = blockCoords' }
+      blockInfo'' = if isBlocked blockInfo' fieldCoords then blockInfo else blockInfo'
+  in blockInfo''
+applyJet' fieldCoords JetRight blockInfo@BlockInfo { blockCoords } =
+  let blockCoords' = shiftBlockCoordsRight blockCoords
+      blockInfo' = blockInfo { blockCoords = blockCoords' }
+      blockInfo'' = if isBlocked blockInfo' fieldCoords then blockInfo else blockInfo'
+  in blockInfo''
+
+canMoveDown' :: FieldCoords -> BlockInfo -> Bool
+canMoveDown' fieldCoords blockInfo =
+  let blockInfo' = blockInfo { yShift = yShift blockInfo - 1 }
+  in not (isBlocked blockInfo' fieldCoords)
 
 day17 :: IO ()
 day17 = do

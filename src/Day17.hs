@@ -3,7 +3,7 @@
 module Day17 (Block(..), Jet(..), day17, jetsParser,
               BlockCoords, FieldCoords, mkBlockCoords, isAtLeftWall, isAtRightWall, shiftBlockCoordsLeft, shiftBlockCoordsRight,
               BlockInfo(..), mkBlockInfo, isBlocked, canMoveDown',
-              FieldInfo(..), mergeBlockIntoField
+              FieldInfo(..), mergeBlockIntoField, drawField'
               ) where
 
 import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR, complement, zeroBits)
@@ -221,11 +221,13 @@ day17 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  let field = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
+  let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
       blocks = cycle getBaseBlocks
       jets = cycle baseJets
+      blockInfo = (mkBlockInfo Square) { yShift = 3 }
+      fieldInfo' = mergeBlockIntoField blockInfo fieldInfo
 
-  putStrLn $ drawField' field
+  putStrLn $ drawField' fieldInfo'
 
 --  let field = mkField
 --      blocks = cycle getBaseBlocks

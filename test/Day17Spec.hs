@@ -1,20 +1,32 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Day17Spec (day17Spec) where
 
 import Data.Bits
 import Data.Word
+import Text.RawString.QQ
 
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
 import Test.QuickCheck (Arbitrary, arbitrary, elements)
 
 import Day17
-import Util (regularParse)
+import Util (regularParse, strip)
 
 instance Arbitrary Block where
   arbitrary = do
     elements [HLine, Plus, L, VLine, Square]
+
+exampleField :: String
+exampleField = strip [r|
+|..##...|
+|..##...|
+|.......|
+|###....|
+|#######|
++-------+
+|]
 
 day17Spec :: Spec
 day17Spec = do
@@ -108,3 +120,11 @@ day17Spec = do
 
       fieldHeight' `shouldBe` 5
       fieldCoords' `shouldBe` [complement zeroBits, bit 0 .|. bit 1 .|. bit 2, zeroBits, bit 2 .|. bit 3, bit 2 .|. bit 3]
+
+  describe "drawField'" $ do
+    it "should draw a FieldInfo" $ do
+      let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
+          blockInfo = (mkBlockInfo Square) { yShift = 3 }
+          fieldInfo' = mergeBlockIntoField blockInfo fieldInfo
+    
+      drawField' fieldInfo' `shouldBe` exampleField

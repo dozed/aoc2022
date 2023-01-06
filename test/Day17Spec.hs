@@ -4,7 +4,7 @@ module Day17Spec (day17Spec) where
 
 import Data.Bits
 import Data.Word
-  
+
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
 import Test.QuickCheck (Arbitrary, arbitrary, elements)
@@ -58,7 +58,17 @@ day17Spec = do
           field = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
       isBlocked blockInfo field `shouldBe` True
 
+      let blockInfo' = (mkBlockInfo Square) { yShift = 1 }
+          blockInfo'' = blockInfo' { coords = shiftBlockCoordsLeft (coords blockInfo') }
+          field' = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
+      isBlocked blockInfo'' field' `shouldBe` True
+
     it "should detect a non-blocked position" $ do
       let blockInfo = (mkBlockInfo Square) { yShift = 1 }
           field = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
       isBlocked blockInfo field `shouldBe` False
+
+      let blockInfo' = (mkBlockInfo Square) { yShift = 1 }
+          blockInfo'' = blockInfo' { coords = shiftBlockCoordsRight (coords blockInfo') }
+          field' = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
+      isBlocked blockInfo'' field' `shouldBe` False

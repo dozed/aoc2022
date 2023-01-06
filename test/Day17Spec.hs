@@ -1,5 +1,10 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Day17Spec (day17Spec) where
 
+import Data.Bits
+import Data.Word
+  
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
 import Test.QuickCheck (Arbitrary, arbitrary, elements)
@@ -46,3 +51,14 @@ day17Spec = do
     it "should return same coords if at right wall" $ do
       let coords = shiftBlockCoordsRight . shiftBlockCoordsRight . shiftBlockCoordsRight $ mkBlockCoords Plus
       shiftBlockCoordsRight coords `shouldBe` coords
+
+  describe "isBlocked" $ do
+    it "should detect a blocked position" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 1 }
+          field = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
+      isBlocked blockInfo field `shouldBe` True
+
+    it "should detect a non-blocked position" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 1 }
+          field = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
+      isBlocked blockInfo field `shouldBe` False

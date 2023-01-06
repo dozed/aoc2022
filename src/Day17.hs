@@ -1,5 +1,8 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module Day17 (Block(..), Jet(..), day17, jetsParser,
-              BlockCoords, FieldCoords, mkBlockCoords, isAtLeftWall, isAtRightWall, shiftBlockCoordsLeft, shiftBlockCoordsRight
+              BlockCoords, FieldCoords, mkBlockCoords, isAtLeftWall, isAtRightWall, shiftBlockCoordsLeft, shiftBlockCoordsRight,
+              BlockInfo(..), mkBlockInfo, isBlocked
               ) where
 
 import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR)
@@ -59,6 +62,13 @@ materialize Square (x, y) = S.fromList [(x, y), (x+1, y), (x, y+1), (x+1, y+1)]
 
 type BlockCoords = [Word8]
 type FieldCoords = [Word8]
+type YShift = Int
+
+data BlockInfo = BlockInfo {
+  coords :: BlockCoords,
+  yShift :: Int,
+  height :: Int
+}
 
 mkBlockCoords :: Block -> BlockCoords
 mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
@@ -66,6 +76,13 @@ mkBlockCoords Plus = [bit 2, bit 1 .|. bit 2 .|. bit 3, bit 2]
 mkBlockCoords L = [bit 2 .|. bit 3 .|. bit 4, bit 4, bit 4]
 mkBlockCoords VLine = [bit 2, bit 2, bit 2, bit 2]
 mkBlockCoords Square = [bit 2 .|. bit 3, bit 2 .|. bit 3]
+
+mkBlockInfo :: Block -> BlockInfo
+mkBlockInfo HLine = BlockInfo { coords = mkBlockCoords HLine, height = 1, yShift = 0 }
+mkBlockInfo Plus = BlockInfo { coords = mkBlockCoords Plus, height = 3, yShift = 0 }
+mkBlockInfo L = BlockInfo { coords = mkBlockCoords L, height = 3, yShift = 0 }
+mkBlockInfo VLine = BlockInfo { coords = mkBlockCoords VLine, height = 4, yShift = 0 }
+mkBlockInfo Square = BlockInfo { coords = mkBlockCoords Square, height = 2, yShift = 0 }
 
 isAtLeftWall :: BlockCoords -> Bool
 isAtLeftWall = any (`testBit` 0)
@@ -82,6 +99,11 @@ shiftBlockCoordsRight :: BlockCoords -> BlockCoords
 shiftBlockCoordsRight coords
   | isAtRightWall coords = coords
   | otherwise = map (`shiftL` 1) coords
+
+isBlocked :: BlockInfo -> FieldCoords -> Bool
+isBlocked BlockInfo { coords, yShift, height } fieldCoords =
+  let relevantFieldCoords = drop yShift fieldCoords
+  in any (\(bs, fs) -> bs .&. fs > 0) $ coords `zip` relevantFieldCoords
 
 getMaxY :: Field -> Y
 getMaxY = snd . maximumBy (compare `on` snd)

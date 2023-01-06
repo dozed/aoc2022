@@ -84,7 +84,27 @@ day17Spec = do
 
       canMoveDown' field blockInfo `shouldBe` True
 
-      let blockInfo2 = (mkBlockInfo Square) { yShift = 3 }
+      let blockInfo2 = (mkBlockInfo Square) { yShift = 2 }
           field2 = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
 
       canMoveDown' field2 blockInfo2 `shouldBe` True
+
+    it "should detect that a block can't move down" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 2 }
+          field = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
+
+      canMoveDown' field blockInfo `shouldBe` False
+
+      let blockInfo2 = (mkBlockInfo Square) { yShift = 1 }
+          field2 = [complement zeroBits, bit 0 .|. bit 1] :: [Word8]
+
+      canMoveDown' field2 blockInfo2 `shouldBe` False
+
+  describe "mergeBlockIntoField" $ do
+    it "should merge a BlockInfo into a FieldInfo" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 3 }
+          fieldInfo = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
+          FieldInfo { fieldCoords = fieldCoords', fieldHeight = fieldHeight' } = mergeBlockIntoField blockInfo fieldInfo
+
+      fieldHeight' `shouldBe` 5
+      fieldCoords' `shouldBe` [complement zeroBits, bit 0 .|. bit 1 .|. bit 2, zeroBits, bit 2 .|. bit 3, bit 2 .|. bit 3]

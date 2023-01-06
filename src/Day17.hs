@@ -2,7 +2,8 @@
 
 module Day17 (Block(..), Jet(..), day17, jetsParser,
               BlockCoords, FieldCoords, mkBlockCoords, isAtLeftWall, isAtRightWall, shiftBlockCoordsLeft, shiftBlockCoordsRight,
-              BlockInfo(..), mkBlockInfo, isBlocked, canMoveDown'
+              BlockInfo(..), mkBlockInfo, isBlocked, canMoveDown',
+              FieldInfo(..), mergeBlockIntoField
               ) where
 
 import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR, complement, zeroBits)
@@ -191,6 +192,16 @@ canMoveDown' :: FieldCoords -> BlockInfo -> Bool
 canMoveDown' fieldCoords blockInfo =
   let blockInfo' = blockInfo { yShift = yShift blockInfo - 1 }
   in not (isBlocked blockInfo' fieldCoords)
+
+mergeBlockIntoField :: BlockInfo -> FieldInfo -> FieldInfo
+mergeBlockIntoField BlockInfo { blockCoords, yShift, blockHeight } fieldInfo@FieldInfo { fieldCoords, fieldHeight } =
+  let rowsToAdd = max 0 ((yShift + blockHeight) - fieldHeight)
+      fieldHeight' = fieldHeight + rowsToAdd
+      fieldCoords' = fieldCoords ++ replicate rowsToAdd zeroBits
+      modRow row i = if yShift <= i && i <= yShift + blockHeight then row .|. (blockCoords !! (i - yShift)) else row
+      fieldCoords'' = reverse $ foldl (\acc (row, i) -> modRow row i:acc) [] (fieldCoords' `zip` [0..])
+      fieldInfo' = fieldInfo { fieldCoords = fieldCoords'', fieldHeight = fieldHeight' }
+  in fieldInfo'
 
 drawField' :: FieldInfo -> String
 drawField' FieldInfo { fieldCoords, fieldHeight } =

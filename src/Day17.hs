@@ -203,6 +203,19 @@ mergeBlockIntoField BlockInfo { blockCoords, yShift, blockHeight } fieldInfo@Fie
       fieldInfo' = fieldInfo { fieldCoords = fieldCoords'', fieldHeight = fieldHeight' }
   in fieldInfo'
 
+takeBlockTurn' :: FieldInfo -> [Jet] -> BlockInfo -> (FieldInfo, [Jet])
+-- takeBlockTurn' fieldCoords jets block | trace (drawField (S.union field (materialize block pos))) False = undefined
+takeBlockTurn' _ [] _ = undefined
+takeBlockTurn' fieldInfo@FieldInfo { fieldCoords } (jet:jets) blockInfo =
+  let blockInfo' = applyJet' fieldCoords jet blockInfo
+  in
+    if not (canMoveDown' fieldCoords blockInfo') then
+      let fieldInfo' = mergeBlockIntoField blockInfo' fieldInfo
+      in (fieldInfo', jets)
+    else
+      let blockInfo'' = blockInfo { yShift = yShift blockInfo - 1 }
+      in takeBlockTurn' fieldInfo jets blockInfo''
+
 drawField' :: FieldInfo -> String
 drawField' FieldInfo { fieldCoords, fieldHeight } =
   let getPixel x y

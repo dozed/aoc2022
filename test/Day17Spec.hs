@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -89,6 +90,35 @@ day17Spec = do
           field3 = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2] :: [Word8]
       isBlocked blockInfo3 field3 `shouldBe` False
 
+  describe "applyJet'" $ do
+    it "should move block left if not blocked" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 1 }
+          fieldCoords = [complement zeroBits, bit 0]
+          BlockInfo { blockCoords } = applyJet' fieldCoords JetLeft blockInfo
+
+      blockCoords `shouldBe` [bit 1 .|. bit 2, bit 1 .|. bit 2]
+
+    it "should not move block left if blocked" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 1 }
+          fieldCoords = [complement zeroBits, bit 0 .|. bit 1]
+          BlockInfo { blockCoords } = applyJet' fieldCoords JetLeft blockInfo
+
+      blockCoords `shouldBe` [bit 2 .|. bit 3, bit 2 .|. bit 3]
+
+    it "should move block right if not blocked" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 1 }
+          fieldCoords = [complement zeroBits, bit 5]
+          BlockInfo { blockCoords } = applyJet' fieldCoords JetRight blockInfo
+
+      blockCoords `shouldBe` [bit 3 .|. bit 4, bit 3 .|. bit 4]
+
+    it "should not move block right if blocked" $ do
+      let blockInfo = (mkBlockInfo Square) { yShift = 1 }
+          fieldCoords = [complement zeroBits, bit 4]
+          BlockInfo { blockCoords } = applyJet' fieldCoords JetRight blockInfo
+
+      blockCoords `shouldBe` [bit 2 .|. bit 3, bit 2 .|. bit 3]
+
   describe "canMoveDown'" $ do
     it "should detect that a block can move down" $ do
       let blockInfo = (mkBlockInfo Square) { yShift = 3 }
@@ -126,5 +156,5 @@ day17Spec = do
       let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
           blockInfo = (mkBlockInfo Square) { yShift = 3 }
           fieldInfo' = mergeBlockIntoField blockInfo fieldInfo
-    
+
       drawField' fieldInfo' `shouldBe` exampleField

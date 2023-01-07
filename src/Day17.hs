@@ -34,6 +34,10 @@ data Block = HLine
            | Square
            deriving (Eq, Show)
 
+getBaseBlocks :: [Block]
+getBaseBlocks = [HLine, Plus, L, VLine, Square]
+
+-- set-based approach
 type X = Int
 type Y = Int
 type Pos = (X, Y)
@@ -41,9 +45,6 @@ type Field = Set Pos
 
 mkField :: Field
 mkField = S.fromList [(x,0) | x <- [0..8]]
-
-getBaseBlocks :: [Block]
-getBaseBlocks = [HLine, Plus, L, VLine, Square]
 
 getDownPos :: Pos -> Pos
 getDownPos (x, y) = (x, y - 1)
@@ -116,7 +117,7 @@ takeBlockTurn field (jet:jets) block pos =
       in takeBlockTurn field jets block pos''
 
 takeBlocksTurn :: Field -> [Jet] -> [Block] -> Int -> Field
--- takeBlocksTurn field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
+takeBlocksTurn field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
 takeBlocksTurn field _ _ 0 = field
 takeBlocksTurn _ _ [] _ = undefined
 takeBlocksTurn field jets (block:blocks) blocksLeft =
@@ -231,7 +232,7 @@ takeBlockTurn' fieldInfo@FieldInfo { fieldCoords } (jet:jets) blockInfo =
       in takeBlockTurn' fieldInfo jets blockInfo''
 
 takeBlocksTurn' :: FieldInfo -> [Jet] -> [Block] -> Int -> FieldInfo
--- takeBlocksTurn' field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
+takeBlocksTurn' field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
 takeBlocksTurn' fieldInfo _ _ 0 = fieldInfo
 takeBlocksTurn' _ _ [] _ = undefined
 takeBlocksTurn' fieldInfo jets (block:blocks) blocksLeft =
@@ -249,32 +250,46 @@ day17 = do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  let field = mkField
-      blocks = cycle getBaseBlocks
+  let blocks = cycle getBaseBlocks
       jets = cycle baseJets
 
   -- part 1
   -- Set-based:
-  let field' = takeBlocksTurn field jets blocks 2022
-      height = getHeight field'
+  let field1 = mkField
+      field1' = takeBlocksTurn field1 jets blocks 2022
 
   putStrLn "Field:"
-  putStrLn $ drawField field'
+  putStrLn $ drawField field1'
 
-  putStrLn $ "Height: " <> show height
+  putStrLn $ "Height: " <> show (getHeight field1')
 
   -- Bit-based:
-  let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits], fieldHeight = 1 }
-  let field'' = takeBlocksTurn' fieldInfo jets blocks 2022
+  let field2 = FieldInfo { fieldCoords = [complement zeroBits], fieldHeight = 1 }
+  let field2' = takeBlocksTurn' field2 jets blocks 2022
 
   putStrLn "Field:"
-  putStrLn $ drawField' field''
+  putStrLn $ drawField' field2'
 
-  putStrLn $ "Height: " <> show (fieldHeight field'' - 1)
+  putStrLn $ "Height: " <> show (fieldHeight field2' - 1)
 
   -- part 2
   --  let cycleSize = length getBaseBlocks * length baseJets
   --  putStrLn $ "cycleSize: " <> show cycleSize
   --  print $ take 100 (blocks `zip` jets)
   --  print $ take 100 $ drop cycleSize (blocks `zip` jets)
+  -- Set-based:
+  let field3 = takeBlocksTurn field1 jets blocks 1000000000000
 
+  putStrLn "Field:"
+  putStrLn $ drawField field3
+
+  putStrLn $ "Height: " <> show (getHeight field3)
+
+  -- Bit-based:
+  let field4 = FieldInfo { fieldCoords = [complement zeroBits], fieldHeight = 1 }
+  let field4' = takeBlocksTurn' field4 jets blocks 1000000000000
+
+  putStrLn "Field:"
+  putStrLn $ drawField' field4'
+
+  putStrLn $ "Height: " <> show (fieldHeight field4' - 1)

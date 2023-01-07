@@ -116,7 +116,7 @@ takeBlockTurn field (jet:jets) block pos =
       in takeBlockTurn field jets block pos''
 
 takeBlocksTurn :: Field -> [Jet] -> [Block] -> Int -> Field
-takeBlocksTurn field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
+-- takeBlocksTurn field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
 takeBlocksTurn field _ _ 0 = field
 takeBlocksTurn _ _ [] _ = undefined
 takeBlocksTurn field jets (block:blocks) blocksLeft =
@@ -131,7 +131,7 @@ type YShift = Int
 
 data BlockInfo = BlockInfo {
   blockCoords :: BlockCoords,
-  yShift :: Int,
+  yShift :: YShift,
   blockHeight :: Int
 }
 
@@ -148,6 +148,9 @@ drawField' FieldInfo { fieldCoords, fieldHeight } =
         | testBit (fieldCoords !! (y-1)) (x-1) = '#'
         | otherwise = '.'
   in intercalate "\n" [[getPixel x y | x <- [0..8]] | y <- [fieldHeight,fieldHeight-1..0]]
+
+getStartYShift :: FieldInfo -> YShift
+getStartYShift FieldInfo { fieldHeight } = fieldHeight + 3
 
 mkBlockCoords :: Block -> BlockCoords
 mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
@@ -215,7 +218,7 @@ mergeBlockIntoField BlockInfo { blockCoords, yShift, blockHeight } fieldInfo@Fie
   in fieldInfo'
 
 takeBlockTurn' :: FieldInfo -> [Jet] -> BlockInfo -> (FieldInfo, [Jet])
--- takeBlockTurn' fieldCoords jets block | trace (drawField (S.union field (materialize block pos))) False = undefined
+-- takeBlockTurn' fieldInfo jets blockInfo | trace (drawField' (mergeBlockIntoField blockInfo fieldInfo)) False = undefined
 takeBlockTurn' _ [] _ = undefined
 takeBlockTurn' fieldInfo@FieldInfo { fieldCoords } (jet:jets) blockInfo =
   let blockInfo' = applyJet' fieldCoords jet blockInfo
@@ -224,11 +227,8 @@ takeBlockTurn' fieldInfo@FieldInfo { fieldCoords } (jet:jets) blockInfo =
       let fieldInfo' = mergeBlockIntoField blockInfo' fieldInfo
       in (fieldInfo', jets)
     else
-      let blockInfo'' = blockInfo { yShift = yShift blockInfo - 1 }
+      let blockInfo'' = blockInfo' { yShift = yShift blockInfo' - 1 }
       in takeBlockTurn' fieldInfo jets blockInfo''
-
-getStartYShift :: FieldInfo -> Int
-getStartYShift FieldInfo { fieldHeight } = fieldHeight + 3
 
 takeBlocksTurn' :: FieldInfo -> [Jet] -> [Block] -> Int -> FieldInfo
 -- takeBlocksTurn' field jets blocks blocksLeft | trace (show (1000000000000 - blocksLeft)) False = undefined
@@ -254,6 +254,7 @@ day17 = do
       jets = cycle baseJets
 
   -- part 1
+  -- Set-based:
   let field' = takeBlocksTurn field jets blocks 2022
       height = getHeight field'
 
@@ -262,14 +263,18 @@ day17 = do
 
   putStrLn $ "Height: " <> show height
 
+  -- Bit-based:
+  let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits], fieldHeight = 1 }
+  let field'' = takeBlocksTurn' fieldInfo jets blocks 2022
+
+  putStrLn "Field:"
+  putStrLn $ drawField' field''
+
+  putStrLn $ "Height: " <> show (fieldHeight field'' - 1)
+
   -- part 2
   --  let cycleSize = length getBaseBlocks * length baseJets
   --  putStrLn $ "cycleSize: " <> show cycleSize
   --  print $ take 100 (blocks `zip` jets)
   --  print $ take 100 $ drop cycleSize (blocks `zip` jets)
-
-  let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits], fieldHeight = 1 }
-  let field'' = takeBlocksTurn' fieldInfo jets blocks 2022
-
-  putStrLn $ "Field height: " <> show (fieldHeight field'')
 

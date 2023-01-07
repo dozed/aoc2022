@@ -40,19 +40,18 @@ day17Spec = do
     it "should detect BlockCoords at the left wall" $ do
       let coords = mkBlockCoords Plus
       isAtLeftWall coords `shouldBe` False
-      isAtLeftWall (shiftBlockCoordsLeft coords) `shouldBe` True
+      isAtLeftWall (shiftBlockCoordsLeft . shiftBlockCoordsLeft $ coords) `shouldBe` True
 
   describe "isAtRightWall" $ do
     it "should detect BlockCoords at the right wall" $ do
       let coords = mkBlockCoords Plus
       isAtRightWall coords `shouldBe` False
       isAtRightWall (shiftBlockCoordsRight coords) `shouldBe` False
-      isAtRightWall (shiftBlockCoordsRight . shiftBlockCoordsRight $ coords) `shouldBe` False
-      isAtRightWall (shiftBlockCoordsRight . shiftBlockCoordsRight . shiftBlockCoordsRight $ coords) `shouldBe` True
+      isAtRightWall (shiftBlockCoordsRight . shiftBlockCoordsRight $ coords) `shouldBe` True
 
   describe "shiftBlockCoordsLeft" $ do
     it "should return same coords if at left wall" $ do
-      let coords = shiftBlockCoordsLeft $ mkBlockCoords Plus
+      let coords = shiftBlockCoordsLeft . shiftBlockCoordsLeft $ mkBlockCoords Plus
       shiftBlockCoordsLeft coords `shouldBe` coords
 
     prop "is inverse of shiftBlockCoordsRight" $ \block -> do

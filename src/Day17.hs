@@ -151,7 +151,7 @@ drawField' FieldInfo { fieldCoords, fieldHeight } =
 
 mkBlockCoords :: Block -> BlockCoords
 mkBlockCoords HLine = [bit 2 .|. bit 3 .|. bit 4 .|. bit 5]
-mkBlockCoords Plus = [bit 2, bit 1 .|. bit 2 .|. bit 3, bit 2]
+mkBlockCoords Plus = [bit 3, bit 2 .|. bit 3 .|. bit 4, bit 3]
 mkBlockCoords L = [bit 2 .|. bit 3 .|. bit 4, bit 4, bit 4]
 mkBlockCoords VLine = [bit 2, bit 2, bit 2, bit 2]
 mkBlockCoords Square = [bit 2 .|. bit 3, bit 2 .|. bit 3]

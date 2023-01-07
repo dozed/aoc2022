@@ -3,7 +3,7 @@
 module Day17 (Block(..), Jet(..), day17, jetsParser,
               BlockCoords, FieldCoords, mkBlockCoords, isAtLeftWall, isAtRightWall, shiftBlockCoordsLeft, shiftBlockCoordsRight,
               BlockInfo(..), mkBlockInfo, isBlocked, canMoveDown', applyJet',
-              FieldInfo(..), mergeBlockIntoField, drawField'
+              FieldInfo(..), mergeBlockIntoField, drawField', getStartYShift
               ) where
 
 import Data.Bits (bit, testBit, (.|.), (.&.), shiftL, shiftR, complement, zeroBits)

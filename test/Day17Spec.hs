@@ -19,10 +19,23 @@ instance Arbitrary Block where
   arbitrary = do
     elements [HLine, Plus, L, VLine, Square]
 
-exampleField :: String
-exampleField = strip [r|
+exampleField1 :: String
+exampleField1 = strip [r|
 |..##...|
 |..##...|
+|.......|
+|###....|
+|#######|
++-------+
+|]
+
+exampleField2 :: String
+exampleField2 = strip [r|
+|...#...|
+|..###..|
+|...#...|
+|.......|
+|.......|
 |.......|
 |###....|
 |#######|
@@ -156,4 +169,13 @@ day17Spec = do
           blockInfo = (mkBlockInfo Square) { yShift = 3 }
           fieldInfo' = mergeBlockIntoField blockInfo fieldInfo
 
-      drawField' fieldInfo' `shouldBe` exampleField
+      drawField' fieldInfo' `shouldBe` exampleField1
+
+  describe "getStartYShift" $ do
+    it "should compute the correct startYShift" $ do
+      let fieldInfo = FieldInfo { fieldCoords = [complement zeroBits, bit 0 .|. bit 1 .|. bit 2], fieldHeight = 2 }
+          startYShift = getStartYShift fieldInfo
+          blockInfo = (mkBlockInfo Plus) { yShift = startYShift }
+          fieldInfo' = mergeBlockIntoField blockInfo fieldInfo
+
+      drawField' fieldInfo' `shouldBe` exampleField2

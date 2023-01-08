@@ -9,7 +9,7 @@ import Text.RawString.QQ
 
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
-import Test.QuickCheck (Arbitrary, arbitrary, elements)
+import Test.QuickCheck (Arbitrary, arbitrary, choose, elements, (==>))
 
 import Day17
 import Util (regularParse, strip)
@@ -17,6 +17,18 @@ import Util (regularParse, strip)
 instance Arbitrary Block where
   arbitrary = do
     elements [HLine, Plus, L, VLine, Square]
+
+data FieldPosSpec = FieldPosSpec X Y
+                    deriving (Show, Eq)
+
+instance Arbitrary FieldPosSpec where
+  arbitrary = do
+    x <- choose (0, 6)
+    y <- choose (0, 40)
+    return $ FieldPosSpec x y
+
+getPos :: FieldPosSpec -> Pos
+getPos (FieldPosSpec x y) = (x, y)
 
 exampleField1 :: String
 exampleField1 = strip [r|
@@ -76,3 +88,7 @@ day17Spec = do
                  (2, 4), (3, 4)]
 
       readField exampleField1 `shouldBe` S.fromList pos
+
+    prop "should be the inverse of showField" $ \(pos :: [FieldPosSpec]) -> not (null pos) ==> do
+      let pos' = S.fromList $ map getPos pos
+      readField (showField pos') `shouldBe` pos'

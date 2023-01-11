@@ -52,8 +52,8 @@ viterbiStepForValue info@ViterbiInfo { indexes, getCandidates, getB } previous t
       candidates = getCandidates info previous timestep to
   in if null candidates then previous  -- some nodes dont have previous values -> paths ends
      else
-       let pprsRemainings = map (\from -> getB info previous timestep from to) candidates
-           xs = candidates `zip` pprsRemainings
+       let bs = map (\from -> getB info previous timestep from to) candidates
+           xs = candidates `zip` bs
            (maxPrev, b) = maximumBy (compare `on` snd) xs
            -- map of previous nodes at a given timestep for a given node with a tag, e.g. remaining minutes and released pressure
            previous' = MT.setElem (maxPrev, b) (toIdx, timestep) previous

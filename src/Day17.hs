@@ -1,5 +1,5 @@
 module Day17 (Block(..), Jet(..), day17, jetsParser, showField, readField,
-              X, Y, Pos, Field, getMaxY
+              X, Y, Pos, Field, getMaxY, getStartPos, canMoveDown, canMoveLeft, canMoveRight
               ) where
 
 import Data.Function (on)

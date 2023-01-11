@@ -110,3 +110,52 @@ day17Spec = do
                               (2, 4), (3, 4)]
 
       getMaxY field `shouldBe` 4
+
+  describe "getStartPos" $ do
+    it "should get the starting position for a field" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                              (0, 1), (1, 1), (2, 1),
+                              (2, 3), (3, 3),
+                              (2, 4), (3, 4)]
+
+      
+      getStartPos field `shouldBe` (2, 8)
+
+  describe "canMoveDown" $ do
+    it "should detect that a block can move down" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                              (0, 1), (1, 1), (2, 1)]
+      
+      canMoveDown field Square (3, 2) `shouldBe` True
+
+    it "should detect that a block can't move down" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                              (0, 1), (1, 1), (2, 1)]
+      
+      canMoveDown field Square (3, 1) `shouldBe` False
+
+  describe "canMoveLeft" $ do
+    it "should detect that a block can move left" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                              (0, 1), (1, 1), (2, 1)]
+      
+      canMoveLeft field Square (4, 1) `shouldBe` True
+
+    it "should detect that a block can't move left" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                              (0, 1), (1, 1), (2, 1)]
+      
+      canMoveLeft field Square (3, 1) `shouldBe` False
+
+  describe "canMoveRight" $ do
+    it "should detect that a block can move right" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                                                              (4, 1), (5, 1), (6, 1)]
+      
+      canMoveRight field Square (1, 1) `shouldBe` True
+
+    it "should detect that a block can't move right" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                                                              (4, 1), (5, 1), (6, 1)]
+      
+      canMoveRight field Square (2, 1) `shouldBe` False

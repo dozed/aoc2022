@@ -1,5 +1,6 @@
 module Day17 (Block(..), Jet(..), day17, jetsParser, showField, readField,
-              X, Y, Pos, Field, getMaxY, getStartPos, canMoveDown, canMoveLeft, canMoveRight
+              X, Y, Pos, Field, getMaxY, getDownPos, getLeftPos, getRightPos, getStartPos,
+              canMoveDown, canMoveLeft, canMoveRight, getFreePosInRow
               ) where
 
 import Data.Function (on)
@@ -124,10 +125,13 @@ takeBlocksTurn field jets (block:blocks) blocksLeft =
       (field', jets') = takeBlockTurn field jets block startPos
   in takeBlocksTurn field' jets' blocks (blocksLeft-1)
 
+getFreePosInRow :: Field -> Y -> [Pos]
+getFreePosInRow field y = [(x, y) | x <- [0..6], not (S.member (x, y) field)]
+
 getNeighbours :: Field -> Pos -> Set Pos
 getNeighbours field (x, y) = undefined
 
-traceWaveFront :: Field -> Int -> Set Pos
+traceWaveFront :: Field -> Y -> Set Pos
 traceWaveFront field y = undefined
 
 day17 :: IO ()

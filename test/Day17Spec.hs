@@ -92,3 +92,21 @@ day17Spec = do
     prop "should be the inverse of showField" $ \(pos :: [FieldPosSpec]) -> not (null pos) ==> do
       let pos' = S.fromList $ map getPos pos
       readField (showField pos') `shouldBe` pos'
+
+  describe "showField" $ do
+    it "should show a field" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                              (0, 1), (1, 1), (2, 1),
+                              (2, 3), (3, 3),
+                              (2, 4), (3, 4)]
+
+      showField field `shouldBe` exampleField1
+
+  describe "getMaxY" $ do
+    it "should get the maximum y position of a field" $ do
+      let field = S.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                              (0, 1), (1, 1), (2, 1),
+                              (2, 3), (3, 3),
+                              (2, 4), (3, 4)]
+
+      getMaxY field `shouldBe` 4

@@ -50,9 +50,9 @@ showField field =
 
 readField :: String -> Set Pos
 readField fieldTxt =
-  let fieldLines = map (init . tail) . init . lines $ fieldTxt
+  let fieldLines = reverse . map (init . tail) . init . lines $ fieldTxt
       toPos c x y = if c == '#' then Just ((x, y) :: Pos) else Nothing
-      pos = S.fromList . concatMap (\(row, y) -> mapMaybe (\(c, x) -> toPos c x y) $ row `zip` [0..]) $ reverse fieldLines `zip` [0..]
+      pos = S.fromList . concatMap (\(row, y) -> mapMaybe (\(c, x) -> toPos c x y) $ row `zip` [0..]) $ fieldLines `zip` [0..]
   in pos
 
 mkField :: Field

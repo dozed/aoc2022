@@ -1,10 +1,11 @@
 module Day17 (Block(..), Jet(..), day17, jetsParser, showField, readField,
-              X, Y, Pos, Field, getMaxY, getDownPos, getLeftPos, getRightPos, getStartPos,
-              canMoveDown, canMoveLeft, canMoveRight, getFreePosInRow
+              X, Y, Pos, Field, isAdjacent, getMaxY, getDownPos, getUpPos, getLeftPos, getRightPos, getStartPos,
+              canMoveDown, canMoveLeft, canMoveRight, getFreePosInRow, getRockPosInRow,
+              isBlockedByWall, isBlockedByFieldRock, getReachables, traceWaveFront
               ) where
 
 import Data.Function (on)
-import Data.List (intercalate, maximumBy)
+import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Maybe (mapMaybe)
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -12,7 +13,7 @@ import Debug.Trace (trace)
 import Text.Parsec
 import Text.Parsec.String
 
-import Util (regularParse)
+import Util (filterNot, regularParse)
 
 testInput :: String
 testInput = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
@@ -38,6 +39,12 @@ type Y = Int
 type Pos = (X, Y)
 type Field = Set Pos
 
+isAdjacent :: Pos -> Pos -> Bool
+isAdjacent (x1, y1) (x2, y2)
+  | x1 == x2 = abs(y1 - y2) == 1
+  | y1 == y2 = abs(x1 - x2) == 1
+  | otherwise = False
+
 getMaxY :: Field -> Y
 getMaxY = snd . maximumBy (compare `on` snd)
 
@@ -58,6 +65,9 @@ readField fieldTxt =
 
 mkField :: Field
 mkField = S.fromList [(x,0) | x <- [0..8]]
+
+getUpPos :: Pos -> Pos
+getUpPos (x, y) = (x, y + 1)
 
 getDownPos :: Pos -> Pos
 getDownPos (x, y) = (x, y - 1)
@@ -81,11 +91,20 @@ getHeight = getMaxY
 getStartPos :: Field -> Pos
 getStartPos field = (2, getMaxY field + 4)
 
+isBlockedByWall :: Pos -> Bool
+isBlockedByWall (x, y) = x < 0 || x > 6 || y < 0
+
+isBlockedByFieldRock :: Field -> Pos -> Bool
+isBlockedByFieldRock field block = S.member block field
+
+isBlocked :: Field -> Pos -> Bool
+isBlocked field pos = isBlockedByWall pos || isBlockedByFieldRock field pos
+
 canMove :: (Pos -> Pos) -> Field -> Block -> Pos -> Bool
 canMove adjust field block pos =
   let blocks = materialize block (adjust pos)
       isNotBlockedByFieldRock = S.disjoint field blocks
-      isBlockedByWalls = any (\(x, y) -> x < 0 || x > 6 || y < 0) blocks
+      isBlockedByWalls = any isBlockedByWall blocks
       isNotBlocked = isNotBlockedByFieldRock && not isBlockedByWalls
   in isNotBlocked
 
@@ -128,11 +147,37 @@ takeBlocksTurn field jets (block:blocks) blocksLeft =
 getFreePosInRow :: Field -> Y -> [Pos]
 getFreePosInRow field y = [(x, y) | x <- [0..6], not (S.member (x, y) field)]
 
-getNeighbours :: Field -> Pos -> Set Pos
-getNeighbours field (x, y) = undefined
+getRockPosInRow :: Field -> Y -> [Pos]
+getRockPosInRow field y = [(x, y) | x <- [0..6], S.member (x, y) field]
 
-traceWaveFront :: Field -> Y -> Set Pos
-traceWaveFront field y = undefined
+type Visited = Set Pos
+type ToVisit = [Pos]
+
+getReachables' :: Field -> ToVisit -> Visited -> Set Pos
+-- getReachables' _ toVisit visited | trace (show toVisit <> " - " <> show visited) False = undefined
+getReachables' _ [] visited = visited
+getReachables' field (current:nextToVisit) visited =
+  let visited' = S.insert current visited
+      neighbours = filterNot (isBlocked field) [getLeftPos current, getRightPos current, getDownPos current]
+      neighboursNotVisited = filterNot (`S.member` visited') neighbours
+      neighboursNotVisitedAndNotToVisit = filterNot (`elem` nextToVisit) neighboursNotVisited
+      nextToVisit' = nextToVisit ++ neighboursNotVisitedAndNotToVisit
+  in getReachables' field nextToVisit' visited'
+
+getReachables :: Field -> Set Pos
+getReachables field =
+  let maxY = getMaxY field
+      freePos = filterNot (isBlockedByFieldRock field) [(x, maxY) | x <- [0..6]]
+      reachables = getReachables' field freePos S.empty
+  in reachables
+
+traceWaveFront :: Field -> Set Pos
+traceWaveFront field =
+  let reachables = getReachables field
+      lowY = snd . minimumBy (compare `on` snd) $ reachables
+      isAdjacentToReachable pos = any (isAdjacent pos) reachables
+      waveFront = S.filter (\rp@(_, y) -> y >= lowY - 1 && isAdjacentToReachable rp) field
+  in waveFront
 
 day17 :: IO ()
 day17 = do

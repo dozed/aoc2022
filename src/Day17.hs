@@ -223,6 +223,16 @@ advanceBlocksAndCheck field jets (block:blocks) previousWaveFronts cycleSize max
   when equalWaveFronts $ putStrLn $ "Found equal wavefronts for step: " <> show step
   advanceBlocksAndCheck field' jets' blocks previousWaveFronts cycleSize maxSteps step'
 
+checkForEqualWaveFront :: Map Step WaveFront -> CycleSize -> Step -> WaveFront -> Maybe Step
+checkForEqualWaveFront waveFronts cycleSize step waveFront
+  | step <= cycleSize = Nothing
+  | otherwise =
+    let previousStep = step - cycleSize
+        previousWaveFront = waveFronts M.! previousStep
+        equalWaveFronts = waveFront == previousWaveFront
+    in if equalWaveFronts then Just step
+       else checkForEqualWaveFront waveFronts cycleSize previousStep waveFront 
+
 advanceBlocksAndCheck' :: Field -> [Jet] -> [Block] -> Map Step WaveFront -> CycleSize -> MaxSteps -> Step -> IO ()
 advanceBlocksAndCheck' field jets blocks waveFronts cycleSize maxSteps step
   | trace (show step) False = undefined
@@ -234,16 +244,11 @@ advanceBlocksAndCheck' field jets (block:blocks) waveFronts cycleSize maxSteps s
       waveFront = traceWaveFront field'
       waveFronts' = M.insert step waveFront waveFronts
       step' = step + 1
+      equalWaveFronts = checkForEqualWaveFront waveFronts cycleSize step waveFront
 
-  let equalWaveFronts = if step > cycleSize then
-        let previousStep = step - cycleSize
-            previousWaveFront = waveFronts M.! previousStep
-            equalWaveFronts = waveFront == previousWaveFront
-        in equalWaveFronts
-      else False
-
-  if equalWaveFronts then putStrLn $ "Found equal wavefronts for step: " <> show step
-  else advanceBlocksAndCheck' field' jets' blocks waveFronts' cycleSize maxSteps step'
+  case equalWaveFronts of
+     Just previousStep -> putStrLn $ "Found equal wavefronts for step: " <> show step <> " previousStep: " <> show previousStep
+     Nothing -> advanceBlocksAndCheck' field' jets' blocks waveFronts' cycleSize maxSteps step'
 
 day17 :: IO ()
 day17 = do
@@ -281,18 +286,15 @@ day17 = do
 
   advanceBlocksAndCheck' field2 jets blocks M.empty cycleSize 1000000000000 1
 
-  -- putStrLn $ showField field2'
-  putStrLn "OK"
-
---  let field2 = mkField
---      field2' = takeBlocksTurn field2 jets blocks 15
---
---  putStrLn "Field:"
---  putStrLn $ showField field2'
-
---  let field3 = takeBlocksTurn field1 jets blocks 1000000000000
---
---  putStrLn "Field:"
---  putStrLn $ drawField field3
---
---  putStrLn $ "Height: " <> show (getHeight field3)
+  --  let field2 = mkField
+  --      field2' = takeBlocksTurn field2 jets blocks 15
+  --
+  --  putStrLn "Field:"
+  --  putStrLn $ showField field2'
+  
+  --  let field3 = takeBlocksTurn field1 jets blocks 1000000000000
+  --
+  --  putStrLn "Field:"
+  --  putStrLn $ drawField field3
+  --
+  --  putStrLn $ "Height: " <> show (getHeight field3)

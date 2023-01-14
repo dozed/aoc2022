@@ -7,6 +7,7 @@ module Util (
   count,
   deleteAt,
   findElem,
+  filterNot,
   intersect,
   lstrip,
   maxIndex,
@@ -150,3 +151,6 @@ findElem p     = find' id
       find' prefix (x : xs)
           | p x          = Just (x, prefix xs)
           | otherwise    = find' (prefix . (x:)) xs
+
+filterNot :: (a -> Bool) -> [a] -> [a]
+filterNot p as = filter (not . p) as

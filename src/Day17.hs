@@ -4,9 +4,12 @@ module Day17 (Block(..), Jet(..), day17, jetsParser, showField, readField,
               isBlockedByWall, isBlockedByFieldRock, getReachables, traceWaveFront
               ) where
 
+import Control.Monad (forM_, when)
 import Data.Function (on)
 import Data.List (intercalate, maximumBy, minimumBy)
-import Data.Maybe (mapMaybe)
+import Data.Map (Map)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Debug.Trace (trace)
@@ -152,8 +155,13 @@ getRockPosInRow field y = [(x, y) | x <- [0..6], S.member (x, y) field]
 
 type Visited = Set Pos
 type ToVisit = [Pos]
+type Reachables = Set Pos
+type WaveFront = Set Pos
+type Step = Int
+type MaxSteps = Int
+type CycleSize = Int
 
-getReachables' :: Field -> ToVisit -> Visited -> Set Pos
+getReachables' :: Field -> ToVisit -> Visited -> Reachables
 -- getReachables' _ toVisit visited | trace (show toVisit <> " - " <> show visited) False = undefined
 getReachables' _ [] visited = visited
 getReachables' field (current:nextToVisit) visited =
@@ -164,25 +172,83 @@ getReachables' field (current:nextToVisit) visited =
       nextToVisit' = nextToVisit ++ neighboursNotVisitedAndNotToVisit
   in getReachables' field nextToVisit' visited'
 
-getReachables :: Field -> Set Pos
+getReachables :: Field -> Reachables
 getReachables field =
   let maxY = getMaxY field
       freePos = filterNot (isBlockedByFieldRock field) [(x, maxY) | x <- [0..6]]
       reachables = getReachables' field freePos S.empty
   in reachables
 
-traceWaveFront :: Field -> Set Pos
+traceWaveFront :: Field -> WaveFront
 traceWaveFront field =
   let reachables = getReachables field
-      lowY = snd . minimumBy (compare `on` snd) $ reachables
-      isAdjacentToReachable pos = any (isAdjacent pos) reachables
-      waveFront = S.filter (\rp@(_, y) -> y >= lowY - 1 && isAdjacentToReachable rp) field
+      waveFront = if null reachables then
+          let maxY = getMaxY field
+              frontPos = [(x, maxY) | x <- [0..6]]
+          in S.fromList frontPos
+        else
+          let minY = snd . minimumBy (compare `on` snd) $ reachables
+              maxY = snd . maximumBy (compare `on` snd) $ reachables
+              isAdjacentToReachable pos = any (isAdjacent pos) reachables
+              waveFront = S.filter (\rp@(_, y) -> (y >= minY - 1 && isAdjacentToReachable rp) || y == maxY) field
+          in waveFront
   in waveFront
+
+advanceBlocks :: Field -> [Jet] -> [Block] -> Map Step WaveFront -> MaxSteps -> Step -> (Map Step WaveFront, [Jet], [Block], Field)
+--advanceBlocks field jets blocks waveFronts maxSteps step
+--  | trace (show (getMaxY field) <> " - " <> show step <> " - " <> show (M.size waveFronts)) False = undefined
+advanceBlocks field jets blocks waveFronts maxSteps step | step == maxSteps + 1 = (waveFronts, jets, blocks, field)
+advanceBlocks _ _ [] _ _ _ = undefined
+advanceBlocks field jets (block:blocks) waveFronts maxSteps step =
+  let startPos = getStartPos field
+      (field', jets') = takeBlockTurn field jets block startPos
+      waveFront = traceWaveFront field'
+      waveFronts' = M.insert step waveFront waveFronts
+      step' = step + 1
+  in advanceBlocks field' jets' blocks waveFronts' maxSteps step'
+
+advanceBlocksAndCheck :: Field -> [Jet] -> [Block] -> Map Step WaveFront -> CycleSize -> MaxSteps -> Step -> IO ()
+--advanceBlocksAndCheck field jets blocks previousWaveFronts cycleSize maxSteps step
+--  | trace (show (getMaxY field) <> " - " <> show step <> " - " <> show (M.size previousWaveFronts)) False = undefined
+advanceBlocksAndCheck field _ _ previousWaveFronts cycleSize maxSteps step | step == maxSteps + 1 = pure ()
+advanceBlocksAndCheck _ _ [] _ _ _ _ = undefined
+advanceBlocksAndCheck field jets (block:blocks) previousWaveFronts cycleSize maxSteps step = do
+  let startPos = getStartPos field
+      (field', jets') = takeBlockTurn field jets block startPos
+      waveFront = traceWaveFront field'
+      previousStep = step - cycleSize
+      previousWaveFront = previousWaveFronts M.! previousStep
+      equalWaveFronts = waveFront == previousWaveFront
+      step' = step + 1
+  when equalWaveFronts $ putStrLn $ "Found equal wavefronts for step: " <> show step
+  advanceBlocksAndCheck field' jets' blocks previousWaveFronts cycleSize maxSteps step'
+
+advanceBlocksAndCheck' :: Field -> [Jet] -> [Block] -> Map Step WaveFront -> CycleSize -> MaxSteps -> Step -> IO ()
+advanceBlocksAndCheck' field jets blocks waveFronts cycleSize maxSteps step
+  | trace (show step) False = undefined
+advanceBlocksAndCheck' field _ _ waveFronts cycleSize maxSteps step | step == maxSteps + 1 = pure ()
+advanceBlocksAndCheck' _ _ [] _ _ _ _ = undefined
+advanceBlocksAndCheck' field jets (block:blocks) waveFronts cycleSize maxSteps step = do
+  let startPos = getStartPos field
+      (field', jets') = takeBlockTurn field jets block startPos
+      waveFront = traceWaveFront field'
+      waveFronts' = M.insert step waveFront waveFronts
+      step' = step + 1
+
+  let equalWaveFronts = if step > cycleSize then
+        let previousStep = step - cycleSize
+            previousWaveFront = waveFronts M.! previousStep
+            equalWaveFronts = waveFront == previousWaveFront
+        in equalWaveFronts
+      else False
+
+  if equalWaveFronts then putStrLn $ "Found equal wavefronts for step: " <> show step
+  else advanceBlocksAndCheck' field' jets' blocks waveFronts' cycleSize maxSteps step'
 
 day17 :: IO ()
 day17 = do
-  -- let input = testInput
-  input <- readFile "input/Day17.txt"
+  let input = testInput
+  -- input <- readFile "input/Day17.txt"
 
   baseJets <- case regularParse jetsParser input of
     Left e -> fail $ show e
@@ -192,25 +258,37 @@ day17 = do
       jets = cycle baseJets
 
   -- part 1
---  let field1 = mkField
---      field1' = takeBlocksTurn field1 jets blocks 2022
---
---  putStrLn "Field:"
---  putStrLn $ drawField field1'
---
---  putStrLn $ "Height: " <> show (getHeight field1')
+  -- let field1 = mkField
+  --     field1' = takeBlocksTurn field1 jets blocks 2022
+  --
+  -- putStrLn "Field:"
+  -- putStrLn $ drawField field1'
+  --
+  -- putStrLn $ "Height: " <> show (getHeight field1')
 
   -- part 2
-  --  let cycleSize = length getBaseBlocks * length baseJets
-  --  putStrLn $ "cycleSize: " <> show cycleSize
-  --  print $ take 100 (blocks `zip` jets)
-  --  print $ take 100 $ drop cycleSize (blocks `zip` jets)
+  let cycleSize = length getBaseBlocks * length baseJets
+  putStrLn $ "cycleSize: " <> show cycleSize
+  -- print $ take 100 (blocks `zip` jets)
+  -- print $ take 100 $ drop cycleSize (blocks `zip` jets)
+
+  --  let field2 = mkField
+  --      (waveFronts, jets', blocks', field2') = advanceBlocks field2 jets blocks M.empty cycleSize 1
+  --
+  --  advanceBlocksAndCheck field2' jets' blocks' waveFronts cycleSize (2*cycleSize) (cycleSize+1)
 
   let field2 = mkField
-      field2' = takeBlocksTurn field2 jets blocks 15
 
-  putStrLn "Field:"
-  putStrLn $ showField field2'
+  advanceBlocksAndCheck' field2 jets blocks M.empty cycleSize 1000000000000 1
+
+  -- putStrLn $ showField field2'
+  putStrLn "OK"
+
+--  let field2 = mkField
+--      field2' = takeBlocksTurn field2 jets blocks 15
+--
+--  putStrLn "Field:"
+--  putStrLn $ showField field2'
 
 --  let field3 = takeBlocksTurn field1 jets blocks 1000000000000
 --

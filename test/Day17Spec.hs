@@ -67,8 +67,22 @@ exampleField3 = strip [r|
 +-------+
 |]
 
+exampleField3b :: String
+exampleField3b = strip [r|
+|#####..|
+|....#..|
+|...###.|
+|..#.#..|
+|#######|
+|###.#..|
+|.##.#..|
+|.####..|
+|##.####|
++-------+
+|]
+
 exampleField4 :: String
-exampleField4 = [r|
+exampleField4 = strip [r|
 |..#....|
 |.###...|
 |..#....|
@@ -82,6 +96,15 @@ exampleField4 = [r|
 |..###..|
 |...#...|
 |..####.|
++-------+
+|]
+
+exampleField5 :: String
+exampleField5 = strip [r|
+|#######|
+|.###...|
+|..#....|
+|#######|
 +-------+
 |]
 
@@ -228,7 +251,7 @@ day17Spec = do
       getReachables field `shouldBe` expected
 
   describe "traceWaveFront" $ do
-    it "should return the current wave front of the field" $ do
+    it "should return the current wave front of a field" $ do
       let field = readField exampleField3
           expected = S.fromList [(2, 8), (3, 8), (4, 8),
                                  (4, 7),
@@ -236,5 +259,22 @@ day17Spec = do
                                  (2, 5), (4, 5),
                                  (0, 4), (1, 4), (5, 4), (6, 4)
                                 ]
+
+      traceWaveFront field `shouldBe` expected
+
+    it "should return the current wave front of a field with blocks in the front" $ do
+      let field = readField exampleField3b
+          expected = S.fromList [(0, 8), (1, 8), (2, 8), (3, 8), (4, 8),
+                                 (4, 7),
+                                 (5, 6),
+                                 (4, 5),
+                                 (5, 4), (6, 4)
+                                ]
+
+      traceWaveFront field `shouldBe` expected
+
+    it "should return the current wave front of a field with only blocks in the front" $ do
+      let field = readField exampleField5
+          expected = S.fromList [(0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (5, 3), (6, 3)]
 
       traceWaveFront field `shouldBe` expected

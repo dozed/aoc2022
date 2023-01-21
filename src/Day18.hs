@@ -6,6 +6,7 @@ import Control.Monad (void)
 import Data.List.HT (removeEach)
 import Text.Parsec hiding (count)
 import Text.Parsec.String
+import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
 import Util (count, regularParse, lstrip)
@@ -41,11 +42,11 @@ type Pos = (X, Y, Z)
 
 positionParser :: Parser Pos
 positionParser = do
-  x <- read <$> many1 digit
+  x <- int
   void $ char ','
-  y <- read <$> many1 digit
+  y <- int
   void $ char ','
-  z <- read <$> many1 digit
+  z <- int
   return (x, y, z)
 
 positionsParser :: Parser [Pos]

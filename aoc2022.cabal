@@ -60,6 +60,7 @@ library
     , matrix
     , parallel
     , parsec
+    , parsec-numbers
     , raw-strings-qq
     , split
     , utility-ht

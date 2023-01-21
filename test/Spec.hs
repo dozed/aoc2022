@@ -14,6 +14,7 @@ import Day15Spec
 import Day16Spec
 import Day17Spec
 import Day17bSpec
+import Day18Spec
 
 main :: IO ()
 main = hspec $ do
@@ -31,3 +32,4 @@ main = hspec $ do
   describe "Day16" day16Spec
   describe "Day17" day17Spec
   describe "Day17b" day17bSpec
+  describe "Day18" day18Spec

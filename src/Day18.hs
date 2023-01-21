@@ -3,20 +3,21 @@
 module Day18 where
 
 import Control.Monad (void)
-import Text.Parsec
+import Data.List.HT (removeEach)
+import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.RawString.QQ
 
-import Util (strip)
+import Util (count, regularParse, lstrip)
 
 miniInput :: String
-miniInput = strip [r|
+miniInput = lstrip [r|
 1,1,1
 2,1,1
 |]
 
 testInput :: String
-testInput = strip [r|
+testInput = lstrip [r|
 2,2,2
 1,2,2
 3,2,2
@@ -36,16 +37,10 @@ type X = Int
 type Y = Int
 type Z = Int
 
-type CubePos = (X, Y, Z)
+type Pos = (X, Y, Z)
 
-data Cube = Cube {
-  cubeX :: X,
-  cubeY :: Y,
-  cubeZ :: Z
-}
-
-cubePositionParser :: Parser CubePos
-cubePositionParser = do
+positionParser :: Parser Pos
+positionParser = do
   x <- read <$> many1 digit
   void $ char ','
   y <- read <$> many1 digit
@@ -53,9 +48,35 @@ cubePositionParser = do
   z <- read <$> many1 digit
   return (x, y, z)
 
-cubePositionsParser :: Parser [CubePos]
-cubePositionsParser = sepBy1 cubePositionParser endOfLine
+positionsParser :: Parser [Pos]
+positionsParser = endBy1 positionParser endOfLine
+
+isAdjacent :: Pos -> Pos -> Bool
+isAdjacent (x1, y1, z1) (x2, y2, z2)
+  | x1 == x2 && y1 == y2 = abs(z1 - z2) <= 1
+  | x1 == x2 && z1 == z2 = abs(y1 - y2) <= 1
+  | y1 == y2 && z1 == z2 = abs(x1 - x2) <= 1
+  | otherwise = False
+
+countFreeSides' :: Pos -> [Pos] -> Int
+countFreeSides' cubePos cubePositions =
+  let numAdjacents = count (isAdjacent cubePos) cubePositions
+      numFreeSides = 6 - numAdjacents
+  in numFreeSides
+
+countFreeSides :: [Pos] -> Int
+countFreeSides cubePositions =
+  let cubes = removeEach cubePositions
+      numFreeSides = sum . map (uncurry countFreeSides') $ cubes
+  in numFreeSides
 
 day18 :: IO ()
 day18 = do
-  putStrLn "day 18"
+  -- let input = testInput
+  input <- readFile "input/Day18.txt"
+
+  cubes <- case regularParse positionsParser input of
+    Left msg -> fail $ show msg
+    Right xs -> pure xs
+
+  print $ countFreeSides cubes

@@ -1,5 +1,8 @@
 module Day18Spec (day18Spec) where
 
+import Data.Set (Set)
+import qualified Data.Set as S
+
 import Test.Hspec
 
 import Day18
@@ -26,22 +29,58 @@ day18Spec = do
 
   describe "countFreeSides" $ do
     it "should count the free sides of a list of cubes" $ do
-      cubes1 <- case regularParse positionsParser miniInput of
+      droplet1 <- case regularParse positionsParser miniInput of
         Left msg -> fail $ show msg
-        Right xs -> pure xs
+        Right xs -> pure $ S.fromList xs
 
-      countFreeSides cubes1 `shouldBe` 10
+      countFreeSides droplet1 `shouldBe` 10
 
-      cubes2 <- case regularParse positionsParser testInput of
+      droplet2 <- case regularParse positionsParser testInput of
         Left msg -> fail $ show msg
-        Right xs -> pure xs
+        Right xs -> pure $ S.fromList xs
 
-      countFreeSides cubes2 `shouldBe` 64
+      countFreeSides droplet2 `shouldBe` 64
 
   describe "getBoundingArea" $ do
     it "should get the BoundingArea for a droplet" $ do
-      cubes <- case regularParse positionsParser testInput of
+      droplet <- case regularParse positionsParser testInput of
         Left msg -> fail $ show msg
-        Right xs -> pure xs
+        Right xs -> pure $ S.fromList xs
 
-      getBoundingArea cubes `shouldBe` (0, 4, 0, 4, 0, 7)
+      getBoundingArea droplet `shouldBe` (0, 4, 0, 4, 0, 7)
+
+  describe "getStartPos" $ do
+    it "should get the starting position" $ do
+      droplet <- case regularParse positionsParser testInput of
+        Left msg -> fail $ show msg
+        Right xs -> pure $ S.fromList xs
+
+      let boundingArea = getBoundingArea droplet
+
+      getStartPos boundingArea `shouldBe` (0, 0, 0)
+
+  describe "getReachables" $ do
+    it "should get all reachables for a given BoundingArea and Droplet" $ do
+      let droplet = S.fromList [(1, 1, 1)]
+          boundingArea = getBoundingArea droplet
+          outerPositions = getReachables boundingArea droplet
+
+      outerPositions `shouldBe` S.fromList [(0,0,0),(0,0,1),(0,0,2),(0,1,0),(0,1,1),(0,1,2),(0,2,0),(0,2,1),(0,2,2),(1,0,0),(1,0,1),(1,0,2),(1,1,0),(1,1,2),(1,2,0),(1,2,1),(1,2,2),(2,0,0),(2,0,1),(2,0,2),(2,1,0),(2,1,1),(2,1,2),(2,2,0),(2,2,1),(2,2,2)]
+      S.intersection outerPositions droplet `shouldBe` S.empty
+
+  describe "countAdjacentPositions" $ do
+    it "should compute adjacent positions" $ do
+      let dropletPos = (1, 1, 1)
+          droplet = S.fromList [dropletPos]
+          boundingArea = getBoundingArea droplet
+          outerPositions = getReachables boundingArea droplet
+
+      countAdjacentPositions outerPositions dropletPos `shouldBe` 6
+
+  describe "countOuterFreeSides" $ do
+    it "should compute the free sides on the outside" $ do
+      droplet <- case regularParse positionsParser testInput of
+        Left msg -> fail $ show msg
+        Right xs -> pure $ S.fromList xs
+
+      countOuterFreeSides droplet `shouldBe` 58

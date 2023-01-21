@@ -3,7 +3,11 @@
 module Day18 where
 
 import Control.Monad (void)
+import Data.Function (on)
+import Data.List (maximumBy, minimumBy)
 import Data.List.HT (removeEach)
+import Data.Set (Set)
+import qualified Data.Set as S
 import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
@@ -40,6 +44,15 @@ type Z = Int
 
 type Pos = (X, Y, Z)
 
+getX :: Pos -> X
+getX (x, _, _) = x
+
+getY :: Pos -> Y
+getY (_, y, _) = y
+
+getZ :: Pos -> Z
+getZ (_, _, z) = z
+
 positionParser :: Parser Pos
 positionParser = do
   x <- int
@@ -67,6 +80,21 @@ countFreeSides cubePositions =
       numFreeSides = sum . map (uncurry countFreeSides') $ cubes
   in numFreeSides
 
+getNeighbours :: Pos -> Set Pos
+getNeighbours (x, y, z) = S.fromList [(x-1, y, z), (x+1, y, z), (x, y-1, z), (x, y+1, z), (x, y, z-1), (x, y, z+1)]
+
+type BoundingArea = (X, X, Y, Y, Z, Z)
+
+getBoundingArea :: [Pos] -> BoundingArea
+getBoundingArea droplet = 
+  let minX = getX . minimumBy (compare `on` getX) $ droplet
+      maxX = getX . maximumBy (compare `on` getX) $ droplet
+      minY = getY . minimumBy (compare `on` getY) $ droplet
+      maxY = getY . maximumBy (compare `on` getY) $ droplet
+      minZ = getZ . minimumBy (compare `on` getZ) $ droplet
+      maxZ = getZ . maximumBy (compare `on` getZ) $ droplet
+  in (minX - 1, maxX + 1, minY - 1, maxY + 1, minZ - 1, maxZ + 1)
+
 day18 :: IO ()
 day18 = do
   -- let input = testInput
@@ -76,4 +104,8 @@ day18 = do
     Left msg -> fail $ show msg
     Right xs -> pure xs
 
+  -- part 1
   print $ countFreeSides cubes
+
+  -- part 2
+  putStrLn "part 2"

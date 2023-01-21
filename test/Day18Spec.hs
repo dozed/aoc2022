@@ -8,8 +8,8 @@ import Util (regularParse)
 day18Spec :: Spec
 day18Spec = do
 
-  describe "positionsParser" $ do
-    it "should parse a list of CubePos" $ do
+  describe "dropletParser" $ do
+    it "should parse a Droplet" $ do
       regularParse positionsParser miniInput `shouldBe` Right [(1, 1, 1), (2, 1, 1)]
 
   describe "isAdjacent" $ do
@@ -37,3 +37,11 @@ day18Spec = do
         Right xs -> pure xs
 
       countFreeSides cubes2 `shouldBe` 64
+
+  describe "getBoundingArea" $ do
+    it "should get the BoundingArea for a droplet" $ do
+      cubes <- case regularParse positionsParser testInput of
+        Left msg -> fail $ show msg
+        Right xs -> pure xs
+
+      getBoundingArea cubes `shouldBe` (0, 4, 0, 4, 0, 7)

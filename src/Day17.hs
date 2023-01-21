@@ -231,7 +231,7 @@ checkForEqualWaveFront waveFronts cycleSize step waveFront
         previousWaveFront = waveFronts M.! previousStep
         equalWaveFronts = waveFront == previousWaveFront
     in if equalWaveFronts then Just step
-       else checkForEqualWaveFront waveFronts cycleSize previousStep waveFront 
+       else checkForEqualWaveFront waveFronts cycleSize previousStep waveFront
 
 advanceBlocksAndCheck' :: Field -> [Jet] -> [Block] -> Map Step WaveFront -> CycleSize -> MaxSteps -> Step -> IO ()
 advanceBlocksAndCheck' field jets blocks waveFronts cycleSize maxSteps step
@@ -291,7 +291,7 @@ day17 = do
   --
   --  putStrLn "Field:"
   --  putStrLn $ showField field2'
-  
+
   --  let field3 = takeBlocksTurn field1 jets blocks 1000000000000
   --
   --  putStrLn "Field:"

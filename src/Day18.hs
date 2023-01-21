@@ -52,11 +52,7 @@ positionsParser :: Parser [Pos]
 positionsParser = endBy1 positionParser endOfLine
 
 isAdjacent :: Pos -> Pos -> Bool
-isAdjacent (x1, y1, z1) (x2, y2, z2)
-  | x1 == x2 && y1 == y2 = abs(z1 - z2) <= 1
-  | x1 == x2 && z1 == z2 = abs(y1 - y2) <= 1
-  | y1 == y2 && z1 == z2 = abs(x1 - x2) <= 1
-  | otherwise = False
+isAdjacent (x1, y1, z1) (x2, y2, z2) = abs(x1 - x2) + abs(y1 - y2) + abs(z1 - z2) <= 1
 
 countFreeSides' :: Pos -> [Pos] -> Int
 countFreeSides' cubePos cubePositions =

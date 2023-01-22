@@ -1,6 +1,5 @@
 module Day18Spec (day18Spec) where
 
-import Data.Set (Set)
 import qualified Data.Set as S
 
 import Test.Hspec

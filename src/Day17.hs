@@ -4,12 +4,12 @@ module Day17 (Block(..), Jet(..), day17, jetsParser, showField, readField,
               isBlockedByWall, isBlockedByFieldRock, getReachables, traceWaveFront
               ) where
 
-import Control.Monad (forM_, when)
+import Control.Monad (when)
 import Data.Function (on)
 import Data.List (intercalate, maximumBy, minimumBy)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (mapMaybe)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Debug.Trace (trace)

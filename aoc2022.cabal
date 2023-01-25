@@ -34,6 +34,7 @@ library
       Day17
       Day17b
       Day18
+      Day19
       Day2a
       Day2b
       Day3
@@ -92,6 +93,7 @@ test-suite aoc2022-test
       Day17bSpec
       Day17Spec
       Day18Spec
+      Day19Spec
       Day9Spec
       UtilGraphSearchSpec
       UtilMatrixSpec

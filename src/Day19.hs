@@ -84,11 +84,11 @@ data RobotCost = RobotCost {
 
 instance Semigroup RobotCost where
   (<>) rc1 rc2 =
-      RobotCost {
-        oreCost = oreCost rc1 + oreCost rc2,
-        clayCost = clayCost rc1 + clayCost rc2,
-        obsidianCost = obsidianCost rc1 + obsidianCost rc2
-      }
+    RobotCost {
+      oreCost = oreCost rc1 + oreCost rc2,
+      clayCost = clayCost rc1 + clayCost rc2,
+      obsidianCost = obsidianCost rc1 + obsidianCost rc2
+    }
 
   stimes n rc =
     RobotCost {

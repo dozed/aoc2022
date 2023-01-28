@@ -18,7 +18,7 @@ Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsid
 blueprintParser :: Parser Blueprint
 blueprintParser = do
   void $ string "Blueprint "
-  i <- int
+  blueprintId <- int
   void $ string ": Each ore robot costs "
   oreCost1 <- int
   void $ string " ore. Each clay robot costs "
@@ -36,7 +36,13 @@ blueprintParser = do
       clayRobotCosts = RobotCosts { oreCost = oreCost2, clayCost = 0, obsidianCost = 0 }
       obsidianRobotCosts = RobotCosts { oreCost = oreCost3, clayCost = clayCost3, obsidianCost = 0 }
       geodeRobotCosts = RobotCosts { oreCost = oreCost4, clayCost = 0, obsidianCost = obsidianCost4 }
-      blueprint = Blueprint { oreRobotCosts = oreRobotCosts, clayRobotCosts = clayRobotCosts, obsidianRobotCosts = obsidianRobotCosts, geodeRobotCosts = geodeRobotCosts }
+      blueprint = Blueprint {
+        blueprintId = blueprintId,
+        oreRobotCosts = oreRobotCosts,
+        clayRobotCosts = clayRobotCosts,
+        obsidianRobotCosts = obsidianRobotCosts,
+        geodeRobotCosts = geodeRobotCosts
+      }
   return blueprint
 
 blueprintsParser :: Parser [Blueprint]
@@ -45,15 +51,38 @@ blueprintsParser = endBy1 blueprintParser endOfLine
 data Robot = Ore | Clay | Obsidian | Geode
              deriving (Eq, Show)
 
-type Ore = Int
+type Amount = Int
+type Number = Int
+
+data Inventory = Inventory {
+  oreAmount :: Amount,
+  clayAmount :: Amount,
+  obsidianAmount :: Amount,
+  geodeAmount :: Amount,
+  numOreRobots :: Number,
+  numClayRobots :: Number,
+  numObsidianRobots :: Number,
+  numGeodeRobots :: Number
+} deriving (Show, Eq)
+
+collectMaterials :: Inventory -> Inventory
+collectMaterials i = i {
+      oreAmount = oreAmount i + numOreRobots i,
+      clayAmount = clayAmount i + numClayRobots i,
+      obsidianAmount = obsidianAmount i + numObsidianRobots i,
+      geodeAmount = geodeAmount i + numGeodeRobots i
+    }
+
+type Cost = Int
 
 data RobotCosts = RobotCosts {
-  oreCost :: Ore,
-  clayCost :: Ore,
-  obsidianCost :: Ore
+  oreCost :: Cost,
+  clayCost :: Cost,
+  obsidianCost :: Cost
 } deriving (Eq, Show)
 
 data Blueprint = Blueprint {
+  blueprintId :: Int,
   oreRobotCosts :: RobotCosts,
   clayRobotCosts :: RobotCosts,
   obsidianRobotCosts :: RobotCosts,

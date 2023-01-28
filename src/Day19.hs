@@ -67,12 +67,13 @@ data Inventory = Inventory {
 } deriving (Show, Eq)
 
 collectMaterials :: Inventory -> Inventory
-collectMaterials i = i {
-      oreAmount = oreAmount i + numOreRobots i,
-      clayAmount = clayAmount i + numClayRobots i,
-      obsidianAmount = obsidianAmount i + numObsidianRobots i,
-      geodeAmount = geodeAmount i + numGeodeRobots i
-    }
+collectMaterials i =
+  i {
+    oreAmount = oreAmount i + numOreRobots i,
+    clayAmount = clayAmount i + numClayRobots i,
+    obsidianAmount = obsidianAmount i + numObsidianRobots i,
+    geodeAmount = geodeAmount i + numGeodeRobots i
+  }
 
 type Cost = Int
 

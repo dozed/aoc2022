@@ -2,14 +2,15 @@
 
 module Day19 where
 
-import Control.Monad (void)
+import Control.Monad (forM_, void, when)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Semigroup (stimes)
 import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip)
+import Util (lstrip, regularParse)
 
 testInput = lstrip [r|
 Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
@@ -66,6 +67,19 @@ data Inventory = Inventory {
   numGeodeRobots :: Number
 } deriving (Show, Eq)
 
+startInventory :: Inventory
+startInventory =
+  Inventory {
+    oreAmount = 0,
+    clayAmount = 0,
+    obsidianAmount = 0,
+    geodeAmount = 0,
+    numOreRobots = 1,
+    numClayRobots = 0,
+    numObsidianRobots = 0,
+    numGeodeRobots = 0
+  }
+
 collectMaterials :: Inventory -> Inventory
 collectMaterials i =
   i {
@@ -112,10 +126,10 @@ data Blueprint = Blueprint {
 
 getMaximumBuildableRobots' :: RobotCost -> Inventory -> Int
 getMaximumBuildableRobots' rc i =
-  let maxByOre = if oreCost rc == 0 then 0 else oreAmount i `div` oreCost rc
-      maxByClay = if clayCost rc == 0 then 0 else clayAmount i `div` clayCost rc
-      maxByObsidian = if obsidianCost rc == 0 then 0 else obsidianAmount i `div` obsidianCost rc
-  in minimum [maxByOre, maxByClay, maxByObsidian]
+  let maxByOre = if oreCost rc == 0 then [] else [oreAmount i `div` oreCost rc]
+      maxByClay = if clayCost rc == 0 then [] else [clayAmount i `div` clayCost rc]
+      maxByObsidian = if obsidianCost rc == 0 then [] else [obsidianAmount i `div` obsidianCost rc]
+  in minimum (maxByOre ++ maxByClay ++ maxByObsidian)
 
 getMaximumBuildableRobots :: Blueprint -> Inventory -> RobotType -> Int
 getMaximumBuildableRobots bp i OreRobot = getMaximumBuildableRobots' (oreRobotCost bp) i
@@ -135,6 +149,14 @@ addRobotsToInventory OreRobot n i = i { numOreRobots = numOreRobots i + n }
 addRobotsToInventory ClayRobot n i = i { numClayRobots = numClayRobots i + n }
 addRobotsToInventory ObsidianRobot n i = i { numObsidianRobots = numObsidianRobots i + n }
 addRobotsToInventory GeodeRobot n i = i { numGeodeRobots = numGeodeRobots i + n }
+
+addRobotsToInventory' :: RobotBuild -> Inventory -> Inventory
+addRobotsToInventory' rb i =
+  let i1 = addRobotsToInventory OreRobot (buildOreRobots rb) i
+      i2 = addRobotsToInventory ClayRobot (buildClayRobots rb) i1
+      i3 = addRobotsToInventory ObsidianRobot (buildObsidianRobots rb) i2
+      i4 = addRobotsToInventory GeodeRobot (buildGeodeRobots rb) i3
+  in i4
 
 isBuildable :: Blueprint -> Inventory -> RobotBuild -> Bool
 isBuildable bp i rb =
@@ -167,6 +189,40 @@ getBuildableRobots bp i = do
 
   return build'
 
+type Timestep = Int
+
+search :: Blueprint -> Inventory -> Timestep -> IORef Int -> IO ()
+search _ i 25 currentMaxRef = do
+  currentMaxGeodeAmount <- readIORef currentMaxRef
+  let currentGeodeAmount = geodeAmount i
+  when (currentGeodeAmount > currentMaxGeodeAmount) $ do
+    putStrLn $ "Geodes: " <> show currentGeodeAmount
+    writeIORef currentMaxRef currentGeodeAmount
+search bp i ts currentMaxRef = do
+  let -- robots collect materials
+      i' = collectMaterials i
+      -- build new robots
+      buildableRobots = getBuildableRobots bp i
+      inventories = map (\rb -> addRobotsToInventory' rb i') buildableRobots
+  forM_ inventories $ \i'' ->
+    search bp i'' (ts+1) currentMaxRef
+
 day19 :: IO ()
 day19 = do
-  putStrLn "day19"
+  let input = testInput
+
+  blueprints <- case regularParse blueprintsParser input of
+    Left e -> fail $ show e
+    Right xs -> pure xs
+
+  let bp = head blueprints
+
+  currentMax <- newIORef 0
+
+  putStrLn $ "Blueprint: " <> show (blueprintId bp)
+  print bp
+  search bp startInventory 1 currentMax
+
+--  forM_ blueprints $ \bp -> do
+--    putStrLn $ "Blueprint: " <> show (blueprintId bp)
+--    search bp startInventory 1

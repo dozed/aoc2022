@@ -59,8 +59,10 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
+      - checkers
       - containers
       - hspec
+      - hspec-checkers
       - matrix
       - QuickCheck
       - raw-strings-qq

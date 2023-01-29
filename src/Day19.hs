@@ -236,20 +236,23 @@ isBuildable' i rc = oreAmount i >= oreCost rc && clayAmount i >= clayCost rc && 
 getAllRobotTypes :: [RobotType]
 getAllRobotTypes = [OreRobot, ClayRobot, ObsidianRobot, GeodeRobot]
 
+data BuildRobot = BuildNoRobot | BuildRobot RobotType
+                  deriving (Eq, Show)
+
 getBuildableRobotTypes :: Blueprint -> Inventory -> [RobotType]
 getBuildableRobotTypes bp i = [rt | rt <- getAllRobotTypes, isBuildable' i (getRobotCost bp rt)]
 
 type Timestep = Int
 
-search :: Blueprint -> Inventory -> Timestep -> IORef Int -> IO ()
-search _ i 25 maxGeodesRef = do
+search :: Blueprint -> Inventory -> Timestep -> IORef Int -> [BuildRobot] -> IO ()
+search _ i 25 maxGeodesRef brs = do
   maxGeodes <- readIORef maxGeodesRef
   let currentGeodes = geodeAmount i
   -- print i
   when (currentGeodes > maxGeodes) $ do
-    logInfo $ "- Geodes: " <> showText currentGeodes
+    logInfo $ "- Geodes: " <> showText currentGeodes <> " - " <> showText (reverse brs)
     writeIORef maxGeodesRef currentGeodes
-search bp i ts maxGeodesRef = do
+search bp i ts maxGeodesRef brs = do
   let -- build new robots
       -- buildableRobots = getBuildableRobots' bp i
       -- inventories = map (\rb -> addRobotsToInventory' rb i') buildableRobots
@@ -257,12 +260,12 @@ search bp i ts maxGeodesRef = do
       -- robots collect materials
       i' = collectMaterials i
       -- robots are built
-      inventories = i' : map (\rb -> addRobotToInventory''' bp rb i') buildableRobots
+      inventories = (BuildNoRobot, i') : map (\rt -> (BuildRobot rt, addRobotToInventory''' bp rt i')) buildableRobots
   -- when (length buildableRobots == 4) $ putStrLn $ show ts <> ": " <> show buildableRobots
   -- putStrLn $ show ts <> ": " <> show buildableRobots
   -- print i'
-  forM_ inventories $ \i'' ->
-    search bp i'' (ts+1) maxGeodesRef
+  forM_ inventories $ \(br, i'') -> do
+    search bp i'' (ts+1) maxGeodesRef (br:brs)
 
 day19 :: IO ()
 day19 = withGlobalLogging (LogConfig Nothing True) $ do
@@ -276,4 +279,4 @@ day19 = withGlobalLogging (LogConfig Nothing True) $ do
   forM_ blueprints $ \bp -> do
     logInfo $ "Blueprint: " <> showText (blueprintId bp)
     maxGeodesRef <- newIORef 0
-    search bp startInventory 1 maxGeodesRef
+    search bp startInventory 1 maxGeodesRef []

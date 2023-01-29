@@ -239,6 +239,13 @@ getAllRobotTypes = [OreRobot, ClayRobot, ObsidianRobot, GeodeRobot]
 data BuildRobot = BuildNoRobot | BuildRobot RobotType
                   deriving (Eq, Show)
 
+showBuildRobotShort :: BuildRobot -> String
+showBuildRobotShort BuildNoRobot = "n"
+showBuildRobotShort (BuildRobot OreRobot) = "or"
+showBuildRobotShort (BuildRobot ClayRobot) = "c"
+showBuildRobotShort (BuildRobot ObsidianRobot) = "ob"
+showBuildRobotShort (BuildRobot GeodeRobot) = "g"
+
 getBuildableRobotTypes :: Blueprint -> Inventory -> [RobotType]
 getBuildableRobotTypes bp i = [rt | rt <- getAllRobotTypes, isBuildable' i (getRobotCost bp rt)]
 
@@ -250,7 +257,7 @@ search _ i 25 maxGeodesRef brs = do
   let currentGeodes = geodeAmount i
   -- print i
   when (currentGeodes > maxGeodes) $ do
-    logInfo $ "- Geodes: " <> showText currentGeodes <> " - " <> showText (reverse brs)
+    logInfo $ "- Geodes: " <> showText currentGeodes <> " - " <> showText (reverse . map showBuildRobotShort $ brs)
     writeIORef maxGeodesRef currentGeodes
 search bp i ts maxGeodesRef brs = do
   let -- build new robots

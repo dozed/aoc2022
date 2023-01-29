@@ -3,7 +3,7 @@
 
 module Day19 where
 
-import Control.Logger.Simple
+import Control.Logger.Simple (LogConfig(..), withGlobalLogging, logInfo, showText)
 import Control.Monad (forM_, void, when)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Semigroup (stimes)

@@ -231,11 +231,11 @@ isBuildable' i rc = oreAmount i >= oreCost rc && clayAmount i >= clayCost rc && 
 --      xs4 = if isBuildable' bp i GeodeRobot then [zeroRobotBuild { buildGeodeRobots = 1}] else []
 --  in xs0 ++ xs1 ++ xs2 ++ xs3 ++ xs4
 
-robotTypes :: [RobotType]
-robotTypes = [OreRobot, ClayRobot, ObsidianRobot, GeodeRobot]
+getAllRobotTypes :: [RobotType]
+getAllRobotTypes = [OreRobot, ClayRobot, ObsidianRobot, GeodeRobot]
 
-getBuildableRobots'' :: Blueprint -> Inventory -> [RobotType]
-getBuildableRobots'' bp i = [rt | rt <- robotTypes, isBuildable' i (getRobotCost bp rt)]
+getBuildableRobotTypes :: Blueprint -> Inventory -> [RobotType]
+getBuildableRobotTypes bp i = [rt | rt <- getAllRobotTypes, isBuildable' i (getRobotCost bp rt)]
 
 type Timestep = Int
 
@@ -245,18 +245,19 @@ search _ i 25 maxGeodesRef = do
   let currentGeodes = geodeAmount i
   -- print i
   when (currentGeodes > maxGeodes) $ do
-    putStrLn $ "Geodes: " <> show currentGeodes
+    putStrLn $ "- Geodes: " <> show currentGeodes
     writeIORef maxGeodesRef currentGeodes
 search bp i ts maxGeodesRef = do
   let -- build new robots
       -- buildableRobots = getBuildableRobots' bp i
       -- inventories = map (\rb -> addRobotsToInventory' rb i') buildableRobots
-      buildableRobots = getBuildableRobots'' bp i
+      buildableRobots = getBuildableRobotTypes bp i
       -- robots collect materials
       i' = collectMaterials i
       -- robots are built
       inventories = i' : map (\rb -> addRobotToInventory''' bp rb i') buildableRobots
-  -- print buildableRobots
+  -- when (length buildableRobots == 4) $ putStrLn $ show ts <> ": " <> show buildableRobots
+  putStrLn $ show ts <> ": " <> show buildableRobots
   -- print i'
   forM_ inventories $ \i'' ->
     search bp i'' (ts+1) maxGeodesRef

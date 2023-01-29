@@ -1,7 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Day19 where
 
+import Control.Logger.Simple
 import Control.Monad (forM_, void, when)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Semigroup (stimes)
@@ -245,7 +247,7 @@ search _ i 25 maxGeodesRef = do
   let currentGeodes = geodeAmount i
   -- print i
   when (currentGeodes > maxGeodes) $ do
-    putStrLn $ "- Geodes: " <> show currentGeodes
+    logInfo $ "- Geodes: " <> showText currentGeodes
     writeIORef maxGeodesRef currentGeodes
 search bp i ts maxGeodesRef = do
   let -- build new robots
@@ -257,13 +259,13 @@ search bp i ts maxGeodesRef = do
       -- robots are built
       inventories = i' : map (\rb -> addRobotToInventory''' bp rb i') buildableRobots
   -- when (length buildableRobots == 4) $ putStrLn $ show ts <> ": " <> show buildableRobots
-  putStrLn $ show ts <> ": " <> show buildableRobots
+  -- putStrLn $ show ts <> ": " <> show buildableRobots
   -- print i'
   forM_ inventories $ \i'' ->
     search bp i'' (ts+1) maxGeodesRef
 
 day19 :: IO ()
-day19 = do
+day19 = withGlobalLogging (LogConfig Nothing True) $ do
   let input = testInput
   -- input <- readFile "input/Day19.txt"
 
@@ -272,6 +274,6 @@ day19 = do
     Right xs -> pure xs
 
   forM_ blueprints $ \bp -> do
-    putStrLn $ "Blueprint: " <> show (blueprintId bp)
+    logInfo $ "Blueprint: " <> showText (blueprintId bp)
     maxGeodesRef <- newIORef 0
     search bp startInventory 1 maxGeodesRef

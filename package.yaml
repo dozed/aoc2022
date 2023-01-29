@@ -36,6 +36,7 @@ library:
   - parsec
   - parsec-numbers
   - raw-strings-qq
+  - simple-logger
   - split
   - utility-ht
 

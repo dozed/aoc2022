@@ -46,13 +46,13 @@ data IdInt = IdInt Id Int deriving (Eq, Show)
 
 type Pos = Int
 
-getPos' :: [IdInt] -> Id -> Pos -> Int
+getPos' :: [IdInt] -> Id -> Pos -> Pos
 getPos' [] _ _ = undefined
 getPos' ((IdInt j _):xs) i pos
   | j == i = pos
   | otherwise = getPos' xs i (pos+1)
 
-getPos :: [IdInt] -> Id -> Int
+getPos :: [IdInt] -> Id -> Pos
 getPos xs i = getPos' xs i 0
 
 day20 :: IO ()

@@ -181,14 +181,14 @@ getLargestRobotTypeInInventory i
 
 type Timestep = Int
 
-search :: Blueprint -> Inventory -> Timestep -> IORef Int -> [BuildRobot] -> IO ()
-search _ i 25 maxGeodesRef brs = do
+search :: Blueprint -> Inventory -> Timestep -> Timestep -> IORef Int -> [BuildRobot] -> IO ()
+search _ i ts maxTs maxGeodesRef brs | ts > maxTs = do
   maxGeodes <- readIORef maxGeodesRef
   let currentGeodes = geodeAmount i
   when (currentGeodes > maxGeodes) $ do
     logInfo $ "- Geodes: " <> showText currentGeodes <> " - " <> showText (reverse . map showBuildRobotShort $ brs)
     writeIORef maxGeodesRef currentGeodes
-search bp i ts maxGeodesRef brs = do
+search bp i ts maxTs maxGeodesRef brs = do
   let -- build new robots
       buildableRobots' = getBuildableRobotTypes bp i
       -- robots collect materials
@@ -196,7 +196,7 @@ search bp i ts maxGeodesRef brs = do
       -- robots are built
       inventories = (BuildNoRobot, i') : map (\rt -> (BuildRobot rt, addRobotToInventory bp rt i')) buildableRobots'
   forM_ inventories $ \(br, i'') -> do
-    search bp i'' (ts+1) maxGeodesRef (br:brs)
+    search bp i'' (ts+1) maxTs maxGeodesRef (br:brs)
 
 day19 :: IO ()
 day19 = withGlobalLogging (LogConfig Nothing True) $ do
@@ -207,9 +207,18 @@ day19 = withGlobalLogging (LogConfig Nothing True) $ do
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  forM_ blueprints $ \bp -> do
+  -- part 1
+  -- forM_ blueprints $ \bp -> do
+  --   logInfo $ "Blueprint: " <> showText (blueprintId bp)
+  --   maxGeodesRef <- newIORef 0
+  --   search bp getStartInventory 1 24 maxGeodesRef []
+  -- 
+  -- logInfo "Finished"
+
+  -- part 2
+  forM_ (take 3 blueprints) $ \bp -> do
     logInfo $ "Blueprint: " <> showText (blueprintId bp)
     maxGeodesRef <- newIORef 0
-    search bp getStartInventory 1 maxGeodesRef []
+    search bp getStartInventory 1 32 maxGeodesRef []
 
   logInfo "Finished"

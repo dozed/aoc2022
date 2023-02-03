@@ -27,3 +27,9 @@ day20Spec = do
       let xs = [0, 1, 2, 3, 4, 5]
 
       swap 2 4 xs `shouldBe` [0, 1, 4, 3, 2, 5]
+
+  describe "applyOffset" $ do
+    it "should apply an offset to a position in a cyclic list" $ do
+      applyOffset 8 2 7 `shouldBe` 1
+      applyOffset 8 2 (-3) `shouldBe` 7
+      applyOffset 8 2 (-13) `shouldBe` 5

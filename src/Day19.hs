@@ -132,106 +132,29 @@ getRobotCost bp ClayRobot = clayRobotCost bp
 getRobotCost bp ObsidianRobot = obsidianRobotCost bp
 getRobotCost bp GeodeRobot = geodeRobotCost bp
 
-getMaximumBuildableRobots' :: RobotCost -> Inventory -> Int
-getMaximumBuildableRobots' rc i =
-  let maxByOre = if oreCost rc == 0 then [] else [oreAmount i `div` oreCost rc]
-      maxByClay = if clayCost rc == 0 then [] else [clayAmount i `div` clayCost rc]
-      maxByObsidian = if obsidianCost rc == 0 then [] else [obsidianAmount i `div` obsidianCost rc]
-  in minimum (maxByOre ++ maxByClay ++ maxByObsidian)
+addRobotToInventory' :: RobotType -> Inventory -> Inventory
+addRobotToInventory' OreRobot i = i { numOreRobots = numOreRobots i + 1 }
+addRobotToInventory' ClayRobot i = i { numClayRobots = numClayRobots i + 1 }
+addRobotToInventory' ObsidianRobot i = i { numObsidianRobots = numObsidianRobots i + 1 }
+addRobotToInventory' GeodeRobot i = i { numGeodeRobots = numGeodeRobots i + 1 }
 
-getMaximumBuildableRobots :: Blueprint -> Inventory -> RobotType -> Int
-getMaximumBuildableRobots bp i OreRobot = getMaximumBuildableRobots' (oreRobotCost bp) i
-getMaximumBuildableRobots bp i ClayRobot = getMaximumBuildableRobots' (clayRobotCost bp) i
-getMaximumBuildableRobots bp i ObsidianRobot = getMaximumBuildableRobots' (obsidianRobotCost bp) i
-getMaximumBuildableRobots bp i GeodeRobot = getMaximumBuildableRobots' (geodeRobotCost bp) i
-
-data RobotBuild = RobotBuild {
-  buildOreRobots :: Number,
-  buildClayRobots :: Number,
-  buildObsidianRobots :: Number,
-  buildGeodeRobots :: Number
-} deriving (Eq, Show)
-
-getZeroRobotBuild :: RobotBuild
-getZeroRobotBuild = RobotBuild { buildOreRobots = 0, buildClayRobots = 0, buildObsidianRobots = 0, buildGeodeRobots = 0 }
-
-addRobotsToInventory :: RobotType -> Number -> Inventory -> Inventory
-addRobotsToInventory OreRobot n i = i { numOreRobots = numOreRobots i + n }
-addRobotsToInventory ClayRobot n i = i { numClayRobots = numClayRobots i + n }
-addRobotsToInventory ObsidianRobot n i = i { numObsidianRobots = numObsidianRobots i + n }
-addRobotsToInventory GeodeRobot n i = i { numGeodeRobots = numGeodeRobots i + n }
-
-addRobotsToInventory' :: RobotBuild -> Inventory -> Inventory
-addRobotsToInventory' rb i =
-  let i1 = addRobotsToInventory OreRobot (buildOreRobots rb) i
-      i2 = addRobotsToInventory ClayRobot (buildClayRobots rb) i1
-      i3 = addRobotsToInventory ObsidianRobot (buildObsidianRobots rb) i2
-      i4 = addRobotsToInventory GeodeRobot (buildGeodeRobots rb) i3
-  in i4
-
-addRobotToInventory'' :: RobotType -> Inventory -> Inventory
-addRobotToInventory'' OreRobot i = i { numOreRobots = numOreRobots i + 1 }
-addRobotToInventory'' ClayRobot i = i { numClayRobots = numClayRobots i + 1 }
-addRobotToInventory'' ObsidianRobot i = i { numObsidianRobots = numObsidianRobots i + 1 }
-addRobotToInventory'' GeodeRobot i = i { numGeodeRobots = numGeodeRobots i + 1 }
-
-applyRobotCostToInventory :: RobotCost -> Inventory -> Inventory
-applyRobotCostToInventory rc i =
+subtractRobotCostFromInventory :: RobotCost -> Inventory -> Inventory
+subtractRobotCostFromInventory rc i =
   i {
     oreAmount = oreAmount i - oreCost rc,
     clayAmount = clayAmount i - clayCost rc,
     obsidianAmount = obsidianAmount i - obsidianCost rc
   }
 
-addRobotToInventory''' :: Blueprint -> RobotType -> Inventory -> Inventory
-addRobotToInventory''' bp rt i =
-  let i' = addRobotToInventory'' rt i
+addRobotToInventory :: Blueprint -> RobotType -> Inventory -> Inventory
+addRobotToInventory bp rt i =
+  let i' = addRobotToInventory' rt i
       rc = getRobotCost bp rt
-      i'' = applyRobotCostToInventory rc i'
+      i'' = subtractRobotCostFromInventory rc i'
   in i''
-
-isBuildable :: Blueprint -> Inventory -> RobotBuild -> Bool
-isBuildable bp i rb =
-  let oreCosts = stimes (buildOreRobots rb) (oreRobotCost bp)
-      clayCosts = stimes (buildClayRobots rb) (clayRobotCost bp)
-      obsidianCosts = stimes (buildObsidianRobots rb) (obsidianRobotCost bp)
-      robotsCosts = mconcat [oreCosts, clayCosts, obsidianCosts]
-  in oreAmount i >= oreCost robotsCosts && clayAmount i >= clayCost robotsCosts && obsidianAmount i >= obsidianCost robotsCosts
-
-getBuildableRobots :: Blueprint -> Inventory -> [RobotBuild]
-getBuildableRobots bp i = do
-  let maxOreRobots = getMaximumBuildableRobots bp i OreRobot
-      maxClayRobots = getMaximumBuildableRobots bp i ClayRobot
-      maxObsidianRobots = getMaximumBuildableRobots bp i ObsidianRobot
-      maxGeodeRobots = getMaximumBuildableRobots bp i GeodeRobot
-
-  numOreRobots <- [0..maxOreRobots]
-  numClayRobots <- [0..maxClayRobots]
-  numObsidianRobots <- [0..maxObsidianRobots]
-  numGeodeRobots <- [0..maxGeodeRobots]
-
-  let build = RobotBuild {
-    buildOreRobots = numOreRobots,
-    buildClayRobots = numClayRobots,
-    buildObsidianRobots = numObsidianRobots,
-    buildGeodeRobots = numGeodeRobots
-  }
-
-  build' <- if isBuildable bp i build then [build] else []
-
-  return build'
 
 isBuildable' :: Inventory -> RobotCost -> Bool
 isBuildable' i rc = oreAmount i >= oreCost rc && clayAmount i >= clayCost rc && obsidianAmount i >= obsidianCost rc
-
---getBuildableRobots' :: Blueprint -> Inventory -> [RobotBuild]
---getBuildableRobots' bp i =
---  let xs0 = [zeroRobotBuild]
---      xs1 = if isBuildable' bp i OreRobot then [zeroRobotBuild { buildOreRobots = 1}] else []
---      xs2 = if isBuildable' bp i ClayRobot then [zeroRobotBuild { buildClayRobots = 1}] else []
---      xs3 = if isBuildable' bp i ObsidianRobot then [zeroRobotBuild { buildObsidianRobots = 1}] else []
---      xs4 = if isBuildable' bp i GeodeRobot then [zeroRobotBuild { buildGeodeRobots = 1}] else []
---  in xs0 ++ xs1 ++ xs2 ++ xs3 ++ xs4
 
 getAllRobotTypes :: [RobotType]
 getAllRobotTypes = [OreRobot, ClayRobot, ObsidianRobot, GeodeRobot]
@@ -262,26 +185,16 @@ search :: Blueprint -> Inventory -> Timestep -> IORef Int -> [BuildRobot] -> IO 
 search _ i 25 maxGeodesRef brs = do
   maxGeodes <- readIORef maxGeodesRef
   let currentGeodes = geodeAmount i
-  -- print i
   when (currentGeodes > maxGeodes) $ do
     logInfo $ "- Geodes: " <> showText currentGeodes <> " - " <> showText (reverse . map showBuildRobotShort $ brs)
     writeIORef maxGeodesRef currentGeodes
 search bp i ts maxGeodesRef brs = do
   let -- build new robots
-      -- buildableRobots = getBuildableRobots' bp i
-      -- inventories = map (\rb -> addRobotsToInventory' rb i') buildableRobots
       buildableRobots' = getBuildableRobotTypes bp i
-      -- build only robots of the largest RobotType or greater
-      -- - does not find the optimal solution
-      -- largestRobotType = getLargestRobotTypeInInventory i
-      -- buildableRobots' = filter (\rt -> rt >= largestRobotType) buildableRobots
       -- robots collect materials
       i' = collectMaterials i
       -- robots are built
-      inventories = (BuildNoRobot, i') : map (\rt -> (BuildRobot rt, addRobotToInventory''' bp rt i')) buildableRobots'
-  -- when (length buildableRobots == 4) $ putStrLn $ show ts <> ": " <> show buildableRobots
-  -- putStrLn $ show ts <> ": " <> show buildableRobots
-  -- print i'
+      inventories = (BuildNoRobot, i') : map (\rt -> (BuildRobot rt, addRobotToInventory bp rt i')) buildableRobots'
   forM_ inventories $ \(br, i'') -> do
     search bp i'' (ts+1) maxGeodesRef (br:brs)
 

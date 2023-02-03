@@ -69,20 +69,3 @@ day19Spec = do
       }
 
       collectMaterials inventory `shouldBe` expected
-
-  describe "getMaximumBuildableRobots'" $ do
-    it "should compute maximum buildable robots" $ do
-      let bp = Blueprint {
-        blueprintId = 1,
-        oreRobotCost = RobotCost {oreCost = 4, clayCost = 0, obsidianCost = 0},
-        clayRobotCost = RobotCost {oreCost = 2, clayCost = 0, obsidianCost = 0},
-        obsidianRobotCost = RobotCost {oreCost = 3, clayCost = 14, obsidianCost = 0},
-        geodeRobotCost = RobotCost {oreCost = 2, clayCost = 0, obsidianCost = 7}
-      }
-
-      let i = Inventory {
-        oreAmount = 24, clayAmount = 0, obsidianAmount = 0, geodeAmount = 0,
-        numOreRobots = 1, numClayRobots = 0, numObsidianRobots = 0, numGeodeRobots = 0
-      }
-
-      getMaximumBuildableRobots' (oreRobotCost bp) i `shouldBe` 6

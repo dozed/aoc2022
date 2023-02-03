@@ -25,22 +25,6 @@ testInput = lstrip [r|
 parseNumbers :: Parser [Int]
 parseNumbers = endBy1 int endOfLine
 
-data CyclicList a = CyclicList {
-  elements :: [a],
-  size :: Int
-} deriving (Eq, Show)
-
-mkCyclicList :: [a] -> CyclicList a
-mkCyclicList as =
-  let n = length as
-  in CyclicList { elements = as, size = n }
-
-takeCL :: Int -> CyclicList a -> a
-takeCL n CyclicList { elements, size } =
-  let pos = n `mod` size
-      el = elements !! pos
-  in el
-
 type Id = Int
 data IdInt = IdInt Id Int deriving (Eq, Show)
 

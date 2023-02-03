@@ -53,7 +53,7 @@ blueprintsParser :: Parser [Blueprint]
 blueprintsParser = endBy1 blueprintParser endOfLine
 
 data RobotType = OreRobot | ClayRobot | ObsidianRobot | GeodeRobot
-             deriving (Eq, Show)
+             deriving (Eq, Ord, Show)
 
 type Amount = Int
 type Number = Int
@@ -69,8 +69,8 @@ data Inventory = Inventory {
   numGeodeRobots :: Number
 } deriving (Show, Eq)
 
-startInventory :: Inventory
-startInventory =
+getStartInventory :: Inventory
+getStartInventory =
   Inventory {
     oreAmount = 0,
     clayAmount = 0,
@@ -152,8 +152,8 @@ data RobotBuild = RobotBuild {
   buildGeodeRobots :: Number
 } deriving (Eq, Show)
 
-zeroRobotBuild :: RobotBuild
-zeroRobotBuild = RobotBuild { buildOreRobots = 0, buildClayRobots = 0, buildObsidianRobots = 0, buildGeodeRobots = 0 }
+getZeroRobotBuild :: RobotBuild
+getZeroRobotBuild = RobotBuild { buildOreRobots = 0, buildClayRobots = 0, buildObsidianRobots = 0, buildGeodeRobots = 0 }
 
 addRobotsToInventory :: RobotType -> Number -> Inventory -> Inventory
 addRobotsToInventory OreRobot n i = i { numOreRobots = numOreRobots i + n }
@@ -249,6 +249,13 @@ showBuildRobotShort (BuildRobot GeodeRobot) = "g"
 getBuildableRobotTypes :: Blueprint -> Inventory -> [RobotType]
 getBuildableRobotTypes bp i = [rt | rt <- getAllRobotTypes, isBuildable' i (getRobotCost bp rt)]
 
+getLargestRobotTypeInInventory :: Inventory -> RobotType
+getLargestRobotTypeInInventory i
+  | numGeodeRobots i > 0 = GeodeRobot
+  | numObsidianRobots i > 0 = ObsidianRobot
+  | numClayRobots i > 0 = ClayRobot
+  | otherwise = OreRobot
+
 type Timestep = Int
 
 search :: Blueprint -> Inventory -> Timestep -> IORef Int -> [BuildRobot] -> IO ()
@@ -263,11 +270,15 @@ search bp i ts maxGeodesRef brs = do
   let -- build new robots
       -- buildableRobots = getBuildableRobots' bp i
       -- inventories = map (\rb -> addRobotsToInventory' rb i') buildableRobots
-      buildableRobots = getBuildableRobotTypes bp i
+      buildableRobots' = getBuildableRobotTypes bp i
+      -- build only robots of the largest RobotType or greater
+      -- - does not find the optimal solution
+      -- largestRobotType = getLargestRobotTypeInInventory i
+      -- buildableRobots' = filter (\rt -> rt >= largestRobotType) buildableRobots
       -- robots collect materials
       i' = collectMaterials i
       -- robots are built
-      inventories = (BuildNoRobot, i') : map (\rt -> (BuildRobot rt, addRobotToInventory''' bp rt i')) buildableRobots
+      inventories = (BuildNoRobot, i') : map (\rt -> (BuildRobot rt, addRobotToInventory''' bp rt i')) buildableRobots'
   -- when (length buildableRobots == 4) $ putStrLn $ show ts <> ": " <> show buildableRobots
   -- putStrLn $ show ts <> ": " <> show buildableRobots
   -- print i'
@@ -276,8 +287,8 @@ search bp i ts maxGeodesRef brs = do
 
 day19 :: IO ()
 day19 = withGlobalLogging (LogConfig Nothing True) $ do
-  let input = testInput
-  -- input <- readFile "input/Day19.txt"
+  -- let input = testInput
+  input <- readFile "input/Day19.txt"
 
   blueprints <- case regularParse blueprintsParser input of
     Left e -> fail $ show e
@@ -286,4 +297,6 @@ day19 = withGlobalLogging (LogConfig Nothing True) $ do
   forM_ blueprints $ \bp -> do
     logInfo $ "Blueprint: " <> showText (blueprintId bp)
     maxGeodesRef <- newIORef 0
-    search bp startInventory 1 maxGeodesRef []
+    search bp getStartInventory 1 maxGeodesRef []
+
+  logInfo "Finished"

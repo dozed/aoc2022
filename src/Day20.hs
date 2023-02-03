@@ -9,7 +9,7 @@ import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse)
+import Util (lstrip, regularParse, replaceAtIndex)
 
 testInput :: String
 testInput = lstrip [r|
@@ -38,6 +38,14 @@ getPos' ((IdInt j _):xs) i pos
 
 getPos :: [IdInt] -> Id -> Pos
 getPos xs i = getPos' xs i 0
+
+swap :: Int -> Int -> [a] -> [a]
+swap i j xs =
+  let x = xs !! i
+      y = xs !! j
+      xs' = replaceAtIndex i y xs
+      xs'' = replaceAtIndex j x xs'
+  in xs''
 
 day20 :: IO ()
 day20 = do

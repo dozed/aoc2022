@@ -7,7 +7,7 @@ import Util (regularParse)
 
 day20Spec :: Spec
 day20Spec = do
-  
+
   describe "parseNumbers" $ do
     it "should parse numbers" $ do
       numbers <- case regularParse parseNumbers testInput of
@@ -21,3 +21,9 @@ day20Spec = do
       let idNumbers = [IdInt 2 0, IdInt 0 1, IdInt 1 2]
 
       getPos idNumbers 1 `shouldBe` 2
+
+  describe "swap" $ do
+    it "should swap two positions" $ do
+      let xs = [0, 1, 2, 3, 4, 5]
+
+      swap 2 4 xs `shouldBe` [0, 1, 4, 3, 2, 5]

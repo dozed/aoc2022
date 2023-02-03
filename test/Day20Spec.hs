@@ -15,3 +15,9 @@ day20Spec = do
         Right xs -> pure xs
 
       numbers `shouldBe` [1, 2, -3, 3, -2, 0, 4]
+
+  describe "getPos" $ do
+    it "should get position of number" $ do
+      let idNumbers = [IdInt 2 0, IdInt 0 1, IdInt 1 2]
+
+      getPos idNumbers 1 `shouldBe` 2

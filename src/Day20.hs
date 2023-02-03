@@ -4,6 +4,7 @@
 
 module Day20 where
 
+import Data.List (findIndex)
 import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
@@ -30,14 +31,10 @@ data IdInt = IdInt Id Int deriving (Eq, Show)
 
 type Pos = Int
 
-getPos' :: [IdInt] -> Id -> Pos -> Pos
-getPos' [] _ _ = undefined
-getPos' ((IdInt j _):xs) i pos
-  | j == i = pos
-  | otherwise = getPos' xs i (pos+1)
-
 getPos :: [IdInt] -> Id -> Pos
-getPos xs i = getPos' xs i 0
+getPos xs i = case findIndex (\(IdInt j _) -> i == j) xs of
+  Nothing -> undefined
+  Just p -> p
 
 swap :: Int -> Int -> [a] -> [a]
 swap i j xs =

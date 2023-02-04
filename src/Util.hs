@@ -6,6 +6,7 @@ module Util (
   catPairs,
   count,
   deleteAt,
+  dropUntil,
   findElem,
   filterNot,
   intersect,
@@ -131,6 +132,13 @@ takeUntil :: (a -> Bool) -> [a] -> [a]
 takeUntil _ [] = []
 takeUntil p (x:xs) = x : if p x then takeUntil p xs
                          else []
+
+-- https://hackage.haskell.org/package/yjtools-0.9.18/docs/Data-List-Tools.html#v:dropUntil
+dropUntil :: (a -> Bool) -> [a] -> [a]
+dropUntil _ []     = []
+dropUntil p (x:xs)
+  | p x            = xs
+  | otherwise      = dropUntil p xs
 
 -- https://hackage.haskell.org/package/speculate-0.4.14/docs/src/Test.Speculate.Utils.Tuple.html#catPairs
 catPairs :: [(a,a)] -> [a]

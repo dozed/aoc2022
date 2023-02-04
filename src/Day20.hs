@@ -87,9 +87,11 @@ day20 = do
   print idNumbers
   print idNumbers'
 
-  let (IdInt _ i) = takeAtWithCycle 1000 idNumbers'
-      (IdInt _ j) = takeAtWithCycle 2000 idNumbers'
-      (IdInt _ k) = takeAtWithCycle 3000 idNumbers'
+  let idNumbers'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idNumbers'
+
+  let (IdInt _ i) = idNumbers'' !! 1000
+      (IdInt _ j) = idNumbers'' !! 2000
+      (IdInt _ k) = idNumbers'' !! 3000
 
   putStrLn $ "i: " <> show i
   putStrLn $ "j: " <> show j

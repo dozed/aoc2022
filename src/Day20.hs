@@ -4,14 +4,14 @@
 
 module Day20 where
 
-import Data.List (elemIndex, findIndex)
+import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip, move, regularParse, removeAtIndex, insertAtIndex)
+import Util (lstrip, move, regularParse)
 
 testInput :: String
 testInput = lstrip [r|

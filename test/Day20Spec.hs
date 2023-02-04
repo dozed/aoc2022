@@ -16,12 +16,6 @@ day20Spec = do
 
       numbers `shouldBe` [1, 2, -3, 3, -2, 0, 4]
 
-  describe "getPos" $ do
-    it "should get position of number" $ do
-      let idNumbers = [IdInt 2 0, IdInt 0 1, IdInt 1 2]
-
-      getPos idNumbers 1 `shouldBe` 2
-
   describe "applyOffset" $ do
     it "should compute a new index by applying an offset to an index in a cyclic list" $ do
       applyOffset 7 0 1 `shouldBe` 1

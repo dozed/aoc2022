@@ -31,10 +31,6 @@ type Id = Int
 data IdInt = IdInt Id Int deriving (Eq, Show)
 
 type Index = Int
-
-getPos :: [IdInt] -> Id -> Index
-getPos xs i = fromJust . findIndex (\(IdInt j _) -> i == j) $ xs
-
 type Offset = Int
 
 -- len: 8

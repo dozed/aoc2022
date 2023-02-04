@@ -4,13 +4,14 @@
 
 module Day20 where
 
-import Data.List (findIndex)
+import Data.List (elemIndex, findIndex)
+import Data.Maybe (fromJust)
 import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse, replaceAtIndex)
+import Util (lstrip, regularParse, removeAtIndex, insertAtIndex)
 
 testInput :: String
 testInput = lstrip [r|
@@ -29,24 +30,12 @@ parseNumbers = endBy1 int endOfLine
 type Id = Int
 data IdInt = IdInt Id Int deriving (Eq, Show)
 
-type Pos = Int
+type Index = Int
 
-getPos :: [IdInt] -> Id -> Pos
-getPos xs i =
-  case findIndex (\(IdInt j _) -> i == j) xs of
-    Nothing -> undefined
-    Just p -> p
+getPos :: [IdInt] -> Id -> Index
+getPos xs i = fromJust . findIndex (\(IdInt j _) -> i == j) $ xs
 
-swap :: Int -> Int -> [a] -> [a]
-swap i j xs =
-  let x = xs !! i
-      y = xs !! j
-      xs' = replaceAtIndex i y xs
-      xs'' = replaceAtIndex j x xs'
-  in xs''
-
-move :: [IdInt] -> Id -> Int -> [IdInt]
-move xs i d = undefined
+type Offset = Int
 
 -- len: 8
 -- pos: 2
@@ -62,10 +51,32 @@ move xs i d = undefined
 --
 -- offset: -13
 -- pos': 5 = (2 + (8 - (13 mod 8))) = (2 + (8 - 5)) = (2 + 3)
-applyOffset :: Int -> Int -> Int -> Int
+applyOffset :: Int -> Index -> Offset -> Index
 applyOffset len pos offset
   | offset >= 0 = (pos + offset) `mod` len
-  | otherwise = pos + (len - (abs offset `mod` len))
+  | otherwise = (pos + (len - (abs offset `mod` len))) `mod` len
+
+-- Moves an element a from a specific index to another index in a list
+moveElement :: Index -> Index -> [a] -> [a]
+moveElement from to xs =
+  let x = xs !! from
+      xs' = removeAtIndex from xs
+      xs'' = insertAtIndex to x xs'
+  in xs''
+
+mix :: [IdInt] -> IdInt -> [IdInt]
+mix xs el@(IdInt _ offset) =
+  let from = fromJust . elemIndex el $ xs
+      len = length xs
+      to = applyOffset len from offset
+      to' =
+        if offset < 0 && to > from then to - 1
+        else if offset > 0 && to < from then to + 1
+        else if to == 0 then len - 1
+        else to
+      xs' = removeAtIndex from xs
+      xs'' = insertAtIndex to' el xs'
+  in xs''
 
 day20 :: IO ()
 day20 = do

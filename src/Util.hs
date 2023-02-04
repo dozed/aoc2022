@@ -9,6 +9,7 @@ module Util (
   findElem,
   filterNot,
   intersect,
+  insertAtIndex,
   lstrip,
   maxIndex,
   readFileLines,
@@ -17,6 +18,7 @@ module Util (
   replaceAtIndex,
   rstrip,
   strip,
+  swap,
   takeUntil,
   windows
 ) where
@@ -69,6 +71,17 @@ replaceAtIndex i x xs = take i xs ++ [x] ++ drop (i+1) xs
 
 removeAtIndex :: Int -> [a] -> [a]
 removeAtIndex i xs = take i xs ++ drop (i+1) xs
+
+insertAtIndex :: Int -> a -> [a] -> [a]
+insertAtIndex i x xs = take i xs ++ [x] ++ drop i xs
+
+swap :: Int -> Int -> [a] -> [a]
+swap from to xs =
+  let x = xs !! from
+      y = xs !! to
+      xs' = replaceAtIndex from y xs
+      xs'' = replaceAtIndex to x xs'
+  in xs''
 
 -- https://hackage.haskell.org/package/MissingH-1.0.0/docs/Data-String-Utils.html
 wschars :: String

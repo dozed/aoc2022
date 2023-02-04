@@ -4,7 +4,7 @@ import qualified Data.Set as S
 
 import Test.Hspec
 
-import Util (buildCombinations, buildPermutations, findElem)
+import Util (buildCombinations, buildPermutations, findElem, insertAtIndex, removeAtIndex, swap)
 
 utilSpec :: Spec
 utilSpec = do
@@ -29,3 +29,26 @@ utilSpec = do
 
     it "should not extract an element when not in a list" $ do
       findElem (== 5) [1, 2, 3] `shouldBe` Nothing
+
+  describe "removeAtIndex" $ do
+    it "should remove an element at a specific index from a list" $ do
+      let xs = [0, 1, 2, 3, 4, 5]
+
+      removeAtIndex 0 xs `shouldBe` [1, 2, 3, 4, 5]
+      removeAtIndex 2 xs `shouldBe` [0, 1, 3, 4, 5]
+      removeAtIndex 5 xs `shouldBe` [0, 1, 2, 3, 4]
+
+  describe "insertAtIndex" $ do
+    it "should remove an element at a specific index from a list" $ do
+      let xs = [0, 1, 2, 3, 4, 5]
+
+      insertAtIndex 0 10 xs `shouldBe` [10, 0, 1, 2, 3, 4, 5]
+      insertAtIndex 2 10 xs `shouldBe` [0, 1, 10, 2, 3, 4, 5]
+      insertAtIndex 5 10 xs `shouldBe` [0, 1, 2, 3, 4, 10, 5]
+      insertAtIndex 6 10 xs `shouldBe` [0, 1, 2, 3, 4, 5, 10]
+
+  describe "swap" $ do
+    it "should swap two positions" $ do
+      let xs = [0, 1, 2, 3, 4, 5]
+
+      swap 2 4 xs `shouldBe` [0, 1, 4, 3, 2, 5]

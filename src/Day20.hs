@@ -65,6 +65,13 @@ mix xs el@(IdInt _ offset) =
       xs' = move from to' xs
   in xs'
 
+takeAtWithCycle :: Int -> [a] -> a
+takeAtWithCycle i xs =
+  let len = length xs
+      i' = i `mod` len
+      el = xs !! i'
+  in el
+
 day20 :: IO ()
 day20 = do
   let input = testInput
@@ -74,6 +81,20 @@ day20 = do
     Right xs -> pure xs
 
   let idNumbers = zipWith IdInt [0..] numbers
+      idNumbers' = foldl mix idNumbers idNumbers
 
   print numbers
   print idNumbers
+  print idNumbers'
+
+  let (IdInt _ i) = takeAtWithCycle 1000 idNumbers'
+      (IdInt _ j) = takeAtWithCycle 2000 idNumbers'
+      (IdInt _ k) = takeAtWithCycle 3000 idNumbers'
+
+  putStrLn $ "i: " <> show i
+  putStrLn $ "j: " <> show j
+  putStrLn $ "k: " <> show k
+
+  let groveCoordinates = i + j + k
+
+  putStrLn $ "groveCoordinates: " <> show groveCoordinates

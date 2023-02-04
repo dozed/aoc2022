@@ -37,13 +37,6 @@ day20Spec = do
       applyOffset 7 3 2 `shouldBe` 5
       applyOffset 7 3 (-2) `shouldBe` 1
 
-  describe "moveElement" $ do
-    it "should move an element from an index in a list to another index" $ do
-      let xs = [0, 1, 2, 3, 4, 5, 6]
-
-      moveElement 3 1 xs `shouldBe` [0, 3, 1, 2, 4, 5, 6]
-      moveElement 3 5 xs `shouldBe` [0, 1, 2, 4, 5, 3, 6]
-
   describe "mix" $ do
     it "should move an element by a specific offset" $ do
       let xs1 = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]

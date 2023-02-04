@@ -12,6 +12,7 @@ module Util (
   insertAtIndex,
   lstrip,
   maxIndex,
+  move,
   readFileLines,
   removeAtIndex,
   regularParse,
@@ -74,6 +75,14 @@ removeAtIndex i xs = take i xs ++ drop (i+1) xs
 
 insertAtIndex :: Int -> a -> [a] -> [a]
 insertAtIndex i x xs = take i xs ++ [x] ++ drop i xs
+
+-- Moves an element a from a specific index to another index in a list
+move :: Int -> Int -> [a] -> [a]
+move from to xs =
+  let x = xs !! from
+      xs' = removeAtIndex from xs
+      xs'' = insertAtIndex to x xs'
+  in xs''
 
 swap :: Int -> Int -> [a] -> [a]
 swap from to xs =

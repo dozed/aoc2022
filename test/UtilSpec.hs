@@ -4,7 +4,7 @@ import qualified Data.Set as S
 
 import Test.Hspec
 
-import Util (buildCombinations, buildPermutations, findElem, insertAtIndex, removeAtIndex, swap)
+import Util (buildCombinations, buildPermutations, findElem, insertAtIndex, move, removeAtIndex, swap)
 
 utilSpec :: Spec
 utilSpec = do
@@ -46,6 +46,13 @@ utilSpec = do
       insertAtIndex 2 10 xs `shouldBe` [0, 1, 10, 2, 3, 4, 5]
       insertAtIndex 5 10 xs `shouldBe` [0, 1, 2, 3, 4, 10, 5]
       insertAtIndex 6 10 xs `shouldBe` [0, 1, 2, 3, 4, 5, 10]
+
+  describe "move" $ do
+    it "should move an element from an index in a list to another index" $ do
+      let xs = [0, 1, 2, 3, 4, 5, 6]
+
+      move 3 1 xs `shouldBe` [0, 3, 1, 2, 4, 5, 6]
+      move 3 5 xs `shouldBe` [0, 1, 2, 4, 5, 3, 6]
 
   describe "swap" $ do
     it "should swap two positions" $ do

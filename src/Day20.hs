@@ -11,7 +11,7 @@ import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse, removeAtIndex, insertAtIndex)
+import Util (lstrip, move, regularParse, removeAtIndex, insertAtIndex)
 
 testInput :: String
 testInput = lstrip [r|
@@ -56,14 +56,6 @@ applyOffset len pos offset
   | offset >= 0 = (pos + offset) `mod` len
   | otherwise = (pos + (len - (abs offset `mod` len))) `mod` len
 
--- Moves an element a from a specific index to another index in a list
-moveElement :: Index -> Index -> [a] -> [a]
-moveElement from to xs =
-  let x = xs !! from
-      xs' = removeAtIndex from xs
-      xs'' = insertAtIndex to x xs'
-  in xs''
-
 mix :: [IdInt] -> IdInt -> [IdInt]
 mix xs el@(IdInt _ offset) =
   let from = fromJust . elemIndex el $ xs
@@ -74,9 +66,8 @@ mix xs el@(IdInt _ offset) =
         else if offset > 0 && to < from then to + 1
         else if to == 0 then len - 1
         else to
-      xs' = removeAtIndex from xs
-      xs'' = insertAtIndex to' el xs'
-  in xs''
+      xs' = move from to' xs
+  in xs'
 
 day20 :: IO ()
 day20 = do

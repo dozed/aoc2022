@@ -77,5 +77,3 @@ day20 = do
 
   print numbers
   print idNumbers
-
-  print $ getPos idNumbers 2

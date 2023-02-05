@@ -85,6 +85,15 @@ shift offset from xs =
       xs'' = shift (offset+1) to xs'
   in xs''
 
+mixOne' :: [IdInt] -> IdInt -> [IdInt]
+mixOne' xs el@(IdInt _ offset) =
+  let from = fromJust . elemIndex el $ xs
+      xs' = shift offset from xs
+  in xs'
+
+mix' :: [IdInt] -> [IdInt]
+mix' idInts = foldl mixOne idInts idInts
+
 day20 :: IO ()
 day20 = do
   -- let input = testInput

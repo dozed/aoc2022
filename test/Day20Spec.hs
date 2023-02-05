@@ -85,3 +85,10 @@ day20Spec = do
       shift (-2) 0 xs `shouldBe` [-1, 1, 3, 2, 4]
       shift (-3) 1 xs `shouldBe` [-1, 2, 3, 1, 4]
       shift (-13) 1 xs `shouldBe` [3, 4, -1, 1, 2]
+
+  describe "mix'" $ do
+    it "should mix a list of IdInt" $ do
+      let idInts = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
+          expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
+
+      mix' idInts `shouldBe` expected

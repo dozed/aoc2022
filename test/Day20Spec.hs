@@ -1,6 +1,9 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Day20Spec (day20Spec) where
 
 import Test.Hspec
+import Test.Hspec.QuickCheck (prop)
 
 import Day20
 import Util (regularParse)
@@ -59,3 +62,26 @@ day20Spec = do
           expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
 
       mix idInts `shouldBe` expected
+
+  describe "shift" $ do
+    prop "should return same list if offset is zero" $ \(xs :: [Int], i) -> do
+      shift 0 i xs `shouldBe` xs
+
+    it "should shift an element forward by a specified amount" $ do
+      let xs = [2, 1, 3, 4, -1]
+
+      shift 1 0 xs `shouldBe` [1, 2, 3, 4, -1]
+      shift 2 0 xs `shouldBe` [1, 3, 2, 4, -1]
+      shift 1 4 xs `shouldBe` [-1, 1, 3, 4, 2]
+      shift 3 3 xs `shouldBe` [1, 4, 3, -1, 2]
+      shift 13 3 xs `shouldBe` [-1, 4, 2, 1, 3]
+
+    it "should shift an element backward by a specified amount" $ do
+      let xs = [2, 1, 3, 4, -1]
+
+      shift (-1) 4 xs `shouldBe` [2, 1, 3, -1, 4]
+      shift (-2) 4 xs `shouldBe` [2, 1, -1, 3, 4]
+      shift (-1) 0 xs `shouldBe` [-1, 1, 3, 4, 2]
+      shift (-2) 0 xs `shouldBe` [-1, 1, 3, 2, 4]
+      shift (-3) 1 xs `shouldBe` [-1, 2, 3, 1, 4]
+      shift (-13) 1 xs `shouldBe` [3, 4, -1, 1, 2]

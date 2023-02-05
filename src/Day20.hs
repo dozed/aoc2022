@@ -11,7 +11,7 @@ import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip, move, regularParse)
+import Util (lstrip, move, regularParse, swap)
 
 testInput :: String
 testInput = lstrip [r|
@@ -68,6 +68,22 @@ mixOne xs el@(IdInt _ offset) =
 
 mix :: [IdInt] -> [IdInt]
 mix idInts = foldl mixOne idInts idInts
+
+shift :: Offset -> Index -> [a] -> [a]
+shift _ _ [] = []
+shift 0 _ xs = xs
+shift offset from xs | offset > 0 =
+  let len = length xs
+      to = if from == len - 1 then 0 else from + 1
+      xs' = swap from to xs
+      xs'' = shift (offset-1) to xs'
+  in xs''
+shift offset from xs =
+  let len = length xs
+      to = if from == 0 then len - 1 else from - 1
+      xs' = swap from to xs
+      xs'' = shift (offset+1) to xs'
+  in xs''
 
 day20 :: IO ()
 day20 = do

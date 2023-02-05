@@ -51,8 +51,13 @@ utilSpec = do
     it "should move an element from an index in a list to another index" $ do
       let xs = [0, 1, 2, 3, 4, 5, 6]
 
+      move 3 0 xs `shouldBe` [3, 0, 1, 2, 4, 5, 6]
       move 3 1 xs `shouldBe` [0, 3, 1, 2, 4, 5, 6]
+      move 3 2 xs `shouldBe` [0, 1, 3, 2, 4, 5, 6]
+      move 3 3 xs `shouldBe` [0, 1, 2, 3, 4, 5, 6]
+      move 3 4 xs `shouldBe` [0, 1, 2, 4, 3, 5, 6]
       move 3 5 xs `shouldBe` [0, 1, 2, 4, 5, 3, 6]
+      move 3 6 xs `shouldBe` [0, 1, 2, 4, 5, 6, 3]
 
   describe "swap" $ do
     it "should swap two positions" $ do

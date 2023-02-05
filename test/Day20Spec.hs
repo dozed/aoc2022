@@ -37,13 +37,13 @@ day20Spec = do
   describe "mixOne" $ do
     it "should move an element by a specific offset" $ do
       let xs1 = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
-      let xs2 = mixOne xs1 (IdInt 0 1)
-      let xs3 = mixOne xs2 (IdInt 1 2)
-      let xs4 = mixOne xs3 (IdInt 2 (-3))
-      let xs5 = mixOne xs4 (IdInt 3 3)
-      let xs6 = mixOne xs5 (IdInt 4 (-2))
-      let xs7 = mixOne xs6 (IdInt 5 0)
-      let xs8 = mixOne xs7 (IdInt 6 4)
+          xs2 = mixOne xs1 (IdInt 0 1)
+          xs3 = mixOne xs2 (IdInt 1 2)
+          xs4 = mixOne xs3 (IdInt 2 (-3))
+          xs5 = mixOne xs4 (IdInt 3 3)
+          xs6 = mixOne xs5 (IdInt 4 (-2))
+          xs7 = mixOne xs6 (IdInt 5 0)
+          xs8 = mixOne xs7 (IdInt 6 4)
 
       xs2 `shouldBe` [IdInt 1 2, IdInt 0 1, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
       xs3 `shouldBe` [IdInt 0 1, IdInt 2 (-3), IdInt 1 2, IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]

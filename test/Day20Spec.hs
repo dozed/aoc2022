@@ -8,9 +8,9 @@ import Util (regularParse)
 day20Spec :: Spec
 day20Spec = do
 
-  describe "parseNumbers" $ do
+  describe "parseInts" $ do
     it "should parse numbers" $ do
-      numbers <- case regularParse parseNumbers testInput of
+      numbers <- case regularParse parseInts testInput of
         Left e -> fail $ show e
         Right xs -> pure xs
 
@@ -34,16 +34,16 @@ day20Spec = do
       applyOffset 7 3 2 `shouldBe` 5
       applyOffset 7 3 (-2) `shouldBe` 1
 
-  describe "mix" $ do
+  describe "mixOne" $ do
     it "should move an element by a specific offset" $ do
       let xs1 = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
-      let xs2 = mix xs1 (IdInt 0 1)
-      let xs3 = mix xs2 (IdInt 1 2)
-      let xs4 = mix xs3 (IdInt 2 (-3))
-      let xs5 = mix xs4 (IdInt 3 3)
-      let xs6 = mix xs5 (IdInt 4 (-2))
-      let xs7 = mix xs6 (IdInt 5 0)
-      let xs8 = mix xs7 (IdInt 6 4)
+      let xs2 = mixOne xs1 (IdInt 0 1)
+      let xs3 = mixOne xs2 (IdInt 1 2)
+      let xs4 = mixOne xs3 (IdInt 2 (-3))
+      let xs5 = mixOne xs4 (IdInt 3 3)
+      let xs6 = mixOne xs5 (IdInt 4 (-2))
+      let xs7 = mixOne xs6 (IdInt 5 0)
+      let xs8 = mixOne xs7 (IdInt 6 4)
 
       xs2 `shouldBe` [IdInt 1 2, IdInt 0 1, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
       xs3 `shouldBe` [IdInt 0 1, IdInt 2 (-3), IdInt 1 2, IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
@@ -52,3 +52,10 @@ day20Spec = do
       xs6 `shouldBe` [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 5 0, IdInt 3 3, IdInt 6 4, IdInt 4 (-2)]
       xs7 `shouldBe` [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 5 0, IdInt 3 3, IdInt 6 4, IdInt 4 (-2)]
       xs8 `shouldBe` [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
+
+  describe "mix" $ do
+    it "should mix a list of IdInt" $ do
+      let idInts = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
+          expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
+
+      mix idInts `shouldBe` expected

@@ -24,8 +24,8 @@ testInput = lstrip [r|
 4
 |]
 
-parseNumbers :: Parser [Int]
-parseNumbers = endBy1 int endOfLine
+parseInts :: Parser [Int]
+parseInts = endBy1 int endOfLine
 
 type Id = Int
 data IdInt = IdInt Id Int deriving (Eq, Show)
@@ -53,8 +53,8 @@ applyOffset len pos offset
   | offset >= 0 = (pos + offset) `mod` len
   | otherwise = (pos + (len - (abs offset `mod` len))) `mod` len
 
-mix :: [IdInt] -> IdInt -> [IdInt]
-mix xs el@(IdInt _ offset) =
+mixOne :: [IdInt] -> IdInt -> [IdInt]
+mixOne xs el@(IdInt _ offset) =
   let from = fromJust . elemIndex el $ xs
       len = length xs
       to = applyOffset len from offset
@@ -66,27 +66,30 @@ mix xs el@(IdInt _ offset) =
       xs' = move from to' xs
   in xs'
 
+mix :: [IdInt] -> [IdInt]
+mix idInts = foldl mixOne idInts idInts
+
 day20 :: IO ()
 day20 = do
   -- let input = testInput
   input <- readFile "input/Day20.txt"
 
-  numbers <- case regularParse parseNumbers input of
+  ints <- case regularParse parseInts input of
     Left e -> fail $ show e
     Right xs -> pure xs
 
-  let idNumbers = zipWith IdInt [0..] numbers
-      idNumbers' = foldl mix idNumbers idNumbers
-      idNumbers'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idNumbers'
+  let idInts = zipWith IdInt [0..] ints
+      idInts' = mix idInts
+      idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
 
-  print $ take 10 numbers
-  print $ take 10 idNumbers
-  print $ take 10 idNumbers'
-  print $ take 10 idNumbers''
+  print $ take 10 ints
+  print $ take 10 idInts
+  print $ take 10 idInts'
+  print $ take 10 idInts''
 
-  let (IdInt _ i) = idNumbers'' !! 1000
-      (IdInt _ j) = idNumbers'' !! 2000
-      (IdInt _ k) = idNumbers'' !! 3000
+  let (IdInt _ i) = idInts'' !! 1000
+      (IdInt _ j) = idInts'' !! 2000
+      (IdInt _ k) = idInts'' !! 3000
 
   putStrLn $ "i: " <> show i
   putStrLn $ "j: " <> show j

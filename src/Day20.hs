@@ -92,7 +92,7 @@ mixOne' xs el@(IdInt _ offset) =
   in xs'
 
 mix' :: [IdInt] -> [IdInt]
-mix' idInts = foldl mixOne idInts idInts
+mix' idInts = foldl mixOne' idInts idInts
 
 day20 :: IO ()
 day20 = do
@@ -104,7 +104,7 @@ day20 = do
     Right xs -> pure xs
 
   let idInts = zipWith IdInt [0..] ints
-      idInts' = mix idInts
+      idInts' = mix' idInts
       idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
 
   print $ take 10 ints

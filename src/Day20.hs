@@ -30,6 +30,7 @@ parseNumbers = endBy1 int endOfLine
 type Id = Int
 data IdInt = IdInt Id Int deriving (Eq, Show)
 
+type Length = Int
 type Index = Int
 type Offset = Int
 
@@ -47,7 +48,7 @@ type Offset = Int
 --
 -- offset: -13
 -- pos': 5 = (2 + (8 - (13 mod 8))) = (2 + (8 - 5)) = (2 + 3)
-applyOffset :: Int -> Index -> Offset -> Index
+applyOffset :: Length -> Index -> Offset -> Index
 applyOffset len pos offset
   | offset >= 0 = (pos + offset) `mod` len
   | otherwise = (pos + (len - (abs offset `mod` len))) `mod` len
@@ -65,16 +66,10 @@ mix xs el@(IdInt _ offset) =
       xs' = move from to' xs
   in xs'
 
-takeAtWithCycle :: Int -> [a] -> a
-takeAtWithCycle i xs =
-  let len = length xs
-      i' = i `mod` len
-      el = xs !! i'
-  in el
-
 day20 :: IO ()
 day20 = do
-  let input = testInput
+  -- let input = testInput
+  input <- readFile "input/Day20.txt"
 
   numbers <- case regularParse parseNumbers input of
     Left e -> fail $ show e
@@ -82,12 +77,12 @@ day20 = do
 
   let idNumbers = zipWith IdInt [0..] numbers
       idNumbers' = foldl mix idNumbers idNumbers
+      idNumbers'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idNumbers'
 
-  print numbers
-  print idNumbers
-  print idNumbers'
-
-  let idNumbers'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idNumbers'
+  print $ take 10 numbers
+  print $ take 10 idNumbers
+  print $ take 10 idNumbers'
+  print $ take 10 idNumbers''
 
   let (IdInt _ i) = idNumbers'' !! 1000
       (IdInt _ j) = idNumbers'' !! 2000

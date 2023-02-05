@@ -18,6 +18,9 @@ day20Spec = do
 
   describe "applyOffset" $ do
     it "should compute a new index by applying an offset to an index in a cyclic list" $ do
+      applyOffset 5 2 13 `shouldBe` 0
+      applyOffset 5 2 3 `shouldBe` 0
+
       applyOffset 7 0 1 `shouldBe` 1
       applyOffset 7 0 2 `shouldBe` 2
       applyOffset 7 4 (-2) `shouldBe` 2

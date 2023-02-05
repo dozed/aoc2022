@@ -44,10 +44,10 @@ type Offset = Int
 -- pos': 1 = (2 + 7) mod 8
 --
 -- offset: -3
--- pos': 7 = (2 + (8 - (3 mod 8))) = (2 + 5)
+-- pos': 7 = (2 + (8 - (abs (-3) `mod` 8))) `mod` 8 = (2 + 5)
 --
 -- offset: -13
--- pos': 5 = (2 + (8 - (13 mod 8))) = (2 + (8 - 5)) = (2 + 3)
+-- pos': 5 = (2 + (8 - (abs (-13) `mod` 8))) `mod` 8 = (2 + (8 - 5)) = (2 + 3)
 applyOffset :: Length -> Index -> Offset -> Index
 applyOffset len pos offset
   | offset >= 0 = (pos + offset) `mod` len
@@ -59,9 +59,9 @@ mix xs el@(IdInt _ offset) =
       len = length xs
       to = applyOffset len from offset
       to' =
-        if offset < 0 && to > from then to - 1
+        if to == 0 then len - 1
+        else if offset < 0 && to > from then to - 1
         else if offset > 0 && to < from then to + 1
-        else if to == 0 then len - 1
         else to
       xs' = move from to' xs
   in xs'

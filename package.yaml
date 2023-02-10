@@ -28,6 +28,7 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
+  - array
   - combinatorial
   - containers
   - extra

@@ -1,11 +1,13 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Day20 where
 
-import Control.Monad (foldM)
+import Control.Monad (foldM, forM_)
+import Data.Array.IO (IOArray, readArray, newListArray)
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Text.Parsec hiding (count)
@@ -13,7 +15,7 @@ import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip, move, regularParse, swap)
+import Util (lstrip, move, regularParse, swap, swap')
 
 testInput :: String
 testInput = lstrip [r|
@@ -97,6 +99,42 @@ mixOne' xs el@(IdInt _ offset) = do
 mix' :: [IdInt] -> IO [IdInt]
 mix' idInts = foldM mixOne' idInts idInts
 
+-- IOArray-based solution
+shift' :: Offset -> Index -> IOArray Int a -> Length -> IO ()
+-- shift _ _ [] = return []
+shift' 0 _ _ _ = return ()
+shift' offset from arr len | offset > 0 = do
+  let to = if from == len - 1 then 0 else from + 1
+  swap' from to arr
+  shift' (offset-1) to arr len
+shift' offset from arr len = do
+  let to = if from == 0 then len - 1 else from - 1
+  swap' from to arr
+  shift' (offset+1) to arr len
+
+elemIndex' :: Eq a => IOArray Int a -> a -> Length -> Index -> IO (Maybe Int)
+elemIndex' arr a len i | i == len = return Nothing
+elemIndex' arr a len i = do
+  a' <- readArray arr i
+  if a' == a then return (Just i) else elemIndex' arr a len (i+1)
+
+toList' :: IOArray Int a -> Length -> Index -> [a] -> IO [a]
+toList' arr len i as | i == len = return $ reverse as
+toList' arr len i as = do
+  a' <- readArray arr i
+  toList' arr len (i+1) (a':as)
+
+mixOne'' :: IOArray Int IdInt -> Length -> IdInt -> IO ()
+mixOne'' arr len el@(IdInt _ offset) = do
+  from <- fromJust <$> elemIndex' arr el len 0
+  shift' offset from arr len
+  print el
+  return ()
+
+mix'' :: IOArray Int IdInt -> [IdInt] -> Length -> IO ()
+mix'' arr idInts len = forM_ idInts $ \i ->
+  mixOne'' arr len i
+
 day20 :: IO ()
 day20 = do
   -- let input = testInput
@@ -107,30 +145,23 @@ day20 = do
     Right xs -> pure xs
 
   let idInts = zipWith IdInt [0..] ints
-  putStrLn "ok 1"
+      len = length idInts
 
-  idInts' <- mix' idInts
-  putStrLn "ok 2"
+  arr <- newListArray (0, len) idInts
+  mix'' arr idInts len
 
---  let !idInts' = mix' idInts
---  putStrLn "ok 2"
---
+  idInts' <- toList' arr len 0 []
+
   let idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
-  putStrLn "ok 3"
 
-  print $ take 10 ints
-  print $ take 10 idInts
-  print $ take 10 idInts'
---  print $ take 10 idInts''
+  let (IdInt _ i) = idInts'' !! 1000
+      (IdInt _ j) = idInts'' !! 2000
+      (IdInt _ k) = idInts'' !! 3000
 
---  let (IdInt _ i) = idInts'' !! 1000
---      (IdInt _ j) = idInts'' !! 2000
---      (IdInt _ k) = idInts'' !! 3000
---
---  putStrLn $ "i: " <> show i
---  putStrLn $ "j: " <> show j
---  putStrLn $ "k: " <> show k
---
---  let groveCoordinates = i + j + k
---
---  putStrLn $ "groveCoordinates: " <> show groveCoordinates
+  putStrLn $ "i: " <> show i
+  putStrLn $ "j: " <> show j
+  putStrLn $ "k: " <> show k
+
+  let groveCoordinates = i + j + k
+
+  putStrLn $ "groveCoordinates: " <> show groveCoordinates

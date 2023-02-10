@@ -21,10 +21,12 @@ module Util (
   rstrip,
   strip,
   swap,
+  swap',
   takeUntil,
   windows
 ) where
 
+import Data.Array.IO (IOArray, readArray, writeArray)
 import Data.Foldable (toList)
 import Data.List (sort)
 import Data.List.HT (removeEach)
@@ -92,6 +94,14 @@ swap from to xs =
       xs' = replaceAtIndex from y xs
       xs'' = replaceAtIndex to x xs'
   in xs''
+
+swap' :: Int -> Int -> IOArray Int a -> IO ()
+swap' from to arr = do
+  x <- readArray arr from
+  y <- readArray arr to
+  writeArray arr to x
+  writeArray arr from y
+  return ()
 
 -- https://hackage.haskell.org/package/MissingH-1.0.0/docs/Data-String-Utils.html
 wschars :: String

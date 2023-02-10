@@ -26,7 +26,8 @@ module Util (
   windows
 ) where
 
-import Data.Array.IO (IOArray, readArray, writeArray)
+import Control.Monad.ST (ST)
+import Data.Array.ST (STArray, readArray, writeArray)
 import Data.Foldable (toList)
 import Data.List (sort)
 import Data.List.HT (removeEach)
@@ -95,7 +96,7 @@ swap from to xs =
       xs'' = replaceAtIndex to x xs'
   in xs''
 
-swap' :: Int -> Int -> IOArray Int a -> IO ()
+swap' :: Int -> Int -> STArray s Int a -> ST s ()
 swap' from to arr = do
   x <- readArray arr from
   y <- readArray arr to

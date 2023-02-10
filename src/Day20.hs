@@ -75,6 +75,7 @@ mixOne xs el@(IdInt _ offset) =
 mix :: [IdInt] -> [IdInt]
 mix idInts = foldl mixOne idInts idInts
 
+-- list + shift-based approach
 shift :: Offset -> Index -> [a] -> [a]
 shift _ _ [] = []
 shift 0 _ xs = xs
@@ -101,7 +102,7 @@ mixOne' xs el@(IdInt _ offset) = do
 mix' :: [IdInt] -> IO [IdInt]
 mix' idInts = foldM mixOne' idInts idInts
 
--- STArray-based solution
+-- STArray + shift-based approach
 getLength :: STArray s Int a -> ST s Int
 getLength arr = Ix.rangeSize <$> getBounds arr
 

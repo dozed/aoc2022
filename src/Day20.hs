@@ -1,9 +1,11 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Day20 where
 
+import Control.Monad (foldM)
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Text.Parsec hiding (count)
@@ -85,14 +87,15 @@ shift offset from xs =
       xs'' = shift (offset+1) to xs'
   in xs''
 
-mixOne' :: [IdInt] -> IdInt -> [IdInt]
-mixOne' xs el@(IdInt _ offset) =
+mixOne' :: [IdInt] -> IdInt -> IO [IdInt]
+mixOne' xs el@(IdInt _ offset) = do
   let from = fromJust . elemIndex el $ xs
-      xs' = shift offset from xs
-  in xs'
+      !xs' = shift offset from xs
+  print el
+  return xs'
 
-mix' :: [IdInt] -> [IdInt]
-mix' idInts = foldl mixOne' idInts idInts
+mix' :: [IdInt] -> IO [IdInt]
+mix' idInts = foldM mixOne' idInts idInts
 
 day20 :: IO ()
 day20 = do
@@ -104,22 +107,30 @@ day20 = do
     Right xs -> pure xs
 
   let idInts = zipWith IdInt [0..] ints
-      idInts' = mix' idInts
-      idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
+  putStrLn "ok 1"
+
+  idInts' <- mix' idInts
+  putStrLn "ok 2"
+
+--  let !idInts' = mix' idInts
+--  putStrLn "ok 2"
+--
+  let idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
+  putStrLn "ok 3"
 
   print $ take 10 ints
   print $ take 10 idInts
   print $ take 10 idInts'
-  print $ take 10 idInts''
+--  print $ take 10 idInts''
 
-  let (IdInt _ i) = idInts'' !! 1000
-      (IdInt _ j) = idInts'' !! 2000
-      (IdInt _ k) = idInts'' !! 3000
-
-  putStrLn $ "i: " <> show i
-  putStrLn $ "j: " <> show j
-  putStrLn $ "k: " <> show k
-
-  let groveCoordinates = i + j + k
-
-  putStrLn $ "groveCoordinates: " <> show groveCoordinates
+--  let (IdInt _ i) = idInts'' !! 1000
+--      (IdInt _ j) = idInts'' !! 2000
+--      (IdInt _ k) = idInts'' !! 3000
+--
+--  putStrLn $ "i: " <> show i
+--  putStrLn $ "j: " <> show j
+--  putStrLn $ "k: " <> show k
+--
+--  let groveCoordinates = i + j + k
+--
+--  putStrLn $ "groveCoordinates: " <> show groveCoordinates

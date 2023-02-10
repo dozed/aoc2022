@@ -7,9 +7,7 @@
 module Day20 where
 
 import Control.Monad (foldM, forM_)
-import Control.Monad.ST (ST, runST)
-import Data.Array.ST (STArray, readArray, newListArray, getElems, getBounds)
-import qualified Data.Ix as Ix
+import Data.Array.IO (IOArray, readArray, newListArray, getElems)
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Text.Parsec hiding (count)
@@ -75,7 +73,6 @@ mixOne xs el@(IdInt _ offset) =
 mix :: [IdInt] -> [IdInt]
 mix idInts = foldl mixOne idInts idInts
 
--- list + shift-based approach
 shift :: Offset -> Index -> [a] -> [a]
 shift _ _ [] = []
 shift 0 _ xs = xs
@@ -102,45 +99,39 @@ mixOne' xs el@(IdInt _ offset) = do
 mix' :: [IdInt] -> IO [IdInt]
 mix' idInts = foldM mixOne' idInts idInts
 
--- STArray + shift-based approach
-getLength :: STArray s Int a -> ST s Int
-getLength arr = Ix.rangeSize <$> getBounds arr
+-- IOArray-based solution
+shift' :: Offset -> Index -> IOArray Int a -> Length -> IO ()
+shift' 0 _ _ _ = return ()
+shift' _ _ _ 0 = return ()
+shift' offset from arr len = do
+  let to = if offset > 0 then
+             if from == len - 1 then 0 else from + 1
+           else
+             if from == 0 then len - 1 else from - 1
+      offset' = if offset > 0 then offset-1
+                else offset + 1
+  swap' from to arr
+  shift' offset' to arr len
 
-elemIndex' :: Eq a => STArray s Int a -> a -> Index -> ST s (Maybe Int)
-elemIndex' arr a i = do
-  len <- getLength arr
-  if i < len then do
-    a' <- readArray arr i
-    if a' == a then return (Just i) else elemIndex' arr a (i+1)
-  else return Nothing
+elemIndex' :: Eq a => IOArray Int a -> a -> Length -> Index -> IO (Maybe Int)
+elemIndex' _ _ len i | i == len = return Nothing
+elemIndex' arr a len i = do
+  a' <- readArray arr i
+  if a' == a then return (Just i) else elemIndex' arr a len (i+1)
 
-shift' :: Offset -> Index -> STArray s Int a -> ST s ()
-shift' 0 _ _ = return ()
-shift' offset from arr = do
-  len <- getLength arr
-  if len == 0 then return ()
-  else do
-    let to = if offset > 0 then
-               if from == len - 1 then 0 else from + 1
-             else
-               if from == 0 then len - 1 else from - 1
-        offset' = if offset > 0 then offset-1
-                  else offset + 1
-    swap' from to arr
-    shift' offset' to arr
-
-mixOne'' :: STArray s Int IdInt -> IdInt -> ST s ()
-mixOne'' arr el@(IdInt _ offset) = do
-  from <- fromJust <$> elemIndex' arr el 0
-  shift' offset from arr
+mixOne'' :: IOArray Int IdInt -> Length -> IdInt -> IO ()
+mixOne'' arr len el@(IdInt _ offset) = do
+  from <- fromJust <$> elemIndex' arr el len 0
+  shift' offset from arr len
+  print el
   return ()
 
-mix'' :: [IdInt] -> ST s [IdInt]
+mix'' :: [IdInt] -> IO [IdInt]
 mix'' idInts = do
   let len = length idInts
   arr <- newListArray (0, len-1) idInts
   forM_ idInts $ \i ->
-    mixOne'' arr i
+    mixOne'' arr len i
   getElems arr
 
 day20 :: IO ()
@@ -153,8 +144,10 @@ day20 = do
     Right xs -> pure xs
 
   let idInts = zipWith IdInt [0..] ints
-      idInts' = runST $ mix'' idInts
-      idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
+
+  idInts' <- mix'' idInts
+
+  let idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
 
   let (IdInt _ i) = idInts'' !! 1000
       (IdInt _ j) = idInts'' !! 2000

@@ -12,11 +12,11 @@ import Day20
 import Util (regularParse)
 
 compareNumbers :: [IdInt] -> [IdInt] -> Expectation
-compareNumbers current expected = do
-  let nc = length current
+compareNumbers actual expected = do
+  let nc = length actual
       ne = length expected
       cycleResetTake n as = take n . dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ as
-      current' = cycleResetTake nc current
+      current' = cycleResetTake nc actual
       expected' = cycleResetTake nc expected
 
   nc `shouldBe` ne
@@ -55,11 +55,11 @@ day20Spec = do
     it "should move an element by a specific offset" $ do
       let xs = [IdInt 0 2, IdInt 1 7, IdInt 2 1, IdInt 3 3, IdInt 4 5]
           expected = [IdInt 0 2, IdInt 2 1, IdInt 3 3, IdInt 1 7, IdInt 4 5]
-          
+
       let actual = mixOne xs (IdInt 1 7)
-      
+
       actual `shouldBe` expected
-      
+
     it "should move elements by a specific offset" $ do
       let xs1 = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
           xs2 = mixOne xs1 (IdInt 0 1)

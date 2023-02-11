@@ -40,6 +40,7 @@ library:
   - simple-logger
   - split
   - utility-ht
+  - vector
 
 executables:
   aoc2022-exe:

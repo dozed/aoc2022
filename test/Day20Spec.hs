@@ -2,6 +2,8 @@
 
 module Day20Spec (day20Spec) where
 
+import Control.Monad.IO.Class (liftIO)
+  
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
 
@@ -92,4 +94,14 @@ day20Spec = do
           -- expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
           expected = [IdInt 4 (-2), IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3]
 
-      mix' idInts `shouldBe` expected
+      idInts' <- liftIO $ mix' idInts
+      idInts' `shouldBe` expected
+
+  describe "mix''" $ do
+    it "should mix a list of IdInt" $ do
+      let idInts = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
+          -- expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
+          expected = [IdInt 4 (-2), IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3]
+
+      idInts' <- liftIO $ mix'' idInts
+      idInts' `shouldBe` expected

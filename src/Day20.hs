@@ -7,7 +7,9 @@
 module Day20 where
 
 import Control.Monad (foldM, forM_)
-import Data.Array.IO (IOArray, readArray, newListArray, getElems)
+import qualified Data.Vector as V
+import Data.Vector.Mutable (IOVector)
+import qualified Data.Vector.Mutable as MV
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import Text.Parsec hiding (count)
@@ -99,40 +101,43 @@ mixOne' xs el@(IdInt _ offset) = do
 mix' :: [IdInt] -> IO [IdInt]
 mix' idInts = foldM mixOne' idInts idInts
 
--- IOArray-based solution
-shift' :: Offset -> Index -> IOArray Int a -> Length -> IO ()
-shift' 0 _ _ _ = return ()
-shift' _ _ _ 0 = return ()
-shift' offset from arr len = do
-  let to = if offset > 0 then
-             if from == len - 1 then 0 else from + 1
-           else
-             if from == 0 then len - 1 else from - 1
-      offset' = if offset > 0 then offset-1
-                else offset + 1
-  swap' from to arr
-  shift' offset' to arr len
+-- Vector-based solution
+shift' :: Offset -> Index -> IOVector a -> IO ()
+shift' 0 _ _ = return ()
+shift' offset from vec = do
+  let len = MV.length vec
+  if len == 0 then return ()
+  else do
+    let to = if offset > 0 then
+               if from == len - 1 then 0 else from + 1
+             else
+               if from == 0 then len - 1 else from - 1
+        offset' = if offset > 0 then offset-1
+                  else offset + 1
+    swap' from to vec
+    shift' offset' to vec
 
-elemIndex' :: Eq a => IOArray Int a -> a -> Length -> Index -> IO (Maybe Int)
-elemIndex' _ _ len i | i == len = return Nothing
-elemIndex' arr a len i = do
-  a' <- readArray arr i
-  if a' == a then return (Just i) else elemIndex' arr a len (i+1)
+elemIndex' :: Eq a => IOVector a -> a -> Index -> IO (Maybe Int)
+elemIndex' vec _ i | i == MV.length vec = return Nothing
+elemIndex' vec a i = do
+  a' <- MV.read vec i
+  if a' == a then return (Just i)
+  else elemIndex' vec a (i+1)
 
-mixOne'' :: IOArray Int IdInt -> Length -> IdInt -> IO ()
-mixOne'' arr len el@(IdInt _ offset) = do
-  from <- fromJust <$> elemIndex' arr el len 0
-  shift' offset from arr len
+mixOne'' :: IOVector IdInt -> IdInt -> IO ()
+mixOne'' arr el@(IdInt _ offset) = do
+  from <- fromJust <$> elemIndex' arr el 0
+  shift' offset from arr
   print el
   return ()
 
 mix'' :: [IdInt] -> IO [IdInt]
 mix'' idInts = do
-  let len = length idInts
-  arr <- newListArray (0, len-1) idInts
+  vec <- V.thaw $ V.fromList idInts
   forM_ idInts $ \i ->
-    mixOne'' arr len i
-  getElems arr
+    mixOne'' vec i
+  vec' <- V.freeze vec
+  return $ V.toList vec'
 
 day20 :: IO ()
 day20 = do

@@ -68,6 +68,7 @@ library
     , simple-logger
     , split
     , utility-ht
+    , vector
   default-language: Haskell2010
 
 executable aoc2022-exe

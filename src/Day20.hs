@@ -40,6 +40,7 @@ type Length = Int
 type Index = Int
 type Offset = Int
 
+-- list/position-based approach
 -- len: 8
 -- pos: 2
 --
@@ -75,6 +76,7 @@ mixOne xs el@(IdInt _ offset) =
 mix :: [IdInt] -> [IdInt]
 mix idInts = foldl mixOne idInts idInts
 
+-- list/shift-based approach
 shift :: Offset -> Index -> [a] -> [a]
 shift _ _ [] = []
 shift 0 _ xs = xs
@@ -101,7 +103,7 @@ mixOne' xs el@(IdInt _ offset) = do
 mix' :: [IdInt] -> IO [IdInt]
 mix' idInts = foldM mixOne' idInts idInts
 
--- Vector-based solution
+-- Vector/shift-based approach
 shift' :: Offset -> Index -> IOVector a -> IO ()
 shift' 0 _ _ = return ()
 shift' offset from vec = do

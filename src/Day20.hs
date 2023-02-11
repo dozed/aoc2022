@@ -73,8 +73,8 @@ mixOne xs el@(IdInt _ offset) =
       xs' = move from to' xs
   in xs'
 
-mix :: [IdInt] -> [IdInt]
-mix idInts = foldl mixOne idInts idInts
+mix :: [IdInt] -> [IdInt] -> [IdInt]
+mix reference current = foldl mixOne current reference
 
 -- list/shift-based approach
 shift :: Offset -> Index -> [a] -> [a]

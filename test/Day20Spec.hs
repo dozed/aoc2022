@@ -13,13 +13,13 @@ import Util (regularParse)
 
 compareNumbers :: [IdInt] -> [IdInt] -> Expectation
 compareNumbers actual expected = do
-  let nc = length actual
+  let na = length actual
       ne = length expected
       cycleResetTake n as = take n . dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ as
-      current' = cycleResetTake nc actual
-      expected' = cycleResetTake nc expected
+      current' = cycleResetTake na actual
+      expected' = cycleResetTake na expected
 
-  nc `shouldBe` ne
+  na `shouldBe` ne
   current' `shouldBe` expected'
 
 day20Spec :: Spec

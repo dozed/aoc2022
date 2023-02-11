@@ -27,7 +27,7 @@ module Util (
 ) where
 
 import Data.Vector.Mutable (IOVector)
-import qualified Data.Vector.Mutable as V
+import qualified Data.Vector.Mutable as MV
 import Data.Foldable (toList)
 import Data.List (sort)
 import Data.List.HT (removeEach)
@@ -98,10 +98,10 @@ swap from to xs =
 
 swap' :: Int -> Int -> IOVector a -> IO ()
 swap' from to vec = do
-  x <- V.read vec from
-  y <- V.read vec to
-  V.write vec to x
-  V.write vec from y
+  x <- MV.read vec from
+  y <- MV.read vec to
+  MV.write vec from y
+  MV.write vec to x
   return ()
 
 -- https://hackage.haskell.org/package/MissingH-1.0.0/docs/Data-String-Utils.html

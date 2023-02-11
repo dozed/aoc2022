@@ -111,16 +111,14 @@ shift' :: Offset -> Index -> IOVector a -> IO ()
 shift' 0 _ _ = return ()
 shift' offset from vec = do
   let len = MV.length vec
-  if len == 0 then return ()
-  else do
-    let to = if offset > 0 then
-               if from == len - 1 then 0 else from + 1
-             else
-               if from == 0 then len - 1 else from - 1
-        offset' = if offset > 0 then offset-1
-                  else offset + 1
-    swap' from to vec
-    shift' offset' to vec
+      to = if offset > 0 then
+             if from == len - 1 then 0 else from + 1
+           else
+             if from == 0 then len - 1 else from - 1
+      offset' = if offset > 0 then offset - 1
+                else offset + 1
+  swap' from to vec
+  shift' offset' to vec
 
 elemIndex' :: Eq a => IOVector a -> a -> Index -> IO (Maybe Int)
 elemIndex' vec _ i | i == MV.length vec = return Nothing
@@ -142,10 +140,12 @@ mixOne'' vec el@(IdInt _ offset) = do
 mix'' :: [IdInt] -> [IdInt] -> IO [IdInt]
 mix'' reference current = do
   vec <- V.thaw $ V.fromList current
-  forM_ reference $ \i ->
+  forM_ reference $ \i -> do
     mixOne'' vec i
   vec' <- V.freeze vec
-  return $ V.toList vec'
+  let xs = V.toList vec'
+  print xs
+  return xs
 
 mixN'' :: Int -> [IdInt] -> [IdInt] -> IO [IdInt]
 mixN'' n reference current = do
@@ -190,6 +190,7 @@ day20 = do
       reference = map (\(IdInt i x) -> IdInt i (x * decryptionKey)) idInts
 
   idInts''' <- foldM (\current _ -> mix'' reference current) reference [1..10]
+  
   let idInts'''' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'''
 
   let (IdInt _ i) = idInts'''' !! 1000

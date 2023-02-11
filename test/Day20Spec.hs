@@ -103,5 +103,5 @@ day20Spec = do
           -- expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
           expected = [IdInt 4 (-2), IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3]
 
-      idInts' <- liftIO $ mix'' idInts
+      idInts' <- liftIO $ mix'' idInts idInts
       idInts' `shouldBe` expected

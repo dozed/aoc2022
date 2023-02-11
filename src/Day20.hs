@@ -131,10 +131,10 @@ mixOne'' arr el@(IdInt _ offset) = do
   print el
   return ()
 
-mix'' :: [IdInt] -> IO [IdInt]
-mix'' idInts = do
-  vec <- V.thaw $ V.fromList idInts
-  forM_ idInts $ \i ->
+mix'' :: [IdInt] -> [IdInt] -> IO [IdInt]
+mix'' reference current = do
+  vec <- V.thaw $ V.fromList current
+  forM_ reference $ \i ->
     mixOne'' vec i
   vec' <- V.freeze vec
   return $ V.toList vec'
@@ -150,13 +150,34 @@ day20 = do
 
   let idInts = zipWith IdInt [0..] ints
 
-  idInts' <- mix'' idInts
+  -- part 1
+  putStrLn "--- part 1 ---"
+  idInts' <- mix'' idInts idInts
 
   let idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
 
   let (IdInt _ i) = idInts'' !! 1000
       (IdInt _ j) = idInts'' !! 2000
       (IdInt _ k) = idInts'' !! 3000
+
+  putStrLn $ "i: " <> show i
+  putStrLn $ "j: " <> show j
+  putStrLn $ "k: " <> show k
+
+  let groveCoordinates = i + j + k
+
+  putStrLn $ "groveCoordinates: " <> show groveCoordinates
+
+  -- part 2
+  putStrLn "--- part 2 ---"
+  let decryptionKey = 811589153
+      reference = map (\(IdInt i x) -> IdInt i (x * decryptionKey)) idInts
+
+  idInts'''' <- foldM (\current _ -> mix'' reference current) reference [1..1]
+
+  let (IdInt _ i) = idInts'''' !! 1000
+      (IdInt _ j) = idInts'''' !! 2000
+      (IdInt _ k) = idInts'''' !! 3000
 
   putStrLn $ "i: " <> show i
   putStrLn $ "j: " <> show j

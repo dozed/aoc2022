@@ -118,4 +118,5 @@ test-suite aoc2022-test
     , hspec-checkers
     , matrix
     , raw-strings-qq
+    , vector
   default-language: Haskell2010

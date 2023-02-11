@@ -3,6 +3,7 @@
 module Day20Spec (day20Spec) where
 
 import Control.Monad.IO.Class (liftIO)
+import qualified Data.Vector as V
 
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
@@ -52,6 +53,14 @@ day20Spec = do
 
   describe "mixOne" $ do
     it "should move an element by a specific offset" $ do
+      let xs = [IdInt 0 2, IdInt 1 7, IdInt 2 1, IdInt 3 3, IdInt 4 5]
+          expected = [IdInt 0 2, IdInt 2 1, IdInt 3 3, IdInt 1 7, IdInt 4 5]
+          
+      let actual = mixOne xs (IdInt 1 7)
+      
+      actual `shouldBe` expected
+      
+    it "should move elements by a specific offset" $ do
       let xs1 = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
           xs2 = mixOne xs1 (IdInt 0 1)
           xs3 = mixOne xs2 (IdInt 1 2)
@@ -116,3 +125,70 @@ day20Spec = do
       idInts' <- liftIO $ mix'' idInts idInts
 
       compareNumbers idInts' expected
+
+  describe "mixOne and mixOne''" $ do
+    it "should give same results for test input" $ do
+      let idInts = [IdInt 0 2, IdInt 1 7, IdInt 2 1, IdInt 3 3, IdInt 4 5]
+          expected = [IdInt 0 2, IdInt 2 1, IdInt 3 3, IdInt 1 7, IdInt 4 5]
+          idInt = idInts !! 1
+
+      vec <- liftIO $ V.thaw $ V.fromList idInts
+
+      let idInts' = mixOne idInts idInt
+      liftIO $ mixOne'' vec idInt
+
+      idInts'' <- V.toList <$> V.freeze vec
+
+      idInts' `shouldBe` idInts''
+      -- compareNumbers idInts' idInts''
+
+    it "should give same results for real input" $ do
+      input <- liftIO $ readFile "input/Day20.txt"
+
+      ints <- case regularParse parseInts input of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+
+      let idInts = zipWith IdInt [0..] ints
+          idInt = idInts !! 1
+
+      vec <- liftIO $ V.thaw $ V.fromList idInts
+
+      let idInts' = mixOne idInts idInt
+      liftIO $ mixOne'' vec idInt
+
+      idInts'' <- V.toList <$> V.freeze vec
+
+      idInts' `shouldBe` idInts''
+      -- compareNumbers idInts' idInts''
+
+  describe "mixN and mixN''" $ do
+    it "should give same results" $ do
+      input <- liftIO $ readFile "input/Day20.txt"
+
+      ints <- case regularParse parseInts input of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+
+      let idInts = zipWith IdInt [0..] ints
+
+      let idInts' = mixN 2 idInts idInts
+      idInts'' <- liftIO $ mixN'' 2 idInts idInts
+
+      -- compareNumbers idInts' idInts''
+      idInts' `shouldBe` idInts''
+
+  describe "mix and mix''" $ do
+    it "should give same results" $ do
+      input <- liftIO $ readFile "input/Day20.txt"
+
+      ints <- case regularParse parseInts input of
+        Left e -> fail $ show e
+        Right xs -> pure xs
+
+      let idInts = zipWith IdInt [0..] ints
+
+      let idInts' = mix idInts idInts
+      idInts'' <- liftIO $ mix'' idInts idInts
+
+      compareNumbers idInts' idInts''

@@ -76,6 +76,9 @@ mixOne xs el@(IdInt _ offset) =
 mix :: [IdInt] -> [IdInt] -> [IdInt]
 mix reference current = foldl mixOne current reference
 
+mixN :: Int -> [IdInt] -> [IdInt] -> [IdInt]
+mixN n reference current = foldl mixOne current (take n reference)
+
 -- list/shift-based approach
 shift :: Offset -> Index -> [a] -> [a]
 shift _ _ [] = []
@@ -127,9 +130,12 @@ elemIndex' vec a i = do
   else elemIndex' vec a (i+1)
 
 mixOne'' :: IOVector IdInt -> IdInt -> IO ()
-mixOne'' arr el@(IdInt _ offset) = do
-  from <- fromJust <$> elemIndex' arr el 0
-  shift' offset from arr
+mixOne'' vec el@(IdInt _ offset) = do
+  from <- fromJust <$> elemIndex' vec el 0
+  let len = MV.length vec
+      offset' = if offset >= 0 then (offset + (offset `div` len)) `mod` len
+                else -((abs offset + (abs offset `div` len)) `mod` len)
+  shift' offset' from vec
   print el
   return ()
 
@@ -141,10 +147,18 @@ mix'' reference current = do
   vec' <- V.freeze vec
   return $ V.toList vec'
 
+mixN'' :: Int -> [IdInt] -> [IdInt] -> IO [IdInt]
+mixN'' n reference current = do
+  vec <- V.thaw $ V.fromList current
+  forM_ (take n reference) $ \i ->
+    mixOne'' vec i
+  vec' <- V.freeze vec
+  return $ V.toList vec'
+
 day20 :: IO ()
 day20 = do
-  -- let input = testInput
-  input <- readFile "input/Day20.txt"
+  let input = testInput
+  -- input <- readFile "input/Day20.txt"
 
   ints <- case regularParse parseInts input of
     Left e -> fail $ show e
@@ -175,7 +189,8 @@ day20 = do
   let decryptionKey = 811589153
       reference = map (\(IdInt i x) -> IdInt i (x * decryptionKey)) idInts
 
-  idInts'''' <- foldM (\current _ -> mix'' reference current) reference [1..1]
+  idInts''' <- foldM (\current _ -> mix'' reference current) reference [1..10]
+  let idInts'''' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'''
 
   let (IdInt _ i) = idInts'''' !! 1000
       (IdInt _ j) = idInts'''' !! 2000

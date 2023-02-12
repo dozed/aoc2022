@@ -64,6 +64,7 @@ tests:
     dependencies:
       - checkers
       - containers
+      - doctest
       - hspec
       - hspec-checkers
       - matrix

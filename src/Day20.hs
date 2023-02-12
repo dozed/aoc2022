@@ -42,6 +42,10 @@ cycleResetPrint xs = do
       xs' = take len . dropWhile (\(IdInt _ x) -> x /= 0) . cycle $ xs
   print xs'
 
+-- | Get smallest representative for offset equivalence class
+--
+-- >>> getSmallOffset 31 5
+-- 3
 getSmallOffset :: Offset -> Length -> Offset
 getSmallOffset offset len
   | offset >= 0 = (offset + (offset `div` (len-1))) `mod` len

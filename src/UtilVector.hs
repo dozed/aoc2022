@@ -1,4 +1,8 @@
-module UtilVector where
+module UtilVector (
+  elemIndex,
+  shift,
+  swap
+) where
 
 import Data.Vector.Mutable (IOVector)
 import qualified Data.Vector.Mutable as MV

@@ -42,7 +42,7 @@ cycleResetPrint xs = do
       xs' = take len . dropWhile (\(IdInt _ x) -> x /= 0) . cycle $ xs
   print xs'
 
--- | Get smallest representative for offset equivalence class
+-- | Get smallest representative from offset equivalence class
 --
 -- >>> getSmallOffset 31 5
 -- 3

@@ -190,7 +190,7 @@ day20 = do
       reference = map (\(IdInt i x) -> IdInt i (x * decryptionKey)) idInts
 
   idInts''' <- foldM (\current _ -> mix'' reference current) reference [1..10]
-  
+
   let idInts'''' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'''
 
   let (IdInt _ i) = idInts'''' !! 1000

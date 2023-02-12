@@ -2,7 +2,6 @@
 
 module Day20Spec (day20Spec) where
 
-import Control.Monad.IO.Class (liftIO)
 import qualified Data.Vector as V
 
 import Test.Hspec
@@ -21,6 +20,13 @@ compareNumbers actual expected = do
 
   na `shouldBe` ne
   current' `shouldBe` expected'
+
+mixOneTest :: [IdInt] -> IdInt -> IO [IdInt]
+mixOneTest idInts idInt = do
+  vec <- V.thaw $ V.fromList idInts
+  mixOne'' vec idInt
+  vec' <- V.freeze vec
+  return $ V.toList vec'
 
 day20Spec :: Spec
 day20Spec = do
@@ -113,7 +119,7 @@ day20Spec = do
       let idInts = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
           expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
 
-      idInts' <- liftIO $ mix' idInts
+      idInts' <- mix' idInts
 
       compareNumbers idInts' expected
 
@@ -122,73 +128,34 @@ day20Spec = do
       let idInts = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 3 3, IdInt 4 (-2), IdInt 5 0, IdInt 6 4]
           expected = [IdInt 0 1, IdInt 1 2, IdInt 2 (-3), IdInt 6 4, IdInt 5 0, IdInt 3 3, IdInt 4 (-2)]
 
-      idInts' <- liftIO $ mix'' idInts idInts
+      idInts' <- mix'' idInts idInts
 
       compareNumbers idInts' expected
 
-  describe "mixOne and mixOne''" $ do
-    it "should give same results for test input" $ do
-      let idInts = [IdInt 0 2, IdInt 1 7, IdInt 2 1, IdInt 3 3, IdInt 4 5]
-          expected = [IdInt 0 2, IdInt 2 1, IdInt 3 3, IdInt 1 7, IdInt 4 5]
+  describe "mixOne func" $ do
+    it "should mix one (1)" $ do
+      let idInts = [IdInt 0 0, IdInt 1 4, IdInt 2 1, IdInt 3 3, IdInt 4 5]
+          idInt = IdInt 1 4
+          expected = [IdInt 1 4, IdInt 2 1, IdInt 3 3, IdInt 4 5, IdInt 0 0]
+
+      idInts' <- mixOneTest idInts idInt
+
+      compareNumbers idInts' expected
+
+    it "should mix one (2)" $ do
+      let idInts = [IdInt 0 0, IdInt 1 3, IdInt 2 1, IdInt 3 3, IdInt 4 5]
+          expected = [IdInt 0 0, IdInt 2 1, IdInt 3 3, IdInt 4 5, IdInt 1 3]
           idInt = idInts !! 1
 
-      vec <- liftIO $ V.thaw $ V.fromList idInts
+      idInts' <- mixOneTest idInts idInt
 
-      let idInts' = mixOne idInts idInt
-      liftIO $ mixOne'' vec idInt
+      compareNumbers idInts' expected
 
-      idInts'' <- V.toList <$> V.freeze vec
-
-      idInts' `shouldBe` idInts''
-      -- compareNumbers idInts' idInts''
-
-    it "should give same results for real input" $ do
-      input <- liftIO $ readFile "input/Day20.txt"
-
-      ints <- case regularParse parseInts input of
-        Left e -> fail $ show e
-        Right xs -> pure xs
-
-      let idInts = zipWith IdInt [0..] ints
+    it "should mix one (3)" $ do
+      let idInts = [IdInt 0 0, IdInt 1 15, IdInt 2 1, IdInt 3 3, IdInt 4 5]
+          expected = [IdInt 0 0, IdInt 2 1, IdInt 3 3, IdInt 4 5, IdInt 1 15]
           idInt = idInts !! 1
 
-      vec <- liftIO $ V.thaw $ V.fromList idInts
+      idInts' <- mixOneTest idInts idInt
 
-      let idInts' = mixOne idInts idInt
-      liftIO $ mixOne'' vec idInt
-
-      idInts'' <- V.toList <$> V.freeze vec
-
-      idInts' `shouldBe` idInts''
-      -- compareNumbers idInts' idInts''
-
-  describe "mixN and mixN''" $ do
-    it "should give same results" $ do
-      input <- liftIO $ readFile "input/Day20.txt"
-
-      ints <- case regularParse parseInts input of
-        Left e -> fail $ show e
-        Right xs -> pure xs
-
-      let idInts = zipWith IdInt [0..] ints
-
-      let idInts' = mixN 2 idInts idInts
-      idInts'' <- liftIO $ mixN'' 2 idInts idInts
-
-      -- compareNumbers idInts' idInts''
-      idInts' `shouldBe` idInts''
-
-  describe "mix and mix''" $ do
-    it "should give same results" $ do
-      input <- liftIO $ readFile "input/Day20.txt"
-
-      ints <- case regularParse parseInts input of
-        Left e -> fail $ show e
-        Right xs -> pure xs
-
-      let idInts = zipWith IdInt [0..] ints
-
-      let idInts' = mix idInts idInts
-      idInts'' <- liftIO $ mix'' idInts idInts
-
-      compareNumbers idInts' idInts''
+      compareNumbers idInts' expected

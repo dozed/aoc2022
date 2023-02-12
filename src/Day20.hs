@@ -26,8 +26,8 @@ testInput = lstrip [r|
 4
 |]
 
-parseInts :: Parser [Int]
-parseInts = endBy1 int endOfLine
+intsParser :: Parser [Int]
+intsParser = endBy1 int endOfLine
 
 type Id = Int
 data IdInt = IdInt Id Int deriving (Eq, Show)
@@ -71,7 +71,7 @@ day20 = do
   -- let input = testInput
   input <- readFile "input/Day20.txt"
 
-  ints <- case regularParse parseInts input of
+  ints <- case regularParse intsParser input of
     Left e -> fail $ show e
     Right xs -> pure xs
 

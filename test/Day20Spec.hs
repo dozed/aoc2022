@@ -32,9 +32,9 @@ mixOneTest idInts idInt = do
 day20Spec :: Spec
 day20Spec = do
 
-  describe "parseInts" $ do
-    it "should parse numbers" $ do
-      numbers <- case regularParse parseInts testInput of
+  describe "intsParser" $ do
+    it "should parse a list of Int" $ do
+      numbers <- case regularParse intsParser testInput of
         Left e -> fail $ show e
         Right xs -> pure xs
 

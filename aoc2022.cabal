@@ -48,6 +48,7 @@ library
       Util
       UtilGraphSearch
       UtilMatrix
+      UtilVector
       UtilViterbi
   other-modules:
       Paths_aoc2022
@@ -103,6 +104,7 @@ test-suite aoc2022-test
       UtilGraphSearchSpec
       UtilMatrixSpec
       UtilSpec
+      UtilVectorSpec
       UtilViterbiSpec
       Paths_aoc2022
   hs-source-dirs:

@@ -3,6 +3,7 @@ import Test.Hspec
 import UtilSpec
 import UtilGraphSearchSpec
 import UtilMatrixSpec
+import UtilVectorSpec
 import UtilViterbiSpec
 import Day9Spec
 import Day10Spec
@@ -23,6 +24,7 @@ main = hspec $ do
   describe "Util" utilSpec
   describe "UtilGraphSearch" utilGraphSearchSpec
   describe "UtilMatrix" utilMatrixSpec
+  describe "UtilVector" utilVectorSpec
   describe "UtilViterbi" utilViterbiSpec
   describe "Day9" day9Spec
   describe "Day10" day10Spec

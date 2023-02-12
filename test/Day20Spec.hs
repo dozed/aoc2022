@@ -55,14 +55,6 @@ day20Spec = do
       forM_ [3, 7, 11, 15, 19, 23, 27, 31] $ \offset ->
         getSmallOffset offset 5 `shouldBe` 3
 
-  describe "shift" $ do
-    prop "should return same list if offset is zero" $ \(xs :: [Int], i) -> do
-      vec <- V.thaw . V.fromList $ xs
-      shift 0 i vec
-      xs' <- V.toList <$> V.freeze vec
-
-      xs' `shouldBe` xs
-
   describe "mixOne" $ do
     it "should mix one forward (1)" $ do
       let idInts = [IdInt 0 0, IdInt 1 4, IdInt 2 1, IdInt 3 3, IdInt 4 5]

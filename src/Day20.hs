@@ -12,7 +12,8 @@ import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
 
-import Util (lstrip, regularParse, swap')
+import Util (lstrip, regularParse)
+import qualified UtilVector as UV
 
 testInput :: String
 testInput = lstrip [r|
@@ -46,32 +47,12 @@ getSmallOffset offset len
   | offset >= 0 = (offset + (offset `div` (len-1))) `mod` len
   | otherwise   = -((abs offset + (abs offset `div` (len-1))) `mod` len)
 
-shift :: Offset -> Index -> IOVector a -> IO ()
-shift 0 _ _ = return ()
-shift offset from vec = do
-  let len = MV.length vec
-      to = if offset > 0 then
-             if from == len - 1 then 0 else from + 1
-           else
-             if from == 0 then len - 1 else from - 1
-      offset' = if offset > 0 then offset - 1
-                else offset + 1
-  swap' from to vec
-  shift offset' to vec
-
-elemIndex :: Eq a => IOVector a -> a -> Index -> IO (Maybe Int)
-elemIndex vec _ i | i == MV.length vec = return Nothing
-elemIndex vec a i = do
-  a' <- MV.read vec i
-  if a' == a then return (Just i)
-  else elemIndex vec a (i+1)
-
 mixOne :: IOVector IdInt -> IdInt -> IO ()
 mixOne vec el@(IdInt _ offset) = do
-  from <- fromJust <$> elemIndex vec el 0
+  from <- fromJust <$> UV.elemIndex vec el 0
   let len = MV.length vec
       offset' = getSmallOffset offset len
-  shift offset' from vec
+  UV.shift offset' from vec
   print el
   return ()
 

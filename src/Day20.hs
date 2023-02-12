@@ -137,6 +137,12 @@ mixOne'' vec el@(IdInt _ offset) = do
   print el
   return ()
 
+cycleResetPrint :: [IdInt] -> IO ()
+cycleResetPrint xs = do
+  let len = length xs
+      xs' = take len . dropWhile (\(IdInt _ x) -> x /= 0) . cycle $ xs
+  print xs'
+
 mix'' :: [IdInt] -> [IdInt] -> IO [IdInt]
 mix'' reference current = do
   vec <- V.thaw $ V.fromList current
@@ -144,7 +150,7 @@ mix'' reference current = do
     mixOne'' vec i
   vec' <- V.freeze vec
   let xs = V.toList vec'
-  print xs
+  cycleResetPrint xs
   return xs
 
 mixN'' :: Int -> [IdInt] -> [IdInt] -> IO [IdInt]
@@ -170,7 +176,7 @@ day20 = do
   putStrLn "--- part 1 ---"
   idInts' <- mix'' idInts idInts
 
-  let idInts'' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'
+  let idInts'' = dropWhile (\(IdInt _ x) -> x /= 0) . cycle $ idInts'
 
   let (IdInt _ i) = idInts'' !! 1000
       (IdInt _ j) = idInts'' !! 2000
@@ -191,7 +197,7 @@ day20 = do
 
   idInts''' <- foldM (\current _ -> mix'' reference current) reference [1..10]
 
-  let idInts'''' = dropWhile (\(IdInt _ i) -> i /= 0) . cycle $ idInts'''
+  let idInts'''' = dropWhile (\(IdInt _ x) -> x /= 0) . cycle $ idInts'''
 
   let (IdInt _ i) = idInts'''' !! 1000
       (IdInt _ j) = idInts'''' !! 2000

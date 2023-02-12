@@ -100,13 +100,13 @@ day20 = do
   let decryptionKey = 811589153
       reference' = map (\(IdInt i x) -> IdInt i (x * decryptionKey)) reference
 
-  idInts''' <- foldM (\current _ -> mix reference' current) reference' [1..10]
+  mixed'' <- foldM (\current _ -> mix reference' current) reference' [1..10]
 
-  let idInts'''' = dropWhile (\(IdInt _ x) -> x /= 0) . cycle $ idInts'''
+  let mixed''' = dropWhile (\(IdInt _ x) -> x /= 0) . cycle $ mixed''
 
-  let (IdInt _ i) = idInts'''' !! 1000
-      (IdInt _ j) = idInts'''' !! 2000
-      (IdInt _ k) = idInts'''' !! 3000
+  let (IdInt _ i) = mixed''' !! 1000
+      (IdInt _ j) = mixed''' !! 2000
+      (IdInt _ k) = mixed''' !! 3000
 
   putStrLn $ "i: " <> show i
   putStrLn $ "j: " <> show j

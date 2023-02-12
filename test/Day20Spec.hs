@@ -133,7 +133,7 @@ day20Spec = do
       compareNumbers idInts' expected
 
   describe "mixOne func" $ do
-    it "should mix one (1)" $ do
+    it "should mix one forward (1)" $ do
       let idInts = [IdInt 0 0, IdInt 1 4, IdInt 2 1, IdInt 3 3, IdInt 4 5]
           idInt = IdInt 1 4
           expected = [IdInt 1 4, IdInt 2 1, IdInt 3 3, IdInt 4 5, IdInt 0 0]
@@ -142,7 +142,7 @@ day20Spec = do
 
       compareNumbers idInts' expected
 
-    it "should mix one (2)" $ do
+    it "should mix one forward (2)" $ do
       let idInts = [IdInt 0 0, IdInt 1 3, IdInt 2 1, IdInt 3 3, IdInt 4 5]
           expected = [IdInt 0 0, IdInt 2 1, IdInt 3 3, IdInt 4 5, IdInt 1 3]
           idInt = idInts !! 1
@@ -151,7 +151,7 @@ day20Spec = do
 
       compareNumbers idInts' expected
 
-    it "should mix one (3)" $ do
+    it "should mix one forward (3)" $ do
       let idInts = [IdInt 0 0, IdInt 1 15, IdInt 2 1, IdInt 3 3, IdInt 4 5]
           expected = [IdInt 0 0, IdInt 2 1, IdInt 3 3, IdInt 4 5, IdInt 1 15]
           idInt = idInts !! 1
@@ -159,3 +159,22 @@ day20Spec = do
       idInts' <- mixOneTest idInts idInt
 
       compareNumbers idInts' expected
+
+    it "should mix one backward (1)" $ do
+      let idInts = [IdInt 0 0, IdInt 1 4, IdInt 2 1, IdInt 3 (-3), IdInt 4 5]
+          idInt = IdInt 3 (-3)
+          expected = [IdInt 3 (-3), IdInt 0 0, IdInt 1 4, IdInt 2 1, IdInt 4 5]
+
+      idInts' <- mixOneTest idInts idInt
+
+      compareNumbers idInts' expected
+
+    it "should mix one backward (2)" $ do
+      let idInts = [IdInt 0 0, IdInt 1 4, IdInt 2 1, IdInt 3 (-15), IdInt 4 5]
+          idInt = IdInt 3 (-15)
+          expected = [IdInt 3 (-15), IdInt 0 0, IdInt 1 4, IdInt 2 1, IdInt 4 5]
+
+      idInts' <- mixOneTest idInts idInt
+
+      compareNumbers idInts' expected
+

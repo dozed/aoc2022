@@ -42,43 +42,43 @@ idParser = many1 lower
 leafIdParser :: Parser ExprId
 leafIdParser = do
   i <- idParser
-  void $ try (string ": ")
+  void $ string ": "
   n <- int
   return $ LeafId i n
 
 addIdParser :: Parser ExprId
 addIdParser = do
   i <- idParser
-  void $ try (string ": ")
+  void $ string ": "
   x <- idParser
-  void $ try (string " + ")
+  void $ string " + "
   y <- idParser
   return $ AddId i x y
 
 subIdParser :: Parser ExprId
 subIdParser = do
   i <- idParser
-  void $ try (string ": ")
+  void $ string ": "
   x <- idParser
-  void $ try (string " - ")
+  void $ string " - "
   y <- idParser
   return $ SubId i x y
 
 mulIdParser :: Parser ExprId
 mulIdParser = do
   i <- idParser
-  void $ try (string ": ")
+  void $ string ": "
   x <- idParser
-  void $ try (string " * ")
+  void $ string " * "
   y <- idParser
   return $ MulId i x y
 
 divIdParser :: Parser ExprId
 divIdParser = do
   i <- idParser
-  void $ try (string ": ")
+  void $ string ": "
   x <- idParser
-  void $ try (string " / ")
+  void $ string " / "
   y <- idParser
   return $ DivId i x y
 

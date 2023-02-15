@@ -1,0 +1,101 @@
+{-# LANGUAGE QuasiQuotes #-}
+
+module Day21 where
+
+import Control.Monad (void)
+import Text.Parsec hiding (count)
+import Text.Parsec.String
+import Text.ParserCombinators.Parsec.Number (int)
+import Text.RawString.QQ
+import Util (lstrip, regularParse)
+
+testInput :: String
+testInput = lstrip [r|
+root: pppw + sjmn
+dbpl: 5
+cczh: sllz + lgvd
+zczc: 2
+ptdq: humn - dvpt
+dvpt: 3
+lfqf: 4
+humn: 5
+ljgn: 2
+sjmn: drzm * dbpl
+sllz: 4
+pppw: cczh / lfqf
+lgvd: ljgn * ptdq
+drzm: hmdt - zczc
+hmdt: 32
+|]
+
+type Id = String
+data ExprId = LeafId Id Int
+            | AddId Id Id Id
+            | SubId Id Id Id
+            | MulId Id Id Id
+            | DivId Id Id Id
+            deriving (Eq, Show)
+
+idParser :: Parser Id
+idParser = many1 lower
+
+leafIdParser :: Parser ExprId
+leafIdParser = do
+  i <- idParser
+  void $ try (string ": ")
+  n <- int
+  return $ LeafId i n
+
+addIdParser :: Parser ExprId
+addIdParser = do
+  i <- idParser
+  void $ try (string ": ")
+  x <- idParser
+  void $ try (string " + ")
+  y <- idParser
+  return $ AddId i x y
+
+subIdParser :: Parser ExprId
+subIdParser = do
+  i <- idParser
+  void $ try (string ": ")
+  x <- idParser
+  void $ try (string " - ")
+  y <- idParser
+  return $ SubId i x y
+
+mulIdParser :: Parser ExprId
+mulIdParser = do
+  i <- idParser
+  void $ try (string ": ")
+  x <- idParser
+  void $ try (string " * ")
+  y <- idParser
+  return $ MulId i x y
+
+divIdParser :: Parser ExprId
+divIdParser = do
+  i <- idParser
+  void $ try (string ": ")
+  x <- idParser
+  void $ try (string " / ")
+  y <- idParser
+  return $ DivId i x y
+
+exprIdParser :: Parser ExprId
+exprIdParser = try leafIdParser <|> try addIdParser <|> try subIdParser <|> try mulIdParser <|> divIdParser
+
+exprIdsParser :: Parser [ExprId]
+exprIdsParser = endBy1 exprIdParser endOfLine
+
+day21 :: IO ()
+day21 = do
+  let input = testInput
+
+  exprIds <- case regularParse exprIdsParser input of
+    Left e -> fail $ show e
+    Right xs -> return xs
+
+  putStrLn "day21"
+
+  print exprIds

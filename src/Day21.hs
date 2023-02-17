@@ -151,7 +151,8 @@ evaluate (Div a b) = evaluate a `div` evaluate b
 
 day21 :: IO ()
 day21 = do
-  let input = testInput
+  -- let input = testInput
+  input <- readFile "input/Day21.txt"
 
   exprIds <- case regularParse exprIdsParser input of
     Left e -> fail $ show e

@@ -3,6 +3,10 @@
 module Day21 where
 
 import Control.Monad (void)
+import Data.List (find)
+import Data.Map (Map)
+import qualified Data.Map as M
+import Data.Maybe (fromJust, isJust)
 import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
@@ -88,6 +92,43 @@ exprIdParser = try leafIdParser <|> try addIdParser <|> try subIdParser <|> try 
 exprIdsParser :: Parser [ExprId]
 exprIdsParser = endBy1 exprIdParser endOfLine
 
+isLeafId :: ExprId -> Bool
+isLeafId (LeafId _ _) = True
+isLeafId _ = False
+
+getId :: ExprId -> Id
+getId (LeafId i _) = i
+getId (AddId i _ _) = i
+getId (SubId i _ _) = i
+getId (MulId i _ _) = i
+getId (DivId i _ _) = i
+
+data Expr = Leaf Int
+          | Add Expr Expr
+          | Sub Expr Expr
+          | Mul Expr Expr
+          | Div Expr Expr
+          deriving (Eq, Show)
+
+buildExpr'' :: Map Id ExprId -> Id -> Expr
+buildExpr'' exprIds i =
+  let e = fromJust . M.lookup i $ exprIds
+  in buildExpr' exprIds e
+
+buildExpr' :: Map Id ExprId -> ExprId -> Expr
+buildExpr' _ (LeafId _ x) = Leaf x
+buildExpr' exprIds (AddId _ ai bi) = Add (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+buildExpr' exprIds (SubId _ ai bi) = Sub (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+buildExpr' exprIds (MulId _ ai bi) = Mul (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+buildExpr' exprIds (DivId _ ai bi) = Div (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+
+buildExpr :: [ExprId] -> Expr
+buildExpr exprIds =  
+  let exprIds' = M.fromList $ map (\e -> (getId e, e)) exprIds
+      root = fromJust . M.lookup "root" $ exprIds'
+      expr = buildExpr' exprIds' root
+  in expr
+  
 day21 :: IO ()
 day21 = do
   let input = testInput
@@ -99,3 +140,9 @@ day21 = do
   putStrLn "day21"
 
   print exprIds
+
+  let expr = buildExpr exprIds
+
+  print expr
+
+  return ()

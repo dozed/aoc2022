@@ -163,8 +163,9 @@ containsHumanInput (Sub _ a b) = containsHumanInput a || containsHumanInput b
 containsHumanInput (Mul _ a b) = containsHumanInput a || containsHumanInput b
 containsHumanInput (Div _ a b) = containsHumanInput a || containsHumanInput b
 
+-- | Reduce LHS Expr by inverting the operation to the RHS
 reduceOne :: Expr -> Expr -> (Expr, Expr)
-reduceOne (Leaf _ _) _ = error "moveFromLhsToRhs on Leaf"
+reduceOne (Leaf _ _) _ = error "reduceOne on Leaf"
 reduceOne (Add _ a b) rhs = if containsHumanInput a then (a, Sub "" rhs b) else (b, Sub "" rhs a)
 reduceOne (Sub _ a b) rhs = if containsHumanInput a then (a, Add "" rhs b) else (b, Mul "" (Sub "" rhs a) (Leaf "" (-1)))
 reduceOne (Mul _ a b) rhs = if containsHumanInput a then (a, Div "" rhs b) else (b, Div "" rhs a)

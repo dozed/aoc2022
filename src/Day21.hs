@@ -2,11 +2,10 @@
 
 module Day21 where
 
-import Control.Monad (void)
-import Data.List (find)
+import Control.Monad (forM_, void)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (fromJust, isJust)
+import Data.Maybe (fromJust)
 import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
@@ -149,6 +148,22 @@ evaluate (Sub a b) = evaluate a - evaluate b
 evaluate (Mul a b) = evaluate a * evaluate b
 evaluate (Div a b) = evaluate a `div` evaluate b
 
+setHumanInput :: Int -> [ExprId] -> [ExprId]
+setHumanInput _ [] = []
+setHumanInput n ((LeafId "humn" _):xs) = LeafId "humn" n : xs
+setHumanInput n (x:xs) = x : setHumanInput n xs
+
+getSides :: Expr -> (Expr, Expr)
+getSides (Leaf _) = error "getSides on Leaf"
+getSides (Add a b) = (a, b)
+getSides (Sub a b) = (a, b)
+getSides (Mul a b) = (a, b)
+getSides (Div a b) = (a, b)
+
+interleave :: [a] -> [a] -> [a]
+interleave (x:xs) ys = x : interleave ys xs
+interleave [] ys = ys
+
 day21 :: IO ()
 day21 = do
   -- let input = testInput
@@ -160,10 +175,19 @@ day21 = do
 
   print exprIds
 
+  -- part 1
   let expr = buildExpr exprIds
-
   print expr
   putStrLn $ prettyShow expr
   print $ evaluate expr
 
-  return ()
+  -- part 2
+  forM_ (interleave [0..] [0,-1..]) $ \i -> do
+    let exprIds' = setHumanInput i exprIds
+        expr' = buildExpr exprIds'
+        (lhs, rhs) = getSides expr'
+        left = evaluate lhs
+        right = evaluate rhs
+
+    if left == right then putStrLn $ "Solution: " <> show i
+    else pure ()

@@ -2,7 +2,7 @@
 
 module Day21 where
 
-import Control.Monad (forM_, void)
+import Control.Monad (void)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (fromJust)
@@ -10,7 +10,7 @@ import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
-import Util (interleave, lstrip, regularParse)
+import Util (lstrip, regularParse)
 
 testInput :: String
 testInput = lstrip [r|
@@ -148,11 +148,6 @@ evaluate (Sub _ a b) = evaluate a - evaluate b
 evaluate (Mul _ a b) = evaluate a * evaluate b
 evaluate (Div _ a b) = evaluate a `div` evaluate b
 
-setHumanInput :: Int -> [ExprId] -> [ExprId]
-setHumanInput _ [] = []
-setHumanInput n ((LeafId "humn" _):xs) = LeafId "humn" n : xs
-setHumanInput n (x:xs) = x : setHumanInput n xs
-
 getSides :: Expr -> (Expr, Expr)
 getSides (Leaf _ _) = error "getSides on Leaf"
 getSides (Add _ a b) = (a, b)
@@ -160,10 +155,38 @@ getSides (Sub _ a b) = (a, b)
 getSides (Mul _ a b) = (a, b)
 getSides (Div _ a b) = (a, b)
 
+data Side = L | R
+            deriving (Eq, Show)
+
+containsHumanInput :: Expr -> Bool
+containsHumanInput (Leaf "humn" _) = True
+containsHumanInput (Leaf _ _) = False
+containsHumanInput (Add _ a b) = containsHumanInput a || containsHumanInput b
+containsHumanInput (Sub _ a b) = containsHumanInput a || containsHumanInput b
+containsHumanInput (Mul _ a b) = containsHumanInput a || containsHumanInput b
+containsHumanInput (Div _ a b) = containsHumanInput a || containsHumanInput b
+
+moveFromLhsToRhs :: Expr -> Expr -> (Expr, Expr)
+moveFromLhsToRhs (Leaf _ _) _ = error "moveFromLhsToRhs on Leaf"
+moveFromLhsToRhs (Add _ a b) rhs = if containsHumanInput a then (a, (Sub "" rhs b)) else (b, (Sub "" rhs a))
+moveFromLhsToRhs (Sub _ a b) rhs = if containsHumanInput a then (a, (Add "" rhs b)) else (b, (Mul "" (Sub "" rhs a) (Leaf "" (-1))))
+moveFromLhsToRhs (Mul _ a b) rhs = if containsHumanInput a then (a, (Div "" rhs b)) else (b, (Div "" rhs a))
+moveFromLhsToRhs (Div _ a b) rhs = if containsHumanInput a then (a, (Mul "" rhs b)) else (b, (Mul "" a (Div "" (Leaf "" 1) rhs)))
+
+isReduced :: Expr -> Bool
+isReduced (Leaf "humn" _) = True
+isReduced _ = False
+
+reduce :: Expr -> Expr -> Expr
+reduce lhs rhs | isReduced lhs = rhs
+reduce lhs rhs =
+  let (lhs', rhs') = moveFromLhsToRhs lhs rhs
+  in reduce lhs' rhs'
+
 day21 :: IO ()
 day21 = do
-  let input = testInput
-  -- input <- readFile "input/Day21.txt"
+  -- let input = testInput
+  input <- readFile "input/Day21.txt"
 
   exprIds <- case regularParse exprIdsParser input of
     Left e -> fail $ show e
@@ -178,12 +201,8 @@ day21 = do
   print $ evaluate expr
 
   -- part 2
-  forM_ (interleave [0..] [0,-1..]) $ \i -> do
-    let exprIds' = setHumanInput i exprIds
-        expr' = buildExpr exprIds'
-        (lhs, rhs) = getSides expr'
-        left = evaluate lhs
-        right = evaluate rhs
+  let (lhs, rhs) = getSides expr
+      (lhs', rhs') = if containsHumanInput lhs then (lhs, rhs) else (rhs, lhs)
+      rhs'' = reduce lhs' rhs'
 
-    if left == right then putStrLn $ "Solution: " <> show i
-    else pure ()
+  print $ evaluate rhs''

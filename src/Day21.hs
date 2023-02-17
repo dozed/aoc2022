@@ -10,7 +10,7 @@ import Text.Parsec hiding (count)
 import Text.Parsec.String
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.RawString.QQ
-import Util (lstrip, regularParse)
+import Util (interleave, lstrip, regularParse)
 
 testInput :: String
 testInput = lstrip [r|
@@ -159,10 +159,6 @@ getSides (Add a b) = (a, b)
 getSides (Sub a b) = (a, b)
 getSides (Mul a b) = (a, b)
 getSides (Div a b) = (a, b)
-
-interleave :: [a] -> [a] -> [a]
-interleave (x:xs) ys = x : interleave ys xs
-interleave [] ys = ys
 
 day21 :: IO ()
 day21 = do

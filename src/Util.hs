@@ -9,6 +9,7 @@ module Util (
   dropUntil,
   findElem,
   filterNot,
+  interleave,
   intersect,
   insertAtIndex,
   lstrip,
@@ -184,3 +185,7 @@ findElem p     = find' id
 
 filterNot :: (a -> Bool) -> [a] -> [a]
 filterNot p as = filter (not . p) as
+
+interleave :: [a] -> [a] -> [a]
+interleave (x:xs) ys = x : interleave ys xs
+interleave [] ys = ys

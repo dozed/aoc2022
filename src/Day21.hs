@@ -168,10 +168,10 @@ containsHumanInput (Div _ a b) = containsHumanInput a || containsHumanInput b
 
 moveFromLhsToRhs :: Expr -> Expr -> (Expr, Expr)
 moveFromLhsToRhs (Leaf _ _) _ = error "moveFromLhsToRhs on Leaf"
-moveFromLhsToRhs (Add _ a b) rhs = if containsHumanInput a then (a, (Sub "" rhs b)) else (b, (Sub "" rhs a))
-moveFromLhsToRhs (Sub _ a b) rhs = if containsHumanInput a then (a, (Add "" rhs b)) else (b, (Mul "" (Sub "" rhs a) (Leaf "" (-1))))
-moveFromLhsToRhs (Mul _ a b) rhs = if containsHumanInput a then (a, (Div "" rhs b)) else (b, (Div "" rhs a))
-moveFromLhsToRhs (Div _ a b) rhs = if containsHumanInput a then (a, (Mul "" rhs b)) else (b, (Mul "" a (Div "" (Leaf "" 1) rhs)))
+moveFromLhsToRhs (Add _ a b) rhs = if containsHumanInput a then (a, Sub "" rhs b) else (b, Sub "" rhs a)
+moveFromLhsToRhs (Sub _ a b) rhs = if containsHumanInput a then (a, Add "" rhs b) else (b, Mul "" (Sub "" rhs a) (Leaf "" (-1)))
+moveFromLhsToRhs (Mul _ a b) rhs = if containsHumanInput a then (a, Div "" rhs b) else (b, Div "" rhs a)
+moveFromLhsToRhs (Div _ a b) rhs = if containsHumanInput a then (a, Mul "" rhs b) else (b, Mul "" a (Div "" (Leaf "" 1) rhs))
 
 isReduced :: Expr -> Bool
 isReduced (Leaf "humn" _) = True

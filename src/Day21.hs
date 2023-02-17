@@ -192,10 +192,11 @@ day21 = do
 
   print exprIds
 
-  -- part 1
   let expr = buildExpr exprIds
   print expr
   putStrLn $ prettyShow expr
+
+  -- part 1
   print $ evaluate expr
 
   -- part 2

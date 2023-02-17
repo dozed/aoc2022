@@ -155,9 +155,6 @@ getSides (Sub _ a b) = (a, b)
 getSides (Mul _ a b) = (a, b)
 getSides (Div _ a b) = (a, b)
 
-data Side = L | R
-            deriving (Eq, Show)
-
 containsHumanInput :: Expr -> Bool
 containsHumanInput (Leaf "humn" _) = True
 containsHumanInput (Leaf _ _) = False

@@ -166,12 +166,12 @@ containsHumanInput (Sub _ a b) = containsHumanInput a || containsHumanInput b
 containsHumanInput (Mul _ a b) = containsHumanInput a || containsHumanInput b
 containsHumanInput (Div _ a b) = containsHumanInput a || containsHumanInput b
 
-moveFromLhsToRhs :: Expr -> Expr -> (Expr, Expr)
-moveFromLhsToRhs (Leaf _ _) _ = error "moveFromLhsToRhs on Leaf"
-moveFromLhsToRhs (Add _ a b) rhs = if containsHumanInput a then (a, Sub "" rhs b) else (b, Sub "" rhs a)
-moveFromLhsToRhs (Sub _ a b) rhs = if containsHumanInput a then (a, Add "" rhs b) else (b, Mul "" (Sub "" rhs a) (Leaf "" (-1)))
-moveFromLhsToRhs (Mul _ a b) rhs = if containsHumanInput a then (a, Div "" rhs b) else (b, Div "" rhs a)
-moveFromLhsToRhs (Div _ a b) rhs = if containsHumanInput a then (a, Mul "" rhs b) else (b, Mul "" a (Div "" (Leaf "" 1) rhs))
+reduceOne :: Expr -> Expr -> (Expr, Expr)
+reduceOne (Leaf _ _) _ = error "moveFromLhsToRhs on Leaf"
+reduceOne (Add _ a b) rhs = if containsHumanInput a then (a, Sub "" rhs b) else (b, Sub "" rhs a)
+reduceOne (Sub _ a b) rhs = if containsHumanInput a then (a, Add "" rhs b) else (b, Mul "" (Sub "" rhs a) (Leaf "" (-1)))
+reduceOne (Mul _ a b) rhs = if containsHumanInput a then (a, Div "" rhs b) else (b, Div "" rhs a)
+reduceOne (Div _ a b) rhs = if containsHumanInput a then (a, Mul "" rhs b) else (b, Mul "" a (Div "" (Leaf "" 1) rhs))
 
 isReduced :: Expr -> Bool
 isReduced (Leaf "humn" _) = True
@@ -180,7 +180,7 @@ isReduced _ = False
 reduce :: Expr -> Expr -> Expr
 reduce lhs rhs | isReduced lhs = rhs
 reduce lhs rhs =
-  let (lhs', rhs') = moveFromLhsToRhs lhs rhs
+  let (lhs', rhs') = reduceOne lhs rhs
   in reduce lhs' rhs'
 
 day21 :: IO ()

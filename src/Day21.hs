@@ -123,12 +123,32 @@ buildExpr' exprIds (MulId _ ai bi) = Mul (buildExpr'' exprIds ai) (buildExpr'' e
 buildExpr' exprIds (DivId _ ai bi) = Div (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
 
 buildExpr :: [ExprId] -> Expr
-buildExpr exprIds =  
+buildExpr exprIds =
   let exprIds' = M.fromList $ map (\e -> (getId e, e)) exprIds
       root = fromJust . M.lookup "root" $ exprIds'
       expr = buildExpr' exprIds' root
   in expr
-  
+
+mkIndent :: Int -> String
+mkIndent indent = concat . replicate indent $ "  "
+
+prettyShow' :: Int -> Expr -> [String]
+prettyShow' indent (Leaf x) = [mkIndent indent <> "Leaf " <> show x]
+prettyShow' indent (Add a b) = [mkIndent indent <> "Add"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+prettyShow' indent (Sub a b) = [mkIndent indent <> "Sub"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+prettyShow' indent (Mul a b) = [mkIndent indent <> "Mul"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+prettyShow' indent (Div a b) = [mkIndent indent <> "Div"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+
+prettyShow :: Expr -> String
+prettyShow expr = unlines . prettyShow' 0 $ expr
+
+evaluate :: Expr -> Int
+evaluate (Leaf x) = x
+evaluate (Add a b) = evaluate a + evaluate b
+evaluate (Sub a b) = evaluate a - evaluate b
+evaluate (Mul a b) = evaluate a * evaluate b
+evaluate (Div a b) = evaluate a `div` evaluate b
+
 day21 :: IO ()
 day21 = do
   let input = testInput
@@ -137,12 +157,12 @@ day21 = do
     Left e -> fail $ show e
     Right xs -> return xs
 
-  putStrLn "day21"
-
   print exprIds
 
   let expr = buildExpr exprIds
 
   print expr
+  putStrLn $ prettyShow expr
+  print $ evaluate expr
 
   return ()

@@ -36,3 +36,9 @@ day21Spec = do
           expected = Add (Div (Add (Leaf 4) (Mul (Leaf 2) (Sub (Leaf 5) (Leaf 3)))) (Leaf 4)) (Mul (Sub (Leaf 32) (Leaf 2)) (Leaf 5))
 
       buildExpr exprIds `shouldBe` expected
+
+  describe "evaluate" $ do
+    it "should evaluate an Expr" $ do
+      let expr = Add (Div (Add (Leaf 4) (Mul (Leaf 2) (Sub (Leaf 5) (Leaf 3)))) (Leaf 4)) (Mul (Sub (Leaf 32) (Leaf 2)) (Leaf 5))
+      
+      evaluate expr `shouldBe` 152

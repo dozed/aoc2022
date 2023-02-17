@@ -1,9 +1,9 @@
 module Day21Spec where
 
+import Test.Hspec
+
 import Day21
 import Util (regularParse)
-
-import Test.Hspec
 
 day21Spec :: Spec
 day21Spec = do
@@ -33,12 +33,12 @@ day21Spec = do
               MulId "sjmn" "drzm" "dbpl", LeafId "sllz" 4, DivId "pppw" "cczh" "lfqf", MulId "lgvd" "ljgn" "ptdq",
               SubId "drzm" "hmdt" "zczc", LeafId "hmdt" 32
             ]
-          expected = Add (Div (Add (Leaf 4) (Mul (Leaf 2) (Sub (Leaf 5) (Leaf 3)))) (Leaf 4)) (Mul (Sub (Leaf 32) (Leaf 2)) (Leaf 5))
+          expected = Add "root" (Div "pppw" (Add "cczh" (Leaf "sllz" 4) (Mul "lgvd" (Leaf "ljgn" 2) (Sub "ptdq" (Leaf "humn" 5) (Leaf "dvpt" 3)))) (Leaf "lfqf" 4)) (Mul "sjmn" (Sub "drzm" (Leaf "hmdt" 32) (Leaf "zczc" 2)) (Leaf "dbpl" 5))
 
       buildExpr exprIds `shouldBe` expected
 
   describe "evaluate" $ do
     it "should evaluate an Expr" $ do
-      let expr = Add (Div (Add (Leaf 4) (Mul (Leaf 2) (Sub (Leaf 5) (Leaf 3)))) (Leaf 4)) (Mul (Sub (Leaf 32) (Leaf 2)) (Leaf 5))
-      
+      let expr = Add "root" (Div "pppw" (Add "cczh" (Leaf "sllz" 4) (Mul "lgvd" (Leaf "ljgn" 2) (Sub "ptdq" (Leaf "humn" 5) (Leaf "dvpt" 3)))) (Leaf "lfqf" 4)) (Mul "sjmn" (Sub "drzm" (Leaf "hmdt" 32) (Leaf "zczc" 2)) (Leaf "dbpl" 5))
+
       evaluate expr `shouldBe` 152

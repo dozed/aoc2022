@@ -102,11 +102,11 @@ getId (SubId i _ _) = i
 getId (MulId i _ _) = i
 getId (DivId i _ _) = i
 
-data Expr = Leaf Int
-          | Add Expr Expr
-          | Sub Expr Expr
-          | Mul Expr Expr
-          | Div Expr Expr
+data Expr = Leaf Id Int
+          | Add Id Expr Expr
+          | Sub Id Expr Expr
+          | Mul Id Expr Expr
+          | Div Id Expr Expr
           deriving (Eq, Show)
 
 buildExpr'' :: Map Id ExprId -> Id -> Expr
@@ -115,11 +115,11 @@ buildExpr'' exprIds i =
   in buildExpr' exprIds e
 
 buildExpr' :: Map Id ExprId -> ExprId -> Expr
-buildExpr' _ (LeafId _ x) = Leaf x
-buildExpr' exprIds (AddId _ ai bi) = Add (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
-buildExpr' exprIds (SubId _ ai bi) = Sub (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
-buildExpr' exprIds (MulId _ ai bi) = Mul (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
-buildExpr' exprIds (DivId _ ai bi) = Div (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+buildExpr' _ (LeafId i x) = Leaf i x
+buildExpr' exprIds (AddId i ai bi) = Add i (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+buildExpr' exprIds (SubId i ai bi) = Sub i (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+buildExpr' exprIds (MulId i ai bi) = Mul i (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
+buildExpr' exprIds (DivId i ai bi) = Div i (buildExpr'' exprIds ai) (buildExpr'' exprIds bi)
 
 buildExpr :: [ExprId] -> Expr
 buildExpr exprIds =
@@ -132,21 +132,21 @@ mkIndent :: Int -> String
 mkIndent indent = concat . replicate indent $ "  "
 
 prettyShow' :: Int -> Expr -> [String]
-prettyShow' indent (Leaf x) = [mkIndent indent <> "Leaf " <> show x]
-prettyShow' indent (Add a b) = [mkIndent indent <> "Add"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
-prettyShow' indent (Sub a b) = [mkIndent indent <> "Sub"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
-prettyShow' indent (Mul a b) = [mkIndent indent <> "Mul"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
-prettyShow' indent (Div a b) = [mkIndent indent <> "Div"] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+prettyShow' indent (Leaf i x) = [mkIndent indent <> "Leaf " <> show i <> " " <> show x]
+prettyShow' indent (Add i a b) = [mkIndent indent <> "Add " <> show i] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+prettyShow' indent (Sub i a b) = [mkIndent indent <> "Sub " <> show i] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+prettyShow' indent (Mul i a b) = [mkIndent indent <> "Mul " <> show i] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
+prettyShow' indent (Div i a b) = [mkIndent indent <> "Div " <> show i] ++ prettyShow' (indent+1) a ++ prettyShow' (indent+1) b
 
 prettyShow :: Expr -> String
 prettyShow expr = unlines . prettyShow' 0 $ expr
 
 evaluate :: Expr -> Int
-evaluate (Leaf x) = x
-evaluate (Add a b) = evaluate a + evaluate b
-evaluate (Sub a b) = evaluate a - evaluate b
-evaluate (Mul a b) = evaluate a * evaluate b
-evaluate (Div a b) = evaluate a `div` evaluate b
+evaluate (Leaf _ x) = x
+evaluate (Add _ a b) = evaluate a + evaluate b
+evaluate (Sub _ a b) = evaluate a - evaluate b
+evaluate (Mul _ a b) = evaluate a * evaluate b
+evaluate (Div _ a b) = evaluate a `div` evaluate b
 
 setHumanInput :: Int -> [ExprId] -> [ExprId]
 setHumanInput _ [] = []
@@ -154,16 +154,16 @@ setHumanInput n ((LeafId "humn" _):xs) = LeafId "humn" n : xs
 setHumanInput n (x:xs) = x : setHumanInput n xs
 
 getSides :: Expr -> (Expr, Expr)
-getSides (Leaf _) = error "getSides on Leaf"
-getSides (Add a b) = (a, b)
-getSides (Sub a b) = (a, b)
-getSides (Mul a b) = (a, b)
-getSides (Div a b) = (a, b)
+getSides (Leaf _ _) = error "getSides on Leaf"
+getSides (Add _ a b) = (a, b)
+getSides (Sub _ a b) = (a, b)
+getSides (Mul _ a b) = (a, b)
+getSides (Div _ a b) = (a, b)
 
 day21 :: IO ()
 day21 = do
-  -- let input = testInput
-  input <- readFile "input/Day21.txt"
+  let input = testInput
+  -- input <- readFile "input/Day21.txt"
 
   exprIds <- case regularParse exprIdsParser input of
     Left e -> fail $ show e

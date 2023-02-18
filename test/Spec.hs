@@ -20,6 +20,7 @@ import Day18Spec
 import Day19Spec
 import Day20Spec
 import Day21Spec
+import Day22Spec
 
 main :: IO ()
 main = do
@@ -44,3 +45,4 @@ main = do
     describe "Day19" day19Spec
     describe "Day20" day20Spec
     describe "Day21" day21Spec
+    describe "Day22" day22Spec

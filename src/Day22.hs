@@ -2,8 +2,9 @@
 
 module Day22 where
 
+import Data.Char (isDigit)
 import Data.Function (on)
-import Data.List (minimumBy)
+import Data.List (groupBy, minimumBy)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Text.RawString.QQ
@@ -35,6 +36,9 @@ data Tile = Floor | Wall
 
 type Field = Map Pos Tile
 
+data Move = TurnLeft | TurnRight | MoveForward Int
+            deriving (Eq, Show)
+
 readField :: [[Char]] -> Field
 readField = readRows
   where
@@ -52,6 +56,17 @@ getStartPos field =
       ps' = filter (\(_, y) -> y == 1) ps
       sp = minimumBy (compare `on` fst) ps'
   in sp
+
+parseMove :: String -> Move
+parseMove "L" = TurnLeft
+parseMove "R" = TurnRight
+parseMove str = MoveForward $ read str
+
+parseMoves :: String -> [Move]
+parseMoves str =
+  let groups = groupBy (\a b -> isDigit a && isDigit b) str
+      moves = map parseMove groups
+  in moves
 
 day22 :: IO ()
 day22 = do

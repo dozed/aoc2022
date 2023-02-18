@@ -103,6 +103,7 @@ test-suite aoc2022-test
       Day19Spec
       Day20Spec
       Day21Spec
+      Day22Spec
       Day9Spec
       UtilGraphSearchSpec
       UtilMatrixSpec

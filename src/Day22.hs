@@ -142,7 +142,7 @@ getFacing L = 2
 getFacing R = 0
 
 getPassword :: Pos -> Orientation -> Int
-getPassword (x, y) orient = 1000 * y + 4 * x + (getFacing orient)
+getPassword (x, y) orient = 1000 * y + 4 * x + getFacing orient
 
 day22 :: IO ()
 day22 = do

@@ -39,6 +39,9 @@ type Field = Map Pos Tile
 data Move = TurnLeft | TurnRight | MoveForward Int
             deriving (Eq, Show)
 
+data Orientation = U | D | L | R
+                   deriving (Eq, Show)
+
 readField :: [[Char]] -> Field
 readField = readRows
   where
@@ -67,9 +70,6 @@ parseMoves str =
   let groups = groupBy (\a b -> isDigit a && isDigit b) str
       moves = map parseMove groups
   in moves
-
-data Orientation = U | D | L | R
-                   deriving (Eq, Show)
 
 reorient :: Orientation -> Move -> Orientation
 reorient U TurnLeft = L

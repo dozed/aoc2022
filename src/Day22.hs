@@ -125,7 +125,7 @@ go _ pos orient TurnRight = (pos, reorient orient TurnRight)
 go _ pos orient (MoveForward 0) = (pos, orient)
 go field pos orient (MoveForward n) =
   let pos' = getNextPos pos orient
-      pos'' = case getTile field pos of
+      pos'' = case getTile field pos' of
         Floor -> pos'
         Wall -> pos
         Empty ->
@@ -135,9 +135,19 @@ go field pos orient (MoveForward n) =
              else opPos
   in go field pos'' orient (MoveForward (n - 1))
 
+getFacing :: Orientation -> Int
+getFacing U = 3
+getFacing D = 1
+getFacing L = 2
+getFacing R = 0
+
+getPassword :: Pos -> Orientation -> Int
+getPassword (x, y) orient = 1000 * y + 4 * x + (getFacing orient)
+
 day22 :: IO ()
 day22 = do
-  let input = testInput
+  -- let input = testInput
+  input <- readFile "input/Day22.txt"
 
   putStrLn "day22"
 
@@ -164,5 +174,6 @@ day22 = do
 
   putStrLn $ "finalPos: " <> show finalPos
   putStrLn $ "finalOrient: " <> show finalOrient
+  putStrLn $ "password: " <> show (getPassword finalPos finalOrient)
 
   return ()

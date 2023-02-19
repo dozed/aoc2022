@@ -102,25 +102,13 @@ getTile field pos = case M.lookup pos field of
   Just Empty -> Empty
 
 isFloor :: Field -> Pos -> Bool
-isFloor field pos = case M.lookup pos field of
-  Nothing -> False
-  Just Wall -> False
-  Just Empty -> False
-  Just Floor -> True
+isFloor field pos = getTile field pos == Floor
 
 isWall :: Field -> Pos -> Bool
-isWall field pos = case M.lookup pos field of
-  Nothing -> False
-  Just Floor -> False
-  Just Empty -> False
-  Just Wall -> True
+isWall field pos = getTile field pos == Wall
 
 isEmpty :: Field -> Pos -> Bool
-isEmpty field pos = case M.lookup pos field of
-  Just Floor -> False
-  Just Wall -> False
-  Just Empty -> True
-  Nothing -> True
+isEmpty field pos = getTile field pos == Empty
 
 getOppositePos :: Field -> Pos -> Orientation -> Pos
 getOppositePos field pos orient =
@@ -164,7 +152,17 @@ day22 = do
   let field' = readField field
   print field'
 
+  let moves' = parseMoves moves
+
   let startPos = getStartPos field'
+      startOrient = R
+
   putStrLn $ "startPos: " <> show startPos
+  putStrLn $ "startOrient: " <> show startOrient
+
+  let (finalPos, finalOrient) = foldl (\(pos, orient) move -> go field' pos orient move) (startPos, startOrient) moves'
+
+  putStrLn $ "finalPos: " <> show finalPos
+  putStrLn $ "finalOrient: " <> show finalOrient
 
   return ()

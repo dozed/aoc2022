@@ -43,12 +43,12 @@ readField :: [[Char]] -> Field
 readField = readRows
   where
     readRows rows = foldl (\acc (row, y) -> readRow acc y row) M.empty (rows `zip` [1..])
-    readRow field y row = foldl (\acc (c, x) -> insertTile acc (x, y) (getTile c)) field (row `zip` [1..])
+    readRow field y row = foldl (\acc (c, x) -> insertTile acc (x, y) (readTile c)) field (row `zip` [1..])
     insertTile acc (x, y) (Just tile) = M.insert (x, y) tile acc
     insertTile acc (_, _) Nothing = acc
-    getTile '.' = Just Floor
-    getTile '#' = Just Wall
-    getTile _ = Nothing
+    readTile '.' = Just Floor
+    readTile '#' = Just Wall
+    readTile _ = Nothing
 
 getStartPos :: Field -> Pos
 getStartPos field =

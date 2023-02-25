@@ -28,26 +28,26 @@ day22Spec = do
       getNextPos (2, 2) L `shouldBe` (1, 2)
       getNextPos (2, 2) R `shouldBe` (3, 2)
 
-  describe "isOutsideField" $ do
-    it "should check that a Pos is inside a sub field" $ do
-      isOutsideField 4 (1, 1) `shouldBe` False
-      isOutsideField 4 (2, 2) `shouldBe` False
-      isOutsideField 4 (4, 4) `shouldBe` False
+  describe "isOutsideSide" $ do
+    it "should check that a Pos is inside a side" $ do
+      isOutsideSide 4 (1, 1) `shouldBe` False
+      isOutsideSide 4 (2, 2) `shouldBe` False
+      isOutsideSide 4 (4, 4) `shouldBe` False
 
-    it "should check that a Pos is outside a sub field" $ do
-      isOutsideField 4 (0, 0) `shouldBe` True
-      isOutsideField 4 (7, 7) `shouldBe` True
-      isOutsideField 4 (5, 5) `shouldBe` True
+    it "should check that a Pos is outside a side" $ do
+      isOutsideSide 4 (0, 0) `shouldBe` True
+      isOutsideSide 4 (7, 7) `shouldBe` True
+      isOutsideSide 4 (5, 5) `shouldBe` True
 
-  describe "getLocalPos" $ do
-    it "should compute a local Pos from a global Pos" $ do
-      getLocalPos testExternalFieldPos 1 (12, 1) `shouldBe` (4, 1)
-      getLocalPos testExternalFieldPos 3 (5, 5) `shouldBe` (1, 1)
+  describe "getSidePos" $ do
+    it "should compute a side Pos from a field Pos" $ do
+      getSidePos testExternalFieldPos 1 (12, 1) `shouldBe` (4, 1)
+      getSidePos testExternalFieldPos 3 (5, 5) `shouldBe` (1, 1)
 
-  describe "getGlobalPos" $ do
-    it "should compute a global Pos from a local Pos" $ do
-      getGlobalPos testExternalFieldPos 1 (4, 1) `shouldBe` (12, 1)
-      getGlobalPos testExternalFieldPos 3 (1, 1) `shouldBe` (5, 5)
+  describe "getFieldPos" $ do
+    it "should compute a field Pos from a side Pos" $ do
+      getFieldPos testExternalFieldPos 1 (4, 1) `shouldBe` (12, 1)
+      getFieldPos testExternalFieldPos 3 (1, 1) `shouldBe` (5, 5)
 
   describe "getNew" $ do
     it "should compute a new row/column" $ do

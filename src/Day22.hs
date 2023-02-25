@@ -37,9 +37,8 @@ data Tile = Floor | Wall | Empty
 
 type Field = Map Pos Tile
 
-type FieldIndex = Int
-type FieldMap = Map FieldIndex Field
-type SubFieldSize = Int
+type Side = Int
+type SideSize = Int
 
 data Move = TurnLeft | TurnRight | MoveForward Int
             deriving (Eq, Show)
@@ -57,7 +56,7 @@ data GetNew = TakeOne
 type GetNewColumn = GetNew
 type GetNewRow = GetNew
 
-getNew :: GetNew -> Pos -> SubFieldSize -> Int
+getNew :: GetNew -> Pos -> SideSize -> Int
 getNew TakeOne _ _ = 1
 getNew TakeSize _ size = size
 getNew TakeRow (_, y) _ = y
@@ -65,7 +64,7 @@ getNew TakeColumn (x, _) _ = x
 getNew FlipRow (_, y) size = size - y + 1
 getNew FlipColumn (x, _) size = size - x + 1
 
-type Connections = Map (FieldIndex, Orientation) (FieldIndex, [Move], GetNewColumn, GetNewRow)
+type Connections = Map (Side, Orientation) (Side, [Move], GetNewColumn, GetNewRow)
 
 testConnections :: Connections
 testConnections = M.fromList [
@@ -95,7 +94,7 @@ testConnections = M.fromList [
     ((6, D), (2, [TurnLeft], TakeOne, FlipColumn))
   ]
 
-testExternalFieldPos :: Map FieldIndex Pos
+testExternalFieldPos :: Map Side Pos
 testExternalFieldPos = M.fromList [
     (1, (9, 1)),
     (2, (1, 5)),
@@ -105,16 +104,16 @@ testExternalFieldPos = M.fromList [
     (6, (13, 9))
   ]
 
-getLocalPos :: Map FieldIndex Pos -> FieldIndex -> Pos -> Pos
-getLocalPos fieldPos fieldIndex (x, y) =
-  let (fx, fy) = fromJust . M.lookup fieldIndex $ fieldPos
+getSidePos :: Map Side Pos -> Side -> Pos -> Pos
+getSidePos fieldPos side (x, y) =
+  let (fx, fy) = fromJust . M.lookup side $ fieldPos
       x' = x - fx + 1
       y' = y - fy + 1
   in (x', y')
 
-getGlobalPos :: Map FieldIndex Pos -> FieldIndex -> Pos -> Pos
-getGlobalPos fieldPos fieldIndex (x, y) =
-  let (fx, fy) = fromJust . M.lookup fieldIndex $ fieldPos
+getFieldPos :: Map Side Pos -> Side -> Pos -> Pos
+getFieldPos fieldPos side (x, y) =
+  let (fx, fy) = fromJust . M.lookup side $ fieldPos
       x' = x + fx - 1
       y' = y + fy - 1
   in (x', y')
@@ -209,37 +208,37 @@ go field pos orient (MoveForward n) =
              else opPos
   in go field pos'' orient (MoveForward (n - 1))
 
-isOutsideField :: SubFieldSize -> Pos -> Bool
-isOutsideField subFieldSize (x, y) =
-  if x < 1 || x > subFieldSize then True
-  else if y < 1 || y > subFieldSize then True
+isOutsideSide :: SideSize -> Pos -> Bool
+isOutsideSide sideSize (x, y) =
+  if x < 1 || x > sideSize then True
+  else if y < 1 || y > sideSize then True
   else False
 
-go2 :: Field -> SubFieldSize -> Connections -> Map FieldIndex Pos -> FieldIndex -> Pos -> Orientation -> Move -> (Pos, Orientation)
+go2 :: Field -> SideSize -> Connections -> Map Side Pos -> Side -> Pos -> Orientation -> Move -> (Pos, Orientation)
 go2 _ _ _ _ _ pos orient TurnLeft = (pos, reorient TurnLeft orient)
 go2 _ _ _ _ _ pos orient TurnRight = (pos, reorient TurnRight orient)
 go2 _ _ _ _ _ pos orient (MoveForward 0) = (pos, orient)
-go2 field subFieldSize connections fieldPos fieldIndex pos orient (MoveForward n) =
+go2 field sideSize connections fieldPos side pos orient (MoveForward n) =
   let pos' = getNextPos pos orient
-      lpos = getLocalPos fieldPos fieldIndex pos'
-  in if isOutsideField subFieldSize lpos then
-       let (fieldIndex', modOrient, getNewColumn, getNewRow) = fromJust . M.lookup (fieldIndex, orient) $ connections
-           lpos' = getLocalPos fieldPos fieldIndex pos
-           x' = getNew getNewColumn lpos' subFieldSize
-           y' = getNew getNewRow lpos' subFieldSize
-           gpos = getGlobalPos fieldPos fieldIndex' (x', y')
+      lpos = getSidePos fieldPos side pos'
+  in if isOutsideSide sideSize lpos then
+       let (side', modOrient, getNewColumn, getNewRow) = fromJust . M.lookup (side, orient) $ connections
+           lpos' = getSidePos fieldPos side pos
+           x' = getNew getNewColumn lpos' sideSize
+           y' = getNew getNewRow lpos' sideSize
+           gpos = getFieldPos fieldPos side' (x', y')
            orient' = foldl (flip reorient) orient modOrient
-           (pos'', orient'', fieldIndex'') =
-             if isWall field gpos then (pos, orient, fieldIndex)
-             else (gpos, orient', fieldIndex')
-       in go2 field subFieldSize connections fieldPos fieldIndex'' pos'' orient'' (MoveForward (n - 1))
+           (pos'', orient'', side'') =
+             if isWall field gpos then (pos, orient, side)
+             else (gpos, orient', side')
+       in go2 field sideSize connections fieldPos side'' pos'' orient'' (MoveForward (n - 1))
      else
        let
          pos'' = case getTile field pos' of
            Floor -> pos'
            Wall -> pos
            Empty -> error "Should not reach empty field pos"
-       in go2 field subFieldSize connections fieldPos fieldIndex pos'' orient (MoveForward (n - 1))
+       in go2 field sideSize connections fieldPos side pos'' orient (MoveForward (n - 1))
 
 getFacing :: Orientation -> Int
 getFacing U = 3
@@ -285,12 +284,12 @@ day22 = do
   putStrLn $ "password: " <> show (getPassword finalPos finalOrient)
 
   -- part 2
-  let subFieldSize = 4
-      startFieldIndex = 1
+  let sideSize = 4
+      startSide = 1
       connections = testConnections
       fieldPos = testExternalFieldPos
   let (finalPos', finalOrient') =
-        foldl (\(pos, orient) move -> go2 field subFieldSize connections fieldPos startFieldIndex pos orient move)
+        foldl (\(pos, orient) move -> go2 field sideSize connections fieldPos startSide pos orient move)
               (startPos, startOrient) moves
 
   putStrLn "--- part 2 ---"

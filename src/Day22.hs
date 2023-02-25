@@ -94,8 +94,8 @@ testConnections = M.fromList [
     ((6, D), (2, [TurnLeft], TakeOne, FlipColumn))
   ]
 
-testExternalFieldPos :: Map Side Pos
-testExternalFieldPos = M.fromList [
+testSideFieldPos :: Map Side Pos
+testSideFieldPos = M.fromList [
     (1, (9, 1)),
     (2, (1, 5)),
     (3, (5, 5)),
@@ -218,27 +218,27 @@ go2 :: Field -> SideSize -> Connections -> Map Side Pos -> Side -> Pos -> Orient
 go2 _ _ _ _ _ pos orient TurnLeft = (pos, reorient TurnLeft orient)
 go2 _ _ _ _ _ pos orient TurnRight = (pos, reorient TurnRight orient)
 go2 _ _ _ _ _ pos orient (MoveForward 0) = (pos, orient)
-go2 field sideSize connections fieldPos side pos orient (MoveForward n) =
+go2 field sideSize connections sideFieldPos side pos orient (MoveForward n) =
   let pos' = getNextPos pos orient
-      lpos = getSidePos fieldPos side pos'
+      lpos = getSidePos sideFieldPos side pos'
   in if isOutsideSide sideSize lpos then
        let (side', modOrient, getNewColumn, getNewRow) = fromJust . M.lookup (side, orient) $ connections
-           lpos' = getSidePos fieldPos side pos
+           lpos' = getSidePos sideFieldPos side pos
            x' = getNew getNewColumn lpos' sideSize
            y' = getNew getNewRow lpos' sideSize
-           gpos = getFieldPos fieldPos side' (x', y')
+           gpos = getFieldPos sideFieldPos side' (x', y')
            orient' = foldl (flip reorient) orient modOrient
            (pos'', orient'', side'') =
              if isWall field gpos then (pos, orient, side)
              else (gpos, orient', side')
-       in go2 field sideSize connections fieldPos side'' pos'' orient'' (MoveForward (n - 1))
+       in go2 field sideSize connections sideFieldPos side'' pos'' orient'' (MoveForward (n - 1))
      else
        let
          pos'' = case getTile field pos' of
            Floor -> pos'
            Wall -> pos
            Empty -> error "Should not reach empty field pos"
-       in go2 field sideSize connections fieldPos side pos'' orient (MoveForward (n - 1))
+       in go2 field sideSize connections sideFieldPos side pos'' orient (MoveForward (n - 1))
 
 getFacing :: Orientation -> Int
 getFacing U = 3
@@ -287,9 +287,9 @@ day22 = do
   let sideSize = 4
       startSide = 1
       connections = testConnections
-      fieldPos = testExternalFieldPos
+      sideFieldPos = testSideFieldPos
   let (finalPos', finalOrient') =
-        foldl (\(pos, orient) move -> go2 field sideSize connections fieldPos startSide pos orient move)
+        foldl (\(pos, orient) move -> go2 field sideSize connections sideFieldPos startSide pos orient move)
               (startPos, startOrient) moves
 
   putStrLn "--- part 2 ---"

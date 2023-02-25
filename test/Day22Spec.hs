@@ -41,13 +41,13 @@ day22Spec = do
 
   describe "getSidePos" $ do
     it "should compute a side Pos from a field Pos" $ do
-      getSidePos testExternalFieldPos 1 (12, 1) `shouldBe` (4, 1)
-      getSidePos testExternalFieldPos 3 (5, 5) `shouldBe` (1, 1)
+      getSidePos testSideFieldPos 1 (12, 1) `shouldBe` (4, 1)
+      getSidePos testSideFieldPos 3 (5, 5) `shouldBe` (1, 1)
 
   describe "getFieldPos" $ do
     it "should compute a field Pos from a side Pos" $ do
-      getFieldPos testExternalFieldPos 1 (4, 1) `shouldBe` (12, 1)
-      getFieldPos testExternalFieldPos 3 (1, 1) `shouldBe` (5, 5)
+      getFieldPos testSideFieldPos 1 (4, 1) `shouldBe` (12, 1)
+      getFieldPos testSideFieldPos 3 (1, 1) `shouldBe` (5, 5)
 
   describe "getNew" $ do
     it "should compute a new row/column" $ do

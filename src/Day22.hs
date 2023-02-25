@@ -33,6 +33,7 @@ type Pos = (X, Y)
 
 type FieldIndex = Int
 type FieldMap = Map FieldIndex Field
+type SubFieldSize = Int
 
 data Tile = Floor | Wall | Empty
             deriving (Eq, Show)
@@ -44,6 +45,52 @@ data Move = TurnLeft | TurnRight | MoveForward Int
 
 data Orientation = U | D | L | R
                    deriving (Eq, Ord, Show)
+
+data GetNew = TakeOne
+            | TakeSize
+            | TakeRow
+            | TakeColumn
+            | FlipRow
+            | FlipColumn
+
+type GetNewColumn = GetNew
+type GetNewRow = GetNew
+
+getNew :: GetNew -> Pos -> SubFieldSize -> Int
+getNew TakeOne _ _ = 1
+getNew TakeSize _ size = size
+getNew TakeRow (_, y) _ = y
+getNew TakeColumn (x, _) _ = x
+getNew FlipRow (_, y) size = size - y + 1
+getNew FlipColumn (x, _) size = size - x + 1
+
+testConnections :: Map (FieldIndex, Orientation) (FieldIndex, [Move], GetNewColumn, GetNewRow)
+testConnections = M.fromList [
+    ((1, R), (6, [TurnLeft, TurnLeft], TakeSize, FlipRow)),  -- arrives at right, new-column is len,
+    ((1, D), (4, [], TakeColumn, TakeOne)),                  -- arrives at top, old-column gives new-column, new-row is 1, orientation is kept
+    ((1, L), (3, [TurnLeft], TakeRow, TakeOne)),             -- arrives at top, old-row gives new-column, new-row is 1, orientation is modified
+    ((1, U), (2, [TurnLeft, TurnLeft], FlipColumn, TakeOne)),
+    ((2, R), (3, [], TakeOne, TakeRow)),
+    ((2, D), (5, [TurnLeft, TurnLeft], FlipRow, TakeSize)),
+    ((2, L), (6, [TurnLeft], FlipRow, TakeSize)),
+    ((2, U), (1, [TurnLeft, TurnLeft], FlipColumn, TakeOne)),
+    ((3, L), (2, [], TakeSize, TakeRow)),
+    ((3, R), (4, [], TakeOne, TakeRow)),
+    ((3, D), (5, [TurnRight], TakeOne, TakeColumn)),
+    ((3, U), (1, [TurnRight], TakeOne, TakeColumn)),
+    ((4, L), (3, [], TakeSize, TakeRow)),
+    ((4, U), (1, [], TakeColumn, TakeSize)),
+    ((4, D), (5, [], TakeColumn, TakeOne)),
+    ((4, R), (6, [TurnRight], FlipRow, TakeOne)),
+    ((5, R), (6, [], TakeOne, TakeRow)),
+    ((5, U), (4, [], TakeColumn, TakeSize)),
+    ((5, L), (3, [TurnLeft], FlipRow, TakeSize)),
+    ((5, D), (2, [TurnLeft, TurnLeft], FlipColumn, TakeSize)),
+    ((6, L), (5, [], TakeSize, TakeColumn)),
+    ((6, U), (4, [TurnLeft], TakeSize, FlipColumn)),
+    ((6, R), (1, [TurnLeft, TurnLeft], TakeSize, FlipRow)),
+    ((6, D), (2, [TurnLeft], TakeOne, FlipColumn))
+  ]
 
 readField :: [[Char]] -> Field
 readField = readRows

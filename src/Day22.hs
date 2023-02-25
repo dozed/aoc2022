@@ -31,6 +31,9 @@ type X = Int
 type Y = Int
 type Pos = (X, Y)
 
+type FieldIndex = Int
+type FieldMap = Map FieldIndex Field
+
 data Tile = Floor | Wall | Empty
             deriving (Eq, Show)
 
@@ -40,7 +43,7 @@ data Move = TurnLeft | TurnRight | MoveForward Int
             deriving (Eq, Show)
 
 data Orientation = U | D | L | R
-                   deriving (Eq, Show)
+                   deriving (Eq, Ord, Show)
 
 readField :: [[Char]] -> Field
 readField = readRows
@@ -71,22 +74,19 @@ parseMoves str =
       moves = map parseMove groups
   in moves
 
-reorient :: Orientation -> Move -> Orientation
-reorient U TurnLeft = L
-reorient U TurnRight = R
-reorient D TurnLeft = R
-reorient D TurnRight = L
-reorient L TurnLeft = D
-reorient L TurnRight = U
-reorient R TurnLeft = U
-reorient R TurnRight = D
-reorient o _ = o
+reorient :: Move -> Orientation -> Orientation
+reorient TurnLeft  U = L
+reorient TurnRight U = R
+reorient TurnLeft  D = R
+reorient TurnRight D = L
+reorient TurnLeft  L = D
+reorient TurnRight L = U
+reorient TurnLeft  R = U
+reorient TurnRight R = D
+reorient _ o = o
 
 getOppositeOrient :: Orientation -> Orientation
-getOppositeOrient U = D
-getOppositeOrient D = U
-getOppositeOrient L = R
-getOppositeOrient R = L
+getOppositeOrient = reorient TurnLeft . reorient TurnLeft
 
 getNextPos :: Pos -> Orientation -> Pos
 getNextPos (x, y) U = (x, y - 1)
@@ -120,8 +120,8 @@ getOppositePos field pos orient =
   in pos''
 
 go :: Field -> Pos -> Orientation -> Move -> (Pos, Orientation)
-go _ pos orient TurnLeft = (pos, reorient orient TurnLeft)
-go _ pos orient TurnRight = (pos, reorient orient TurnRight)
+go _ pos orient TurnLeft = (pos, reorient TurnLeft orient)
+go _ pos orient TurnRight = (pos, reorient TurnRight orient)
 go _ pos orient (MoveForward 0) = (pos, orient)
 go field pos orient (MoveForward n) =
   let pos' = getNextPos pos orient

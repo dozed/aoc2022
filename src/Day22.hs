@@ -105,15 +105,15 @@ testExternalFieldPos = M.fromList [
     (6, (13, 9))
   ]
 
-getInternalPos :: Map FieldIndex Pos -> FieldIndex -> Pos -> Pos
-getInternalPos fieldPos fieldIndex (x, y) =
+getLocalPos :: Map FieldIndex Pos -> FieldIndex -> Pos -> Pos
+getLocalPos fieldPos fieldIndex (x, y) =
   let (fx, fy) = fromJust . M.lookup fieldIndex $ fieldPos
       x' = x - fx + 1
       y' = y - fy + 1
   in (x', y')
 
-getExternalPos :: Map FieldIndex Pos -> FieldIndex -> Pos -> Pos
-getExternalPos fieldPos fieldIndex (x, y) =
+getGlobalPos :: Map FieldIndex Pos -> FieldIndex -> Pos -> Pos
+getGlobalPos fieldPos fieldIndex (x, y) =
   let (fx, fy) = fromJust . M.lookup fieldIndex $ fieldPos
       x' = x + fx - 1
       y' = y + fy - 1
@@ -221,18 +221,18 @@ go2 _ _ _ _ _ pos orient TurnRight = (pos, reorient TurnRight orient)
 go2 _ _ _ _ _ pos orient (MoveForward 0) = (pos, orient)
 go2 field subFieldSize connections fieldPos fieldIndex pos orient (MoveForward n) =
   let pos' = getNextPos pos orient
-      ipos = getInternalPos fieldPos fieldIndex pos'
-  in if isOutsideField subFieldSize ipos then
+      lpos = getLocalPos fieldPos fieldIndex pos'
+  in if isOutsideField subFieldSize lpos then
        let (fieldIndex', modOrient, getNewColumn, getNewRow) = fromJust . M.lookup (fieldIndex, orient) $ connections
-           ipos' = getInternalPos fieldPos fieldIndex pos
-           x' = getNew getNewColumn ipos' subFieldSize
-           y' = getNew getNewRow ipos' subFieldSize
-           pos'' = getExternalPos fieldPos fieldIndex' (x', y')
+           lpos' = getLocalPos fieldPos fieldIndex pos
+           x' = getNew getNewColumn lpos' subFieldSize
+           y' = getNew getNewRow lpos' subFieldSize
+           gpos = getGlobalPos fieldPos fieldIndex' (x', y')
            orient' = foldl (flip reorient) orient modOrient
-           (pos''', orient'', fieldIndex'') =
-             if isWall field pos'' then (pos, orient, fieldIndex)
-             else (pos'', orient', fieldIndex')
-       in go2 field subFieldSize connections fieldPos fieldIndex'' pos''' orient'' (MoveForward (n - 1))
+           (pos'', orient'', fieldIndex'') =
+             if isWall field gpos then (pos, orient, fieldIndex)
+             else (gpos, orient', fieldIndex')
+       in go2 field subFieldSize connections fieldPos fieldIndex'' pos'' orient'' (MoveForward (n - 1))
      else
        let
          pos'' = case getTile field pos' of

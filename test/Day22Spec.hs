@@ -21,15 +21,33 @@ day22Spec = do
             ]
       parseMoves "10R5L5R10L4R5L5" `shouldBe` expected
 
-  describe "getInternalPos" $ do
-    it "should compute an internal Pos from an external Pos" $ do
-      getInternalPos testExternalFieldPos 1 (12, 1) `shouldBe` (4, 1)
-      getInternalPos testExternalFieldPos 3 (5, 5) `shouldBe` (1, 1)
+  describe "getNextPos" $ do
+    it "should compute the next Pos for a given Pos and Orientation" $ do
+      getNextPos (2, 2) D `shouldBe` (2, 3)
+      getNextPos (2, 2) U `shouldBe` (2, 1)
+      getNextPos (2, 2) L `shouldBe` (1, 2)
+      getNextPos (2, 2) R `shouldBe` (3, 2)
 
-  describe "getExternalPos" $ do
-    it "should compute an external Pos from an internal Pos" $ do
-      getExternalPos testExternalFieldPos 1 (4, 1) `shouldBe` (12, 1)
-      getExternalPos testExternalFieldPos 3 (1, 1) `shouldBe` (5, 5)
+  describe "isOutsideField" $ do
+    it "should check that a Pos is inside a sub field" $ do
+      isOutsideField 4 (1, 1) `shouldBe` False
+      isOutsideField 4 (2, 2) `shouldBe` False
+      isOutsideField 4 (4, 4) `shouldBe` False
+
+    it "should check that a Pos is outside a sub field" $ do
+      isOutsideField 4 (0, 0) `shouldBe` True
+      isOutsideField 4 (7, 7) `shouldBe` True
+      isOutsideField 4 (5, 5) `shouldBe` True
+
+  describe "getLocalPos" $ do
+    it "should compute a local Pos from a global Pos" $ do
+      getLocalPos testExternalFieldPos 1 (12, 1) `shouldBe` (4, 1)
+      getLocalPos testExternalFieldPos 3 (5, 5) `shouldBe` (1, 1)
+
+  describe "getGlobalPos" $ do
+    it "should compute a global Pos from a local Pos" $ do
+      getGlobalPos testExternalFieldPos 1 (4, 1) `shouldBe` (12, 1)
+      getGlobalPos testExternalFieldPos 3 (1, 1) `shouldBe` (5, 5)
 
   describe "getNew" $ do
     it "should compute a new row/column" $ do

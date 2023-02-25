@@ -7,6 +7,7 @@ import Data.Function (on)
 import Data.List (groupBy, minimumBy)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Maybe (fromJust)
 import Text.RawString.QQ
 
 testInput :: String
@@ -64,11 +65,13 @@ getNew TakeColumn (x, _) _ = x
 getNew FlipRow (_, y) size = size - y + 1
 getNew FlipColumn (x, _) size = size - x + 1
 
-testConnections :: Map (FieldIndex, Orientation) (FieldIndex, [Move], GetNewColumn, GetNewRow)
+type Connections = Map (FieldIndex, Orientation) (FieldIndex, [Move], GetNewColumn, GetNewRow)
+
+testConnections :: Connections
 testConnections = M.fromList [
-    ((1, R), (6, [TurnLeft, TurnLeft], TakeSize, FlipRow)),  -- arrives at right, new-column is len,
-    ((1, D), (4, [], TakeColumn, TakeOne)),                  -- arrives at top, old-column gives new-column, new-row is 1, orientation is kept
-    ((1, L), (3, [TurnLeft], TakeRow, TakeOne)),             -- arrives at top, old-row gives new-column, new-row is 1, orientation is modified
+    ((1, R), (6, [TurnLeft, TurnLeft], TakeSize, FlipRow)),
+    ((1, D), (4, [], TakeColumn, TakeOne)),
+    ((1, L), (3, [TurnLeft], TakeRow, TakeOne)),
     ((1, U), (2, [TurnLeft, TurnLeft], FlipColumn, TakeOne)),
     ((2, R), (3, [], TakeOne, TakeRow)),
     ((2, D), (5, [TurnLeft, TurnLeft], FlipRow, TakeSize)),
@@ -182,6 +185,24 @@ go field pos orient (MoveForward n) =
              else opPos
   in go field pos'' orient (MoveForward (n - 1))
 
+go2 :: Field -> SubFieldSize -> Connections -> FieldIndex -> Pos -> Orientation -> Move -> (Pos, Orientation)
+go2 _ _ _ _ pos orient TurnLeft = (pos, reorient TurnLeft orient)
+go2 _ _ _ _ pos orient TurnRight = (pos, reorient TurnRight orient)
+go2 _ _ _ _ pos orient (MoveForward 0) = (pos, orient)
+go2 field subFieldSize connections fieldIndex pos orient (MoveForward n) =
+  let pos' = getNextPos pos orient
+      (pos'', orient'', fieldIndex'') = case getTile field pos' of
+        Floor -> (pos', orient, fieldIndex)
+        Wall -> (pos, orient, fieldIndex)
+        Empty ->
+          let (fieldIndex', modOrient, getNewColumn, getNewRow) = fromJust . M.lookup (fieldIndex, orient) $ connections
+              x' = getNew getNewColumn pos subFieldSize
+              y' = getNew getNewRow pos subFieldSize
+              orient' = foldl (flip reorient) orient modOrient
+          in if isWall field (x', y') then (pos, orient, fieldIndex)
+             else ((x', y'), orient', fieldIndex')
+  in go2 field subFieldSize connections fieldIndex'' pos'' orient'' (MoveForward (n - 1))
+
 getFacing :: Orientation -> Int
 getFacing U = 3
 getFacing D = 1
@@ -193,34 +214,48 @@ getPassword (x, y) orient = 1000 * y + 4 * x + getFacing orient
 
 day22 :: IO ()
 day22 = do
-  -- let input = testInput
-  input <- readFile "input/Day22.txt"
+  let input = testInput
+  -- input <- readFile "input/Day22.txt"
 
   putStrLn "day22"
 
   let xs = lines input
 
-  let moves = last xs
-      field = init . init $ xs
+  let movesLine = last xs
+      fieldLines = init . init $ xs
 
-  putStrLn $ "field:" <> show field
-  putStrLn $ "moves: " <> moves
+  putStrLn $ "field:" <> show fieldLines
+  putStrLn $ "moves: " <> movesLine
 
-  let field' = readField field
-  print field'
+  let field = readField fieldLines
+  print field
 
-  let moves' = parseMoves moves
+  let moves = parseMoves movesLine
 
-  let startPos = getStartPos field'
+  let startPos = getStartPos field
       startOrient = R
 
   putStrLn $ "startPos: " <> show startPos
   putStrLn $ "startOrient: " <> show startOrient
 
-  let (finalPos, finalOrient) = foldl (\(pos, orient) move -> go field' pos orient move) (startPos, startOrient) moves'
+  -- part 1
+  let (finalPos, finalOrient) = foldl (\(pos, orient) move -> go field pos orient move) (startPos, startOrient) moves
 
+  putStrLn "--- part 1 ---"
   putStrLn $ "finalPos: " <> show finalPos
   putStrLn $ "finalOrient: " <> show finalOrient
   putStrLn $ "password: " <> show (getPassword finalPos finalOrient)
+
+  -- part 2
+  let subFieldSize = 4
+      startFieldIndex = 1
+      connections = testConnections
+  let (finalPos', finalOrient') =
+        foldl (\(pos, orient) move -> go2 field subFieldSize connections startFieldIndex pos orient move) (startPos, startOrient) moves
+
+  putStrLn "--- part 2 ---"
+  putStrLn $ "finalPos: " <> show finalPos'
+  putStrLn $ "finalOrient: " <> show finalOrient'
+  putStrLn $ "password: " <> show (getPassword finalPos' finalOrient')
 
   return ()

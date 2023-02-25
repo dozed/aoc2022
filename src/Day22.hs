@@ -105,15 +105,15 @@ testSideFieldPos = M.fromList [
   ]
 
 getSidePos :: Map Side Pos -> Side -> Pos -> Pos
-getSidePos fieldPos side (x, y) =
-  let (fx, fy) = fromJust . M.lookup side $ fieldPos
-      x' = x - fx + 1
-      y' = y - fy + 1
+getSidePos sideFieldPos side (x, y) =
+  let (sx, sy) = fromJust . M.lookup side $ sideFieldPos
+      x' = x - sx + 1
+      y' = y - sy + 1
   in (x', y')
 
 getFieldPos :: Map Side Pos -> Side -> Pos -> Pos
-getFieldPos fieldPos side (x, y) =
-  let (fx, fy) = fromJust . M.lookup side $ fieldPos
+getFieldPos sideFieldPos side (x, y) =
+  let (fx, fy) = fromJust . M.lookup side $ sideFieldPos
       x' = x + fx - 1
       y' = y + fy - 1
   in (x', y')

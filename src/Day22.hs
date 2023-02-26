@@ -131,7 +131,7 @@ readField = readRows
     readTile _ = Nothing
 
 showField :: Field -> String
-showField field = unlines fieldString
+showField field = unlines fieldRows
   where
     positions = M.keys field
     maxX = maximum . map fst $ positions
@@ -139,7 +139,7 @@ showField field = unlines fieldString
     toChar Floor = '.'
     toChar Wall = '#'
     toChar Empty = ' '
-    fieldString = [[toChar . getTile field $ (x, y) | x <- [1..maxX]] | y <- [1..maxY]]
+    fieldRows = [[toChar . getTile field $ (x, y) | x <- [1..maxX]] | y <- [1..maxY]]
 
 getStartPos :: Field -> Pos
 getStartPos field =

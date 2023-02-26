@@ -104,6 +104,44 @@ testSideFieldPos = M.fromList [
     (6, (13, 9))
   ]
 
+inputConnections :: Connections
+inputConnections = M.fromList [
+    ((1, R), (2, [], TakeOne, TakeRow)),
+    ((1, D), (3, [], TakeColumn, TakeRow)),
+    ((1, L), (4, [TurnLeft, TurnLeft], TakeOne, FlipRow)),
+    ((1, U), (6, [TurnLeft], TakeOne, TakeColumn)),
+    ((2, L), (1, [], TakeSize, TakeRow)),
+    ((2, U), (6, [], TakeColumn, TakeSize)),
+    ((2, R), (5, [TurnLeft, TurnLeft], TakeSize, FlipRow)),
+    ((2, D), (3, [TurnLeft], TakeSize, TakeColumn)),
+    ((3, U), (1, [], TakeColumn, TakeSize)),
+    ((3, D), (5, [], TakeColumn, TakeOne)),
+    ((3, L), (4, [TurnRight], TakeRow, TakeOne)),
+    ((3, R), (2, [TurnLeft], TakeRow, TakeSize)),
+    ((4, R), (5, [], TakeOne, TakeRow)),
+    ((4, U), (3, [TurnLeft], TakeOne, TakeColumn)),
+    ((4, L), (1, [TurnLeft, TurnLeft], TakeOne, FlipRow)),
+    ((4, D), (6, [], TakeColumn, TakeOne)),
+    ((5, U), (3, [], TakeColumn, TakeSize)),
+    ((5, L), (4, [], TakeSize, TakeRow)),
+    ((5, R), (2, [TurnLeft, TurnLeft], TakeSize, FlipRow)),
+    ((5, D), (6, [TurnLeft], TakeSize, TakeColumn)),
+    ((6, U), (4, [], TakeColumn, TakeSize)),
+    ((6, L), (1, [TurnRight], TakeRow, TakeOne)),
+    ((6, R), (5, [TurnLeft], TakeRow, TakeSize)),
+    ((6, D), (2, [], TakeColumn, TakeOne))
+  ]
+
+inputSideFieldPos :: Map Side Pos
+inputSideFieldPos = M.fromList [
+    (1, (51, 1)),
+    (2, (101, 1)),
+    (3, (51, 51)),
+    (4, (1, 101)),
+    (5, (51, 101)),
+    (6, (1, 151))
+  ]
+
 getSidePos :: Map Side Pos -> Side -> Pos -> Pos
 getSidePos sideFieldPos side (x, y) =
   let (sx, sy) = fromJust . M.lookup side $ sideFieldPos
@@ -261,8 +299,14 @@ getPassword (x, y) orient = 1000 * y + 4 * x + getFacing orient
 
 day22 :: IO ()
 day22 = do
-  let input = testInput
-  -- input <- readFile "input/Day22.txt"
+--  let input = testInput
+--      connections = testConnections
+--      sideFieldPos = testSideFieldPos
+--      sideSize = 4
+  input <- readFile "input/Day22.txt"
+  let connections = inputConnections
+      sideFieldPos = inputSideFieldPos
+      sideSize = 50
 
   putStrLn "day22"
 
@@ -294,10 +338,7 @@ day22 = do
   putStrLn $ "password: " <> show (getPassword finalPos finalOrient)
 
   -- part 2
-  let sideSize = 4
-      startSide = 1
-      connections = testConnections
-      sideFieldPos = testSideFieldPos
+  let startSide = 1
 
   let (finalPos', finalOrient', finalSide') =
         foldl (\(pos, orient, side) move -> go2 field sideSize connections sideFieldPos side pos orient move)

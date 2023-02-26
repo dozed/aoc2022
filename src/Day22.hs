@@ -2,7 +2,6 @@
 
 module Day22 where
 
-import Control.Monad (foldM)
 import Data.Char (isDigit)
 import Data.Function (on)
 import Data.List (groupBy, minimumBy)
@@ -226,10 +225,10 @@ isOutsideSide sideSize (x, y) =
   else if y < 1 || y > sideSize then True
   else False
 
-go2 :: Field -> SideSize -> Connections -> Map Side Pos -> Side -> Pos -> Orientation -> Move -> IO (Pos, Orientation)
-go2 _ _ _ _ _ pos orient TurnLeft = return (pos, reorient TurnLeft orient)
-go2 _ _ _ _ _ pos orient TurnRight = return (pos, reorient TurnRight orient)
-go2 _ _ _ _ _ pos orient (MoveForward 0) = return (pos, orient)
+go2 :: Field -> SideSize -> Connections -> Map Side Pos -> Side -> Pos -> Orientation -> Move -> (Pos, Orientation, Side)
+go2 _ _ _ _ side pos orient TurnLeft = (pos, reorient TurnLeft orient, side)
+go2 _ _ _ _ side pos orient TurnRight = (pos, reorient TurnRight orient, side)
+go2 _ _ _ _ side pos orient (MoveForward 0) = (pos, orient, side)
 go2 field sideSize connections sideFieldPos side pos orient (MoveForward n) =
   let pos' = getNextPos pos orient
       lpos = getSidePos sideFieldPos side pos'
@@ -245,11 +244,10 @@ go2 field sideSize connections sideFieldPos side pos orient (MoveForward n) =
              else (gpos, orient', side')
        in go2 field sideSize connections sideFieldPos side'' pos'' orient'' (MoveForward (n - 1))
      else
-       let
-         pos'' = case getTile field pos' of
-           Floor -> pos'
-           Wall -> pos
-           Empty -> error "Should not reach empty field pos"
+       let pos'' = case getTile field pos' of
+             Floor -> pos'
+             Wall -> pos
+             Empty -> error "Should not reach empty field pos"
        in go2 field sideSize connections sideFieldPos side pos'' orient (MoveForward (n - 1))
 
 getFacing :: Orientation -> Int
@@ -300,15 +298,15 @@ day22 = do
       startSide = 1
       connections = testConnections
       sideFieldPos = testSideFieldPos
-  (finalPos', finalOrient') <-
-        foldM (\(pos, orient) move -> go2 field sideSize connections sideFieldPos startSide pos orient move)
-              (startPos, startOrient) moves
+
+  let (finalPos', finalOrient', finalSide') =
+        foldl (\(pos, orient, side) move -> go2 field sideSize connections sideFieldPos side pos orient move)
+              (startPos, startOrient, startSide) moves
 
   putStrLn "--- part 2 ---"
   putStrLn $ "finalPos: " <> show finalPos'
   putStrLn $ "finalOrient: " <> show finalOrient'
+  putStrLn $ "finalSide: " <> show finalSide'
   putStrLn $ "password: " <> show (getPassword finalPos' finalOrient')
-
-  putStrLn $ showField field
 
   return ()

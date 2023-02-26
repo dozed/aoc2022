@@ -57,3 +57,54 @@ day22Spec = do
       getNew TakeRow (2, 3) 4 `shouldBe` 3
       getNew FlipColumn (2, 3) 4 `shouldBe` 3
       getNew FlipRow (2, 3) 4 `shouldBe` 2
+
+  describe "go2" $ do
+    it "should advance around the field" $ do
+      let input = testInput
+          fieldLines = init . init $ lines input
+          field = readField fieldLines
+          sideSize = 4
+          connections = testConnections
+          sideFieldPos = testSideFieldPos
+          startSide = 1
+
+      let (pos, orient, side) = go2 field sideSize connections sideFieldPos 1 (9, 1) R (MoveForward 10)
+      pos `shouldBe` (11, 1)
+      orient `shouldBe` R
+      side `shouldBe` 1
+
+      let (pos, orient, side) = go2 field sideSize connections sideFieldPos 1 (11, 1) D (MoveForward 5)
+      pos `shouldBe` (11, 6)
+      orient `shouldBe` D
+      side `shouldBe` 4
+
+      let (pos, orient, side) = go2 field sideSize connections sideFieldPos 4 (11, 6) R (MoveForward 5)
+      pos `shouldBe` (15, 11)
+      orient `shouldBe` D
+      side `shouldBe` 6
+
+      let (pos, orient, side) = go2 field sideSize connections sideFieldPos 6 (15, 11) L (MoveForward 10)
+      pos `shouldBe` (11, 11)
+      orient `shouldBe` L
+      side `shouldBe` 5
+
+      let (finalPos, finalOrient, finalSide) =
+            foldl (\(pos, orient, side) move -> go2 field sideSize connections sideFieldPos side pos orient move)
+                  ((9, 1), R, startSide) [MoveForward 10, TurnRight, MoveForward 5]
+      finalPos `shouldBe` (11, 6)
+      finalOrient `shouldBe` D
+      finalSide `shouldBe` 4
+
+      let (finalPos, finalOrient, finalSide) =
+            foldl (\(pos, orient, side) move -> go2 field sideSize connections sideFieldPos side pos orient move)
+                  ((9, 1), R, startSide) [MoveForward 10, TurnRight, MoveForward 5, TurnLeft, MoveForward 5]
+      finalPos `shouldBe` (15, 11)
+      finalOrient `shouldBe` D
+      finalSide `shouldBe` 6
+
+      let (finalPos, finalOrient, finalSide) =
+            foldl (\(pos, orient, side) move -> go2 field sideSize connections sideFieldPos side pos orient move)
+                  ((9, 1), R, startSide) [MoveForward 10, TurnRight, MoveForward 5, TurnLeft, MoveForward 5, TurnRight, MoveForward 10]
+      finalPos `shouldBe` (11, 11)
+      finalOrient `shouldBe` L
+      finalSide `shouldBe` 5

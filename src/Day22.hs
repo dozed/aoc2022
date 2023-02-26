@@ -1,3 +1,5 @@
+{-# LANGUAGE NoFieldSelectors #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Day22 where
@@ -65,6 +67,13 @@ getNew FlipRow (_, y) size = size - y + 1
 getNew FlipColumn (x, _) size = size - x + 1
 
 type Connections = Map (Side, Orientation) (Side, [Move], GetNewColumn, GetNewRow)
+
+data FieldInfo = FieldInfo {
+  tiles :: Field,
+  sideSize :: SideSize,
+  connections :: Connections,
+  sidePos :: Map Side Pos
+}
 
 testConnections :: Connections
 testConnections = M.fromList [
@@ -263,30 +272,30 @@ isOutsideSide sideSize (x, y) =
   else if y < 1 || y > sideSize then True
   else False
 
-go2 :: Field -> SideSize -> Connections -> Map Side Pos -> Side -> Pos -> Orientation -> Move -> (Pos, Orientation, Side)
-go2 _ _ _ _ side pos orient TurnLeft = (pos, reorient TurnLeft orient, side)
-go2 _ _ _ _ side pos orient TurnRight = (pos, reorient TurnRight orient, side)
-go2 _ _ _ _ side pos orient (MoveForward 0) = (pos, orient, side)
-go2 field sideSize connections sideFieldPos side pos orient (MoveForward n) =
+go2 :: FieldInfo -> Side -> Pos -> Orientation -> Move -> (Pos, Orientation, Side)
+go2 _ side pos orient TurnLeft = (pos, reorient TurnLeft orient, side)
+go2 _ side pos orient TurnRight = (pos, reorient TurnRight orient, side)
+go2 _ side pos orient (MoveForward 0) = (pos, orient, side)
+go2 fieldInfo side pos orient (MoveForward n) =
   let pos' = getNextPos pos orient
-      lpos = getSidePos sideFieldPos side pos'
-  in if isOutsideSide sideSize lpos then
-       let (side', modOrient, getNewColumn, getNewRow) = fromJust . M.lookup (side, orient) $ connections
-           lpos' = getSidePos sideFieldPos side pos
-           x' = getNew getNewColumn lpos' sideSize
-           y' = getNew getNewRow lpos' sideSize
-           gpos = getFieldPos sideFieldPos side' (x', y')
+      lpos = getSidePos fieldInfo.sidePos side pos'
+  in if isOutsideSide fieldInfo.sideSize lpos then
+       let (side', modOrient, getNewColumn, getNewRow) = fromJust . M.lookup (side, orient) $ fieldInfo.connections
+           lpos' = getSidePos fieldInfo.sidePos side pos
+           x' = getNew getNewColumn lpos' fieldInfo.sideSize
+           y' = getNew getNewRow lpos' fieldInfo.sideSize
+           gpos = getFieldPos fieldInfo.sidePos side' (x', y')
            orient' = foldl (flip reorient) orient modOrient
            (pos'', orient'', side'') =
-             if isWall field gpos then (pos, orient, side)
+             if isWall fieldInfo.tiles gpos then (pos, orient, side)
              else (gpos, orient', side')
-       in go2 field sideSize connections sideFieldPos side'' pos'' orient'' (MoveForward (n - 1))
+       in go2 fieldInfo side'' pos'' orient'' (MoveForward (n - 1))
      else
-       let pos'' = case getTile field pos' of
+       let pos'' = case getTile fieldInfo.tiles pos' of
              Floor -> pos'
              Wall -> pos
              Empty -> error "Should not reach empty field pos"
-       in go2 field sideSize connections sideFieldPos side pos'' orient (MoveForward (n - 1))
+       in go2 fieldInfo side pos'' orient (MoveForward (n - 1))
 
 getFacing :: Orientation -> Int
 getFacing U = 3
@@ -339,9 +348,15 @@ day22 = do
 
   -- part 2
   let startSide = 1
+      fieldInfo = FieldInfo {
+        tiles = field,
+        sideSize = sideSize,
+        connections = connections,
+        sidePos = sideFieldPos 
+      }
 
   let (finalPos', finalOrient', finalSide') =
-        foldl (\(pos, orient, side) move -> go2 field sideSize connections sideFieldPos side pos orient move)
+        foldl (\(pos, orient, side) move -> go2 fieldInfo side pos orient move)
               (startPos, startOrient, startSide) moves
 
   putStrLn "--- part 2 ---"

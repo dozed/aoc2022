@@ -5,10 +5,10 @@ module Day22 where
 import Control.Monad (foldM)
 import Data.Char (isDigit)
 import Data.Function (on)
-import Data.List (groupBy, maximumBy, minimumBy)
+import Data.List (groupBy, minimumBy)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (fromJust, fromMaybe)
+import Data.Maybe (fromJust)
 import Text.RawString.QQ
 
 testInput :: String

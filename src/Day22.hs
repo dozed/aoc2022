@@ -352,7 +352,7 @@ day22 = do
         tiles = field,
         sideSize = sideSize,
         connections = connections,
-        sidePos = sideFieldPos 
+        sidePos = sideFieldPos
       }
 
   let (finalPos', finalOrient', finalSide') =

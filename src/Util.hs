@@ -9,6 +9,7 @@ module Util (
   dropUntil,
   findElem,
   filterNot,
+  histogram,
   interleave,
   intersect,
   insertAtIndex,
@@ -29,6 +30,8 @@ module Util (
 import Data.Foldable (toList)
 import Data.List (sort)
 import Data.List.HT (removeEach)
+import qualified Data.Map.Strict as M
+import Data.Map.Strict (Map)
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
 import Text.Parsec (ParseError, parse)
@@ -155,6 +158,10 @@ count p = go 0
                      
 --count :: Eq a => a -> [a] -> Int
 --count x xs = length . filter (x ==) $ xs
+
+-- https://stackoverflow.com/a/55145433/1590415
+histogram :: Ord a => [a] -> Map a Int
+histogram = M.fromListWith (+) . (`zip` [1,1..])
 
 buildCombinations :: Int -> Int -> [a] -> [[a]] -> [[a]]
 buildCombinations maxLen 1 elems [] = buildCombinations maxLen 2 elems [[e] | e <- elems]

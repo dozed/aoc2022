@@ -42,7 +42,7 @@ readElves fieldLines = catMaybes [if c == '#' then Just (x, y) else Nothing | (l
 
 getBounds :: [Pos] -> (X, X, Y, Y)
 getBounds pos = (minX, maxX, minY, maxY)
-  where 
+  where
     minX = fst . minimumBy (compare `on` fst) $ pos
     maxX = fst . maximumBy (compare `on` fst) $ pos
     minY = snd . minimumBy (compare `on` snd) $ pos
@@ -53,7 +53,7 @@ showElves pos = unlines xs
   where
     xs = [[if S.member (x, y) posSet then '#' else '.' | x <- [minX..maxX]] | y <- [minY..maxY]]
     posSet = S.fromList pos
-    (minX, maxX, minY, maxY) = getBounds pos 
+    (minX, maxX, minY, maxY) = getBounds pos
 
 getNumTiles :: [Pos] -> Int
 getNumTiles pos = w * h - numElves
@@ -61,7 +61,7 @@ getNumTiles pos = w * h - numElves
     w = maxX - minX + 1
     h = maxY - minY + 1
     numElves = length pos
-    (minX, maxX, minY, maxY) = getBounds pos 
+    (minX, maxX, minY, maxY) = getBounds pos
 
 getAdjacentPos :: Direction -> Pos -> Pos
 getAdjacentPos N (x, y) = (x, y - 1)
@@ -125,11 +125,11 @@ takeTurn elves directions =
       isFinished = all isNothing proposedPositions
   in (acceptedPositions, directions', isFinished)
 
-takeTurns :: [Pos] -> [Direction] -> Int -> IO Int
+takeTurns :: [Pos] -> [Direction] -> Int -> IO (Int, [Pos])
 takeTurns elves directions round = do
   let (elves', directions', isFinished) = takeTurn elves directions
   print round
-  if isFinished then return round
+  if isFinished then return (round, elves')
   else takeTurns elves' directions' (round+1)
 
 day23 :: IO ()
@@ -151,7 +151,8 @@ day23 = do
   print isFinished
 
   -- part 2
-  maxRound <- takeTurns elves dirs 1
+  (maxRound, elves'') <- takeTurns elves dirs 1
   print maxRound
+  print $ showElves elves''
 
   return ()

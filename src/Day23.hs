@@ -5,7 +5,7 @@ module Day23 where
 import Data.Function (on)
 import Data.List (find, minimumBy, maximumBy)
 import qualified Data.Map as M
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, isNothing)
 import Data.Set (Set)
 import qualified Data.Set as S
 
@@ -72,8 +72,9 @@ getAdjacentPos SE (x, y) = (x + 1, y + 1)
 getAdjacentPos SW (x, y) = (x - 1, y + 1)
 
 isElfInAdjacentPos :: ElvesSet -> Pos -> Bool
-isElfInAdjacentPos elves pos = any (\a -> a `elem` elves) adjacents
+isElfInAdjacentPos elves pos = hasAdjacent
   where
+    hasAdjacent = any (\a -> a `elem` elves) adjacents
     adjacents = map (\d -> getAdjacentPos d pos) allDirections
 
 isElfInDirection :: ElvesSet -> Pos -> Direction -> Bool
@@ -107,7 +108,7 @@ applyProposedMove :: Pos -> Maybe Direction -> Maybe Pos
 applyProposedMove _ Nothing = Nothing
 applyProposedMove pos (Just d) = Just $ getAdjacentPos d pos
 
-takeTurn :: [Pos] -> [Direction] -> ([Pos], [Direction])
+takeTurn :: [Pos] -> [Direction] -> ([Pos], [Direction], Bool)
 takeTurn elves directions =
   let elvesSet = S.fromList elves
       proposedDirections = map (\e -> proposeMove elvesSet directions e) elves
@@ -119,7 +120,15 @@ takeTurn elves directions =
         (e, Just p) -> if S.member p invalidPositions then e
                        else p
       directions' = shiftDirections directions
-  in (acceptedPositions, directions')
+      isFinished = all isNothing proposedPositions
+  in (acceptedPositions, directions', isFinished)
+
+takeTurns :: [Pos] -> [Direction] -> Int -> IO Int
+takeTurns elves directions round = do
+  let (elves', directions', isFinished) = takeTurn elves directions
+  print round
+  if isFinished then return round
+  else takeTurns elves' directions' (round+1)
 
 day23 :: IO ()
 day23 = do
@@ -133,8 +142,14 @@ day23 = do
 
   let dirs = initialProposalDirections
 
-  let (elves', dirs') = foldl (\(es, ds) _ -> takeTurn es ds) (elves, dirs) [1..10]
+  -- part 1
+  let (elves', dirs', isFinished) = foldl (\(es, ds, _) _ -> takeTurn es ds) (elves, dirs, False) [1..10]
   putStrLn $ showElves elves'
   print $ getNumTiles elves'
+  print isFinished
+
+  -- part 2
+  maxRound <- takeTurns elves dirs 1
+  print maxRound
 
   return ()

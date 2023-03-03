@@ -40,15 +40,20 @@ readElves fieldLines = catMaybes [if c == '#' then Just (x, y) else Nothing | (l
     maxY = length fieldLines
     maxX = length (head fieldLines)
 
+getBounds :: [Pos] -> (X, X, Y, Y)
+getBounds pos = (minX, maxX, minY, maxY)
+  where 
+    minX = fst . minimumBy (compare `on` fst) $ pos
+    maxX = fst . maximumBy (compare `on` fst) $ pos
+    minY = snd . minimumBy (compare `on` snd) $ pos
+    maxY = snd . maximumBy (compare `on` snd) $ pos
+
 showElves :: [Pos] -> String
 showElves pos = unlines xs
   where
     xs = [[if S.member (x, y) posSet then '#' else '.' | x <- [minX..maxX]] | y <- [minY..maxY]]
     posSet = S.fromList pos
-    minX = fst . minimumBy (compare `on` fst) $ pos
-    maxX = fst . maximumBy (compare `on` fst) $ pos
-    minY = snd . minimumBy (compare `on` snd) $ pos
-    maxY = snd . maximumBy (compare `on` snd) $ pos
+    (minX, maxX, minY, maxY) = getBounds pos 
 
 getNumTiles :: [Pos] -> Int
 getNumTiles pos = w * h - numElves
@@ -56,10 +61,7 @@ getNumTiles pos = w * h - numElves
     w = maxX - minX + 1
     h = maxY - minY + 1
     numElves = length pos
-    minX = fst . minimumBy (compare `on` fst) $ pos
-    maxX = fst . maximumBy (compare `on` fst) $ pos
-    minY = snd . minimumBy (compare `on` snd) $ pos
-    maxY = snd . maximumBy (compare `on` snd) $ pos
+    (minX, maxX, minY, maxY) = getBounds pos 
 
 getAdjacentPos :: Direction -> Pos -> Pos
 getAdjacentPos N (x, y) = (x, y - 1)

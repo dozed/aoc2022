@@ -77,12 +77,6 @@ getAdjacentPos NW (x, y) = (x - 1, y - 1)
 getAdjacentPos SE (x, y) = (x + 1, y + 1)
 getAdjacentPos SW (x, y) = (x - 1, y + 1)
 
-isElfInAdjacentPos :: ElvesSet -> Pos -> Bool
-isElfInAdjacentPos elves pos = hasAdjacent
-  where
-    hasAdjacent = any (\a -> a `elem` elves) adjacents
-    adjacents = map (\d -> getAdjacentPos d pos) allDirections
-
 isElfInDirection :: ElvesSet -> Pos -> Direction -> Bool
 isElfInDirection elves pos direction = S.member pos' elves
   where
@@ -90,6 +84,9 @@ isElfInDirection elves pos direction = S.member pos' elves
 
 isElfInDirections :: ElvesSet -> Pos -> [Direction] -> Bool
 isElfInDirections elves pos directions = any (\d -> isElfInDirection elves pos d) directions
+
+isElfInAdjacentPos :: ElvesSet -> Pos -> Bool
+isElfInAdjacentPos elves pos = isElfInDirections elves pos allDirections
 
 initialProposalDirections :: [Direction]
 initialProposalDirections = [N, S, W, E]

@@ -35,7 +35,11 @@ type Pos = (X, Y)
 type ElvesSet = Set Pos
 
 readElves :: [String] -> [Pos]
-readElves fieldLines = catMaybes [if c == '#' then Just (x, y) else Nothing | (line, y) <- fieldLines `zip` [1..maxY], (c, x) <- line `zip` [1..maxX]]
+readElves fieldLines = catMaybes [
+                         if c == '#' then Just (x, y) else Nothing
+                         | (line, y) <- fieldLines `zip` [1..maxY],
+                           (c, x) <- line `zip` [1..maxX]
+                       ]
   where
     maxY = length fieldLines
     maxX = length (head fieldLines)

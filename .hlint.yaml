@@ -1,2 +1,6 @@
 - ignore: { name: Use guards }
 - ignore: { name: Redundant if }
+- ignore: { name: Eta reduce }
+- ignore: { name: Avoid lambda }
+- ignore: { name: Avoid lambda using `infix` }
+- ignore: { name: Use tuple-section }

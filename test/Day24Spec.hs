@@ -1,4 +1,8 @@
+{-# LANGUAGE OverloadedRecordDot #-}
+
 module Day24Spec where
+
+import qualified Data.Set as S
 
 import Test.Hspec
 
@@ -51,6 +55,16 @@ testInputState5 = [
 day24Spec :: Spec
 day24Spec = do
 
+  describe "readField" $ do
+    it "should read a field" $ do
+      let field = readField testInput
+
+      field.startPos `shouldBe` (2, 1)
+      field.endPos `shouldBe` (6, 7)
+      field.blizzards `shouldBe` [((2, 3), E), ((5, 5), S)]
+      field.blizzardsPos `shouldBe` S.fromList [(2, 3), (5, 5)]
+      S.size field.walls `shouldBe` 22
+
   describe "getAdjacentPos" $ do
     it "should get an adjacent position" $ do
       getAdjacentPos (2, 2) N `shouldBe` (2, 1)
@@ -72,16 +86,6 @@ day24Spec = do
       isWallAt field (1, 3) `shouldBe` True
       isWallAt field (3, 4) `shouldBe` False
 
-  describe "isFloorAt" $ do
-    it "should detect a floor" $ do
-      let field = readField testInput
-
-      isFloorAt field (2, 1) `shouldBe` True
-      isFloorAt field (3, 2) `shouldBe` True
-      isFloorAt field (6, 7) `shouldBe` True
-      isFloorAt field (1, 3) `shouldBe` False
-      isFloorAt field (2, 3) `shouldBe` False
-
   describe "getBlizzards" $ do
     it "should get all blizzards" $ do
       let field = readField testInput
@@ -99,23 +103,28 @@ day24Spec = do
     it "should move a blizzard" $ do
       let field = readField testInput
 
+      isBlizzardAt field (3, 3) `shouldBe` False
       isBlizzardAt field (2, 3) `shouldBe` True
-      isFloorAt field (3, 3) `shouldBe` True
 
-      let (field', pos') = moveBlizzard field (2, 3) E
+      let (field', pos') = moveBlizzard field 0
 
       pos' `shouldBe` (3, 3)
       isBlizzardAt field' (3, 3) `shouldBe` True
-      isFloorAt field' (2, 3) `shouldBe` True
+      isBlizzardAt field' (2, 3) `shouldBe` False
 
     it "should wrap a blizzard around" $ do
       let field = readField testInput
 
-      let (field', pos') = moveBlizzard field (6, 3) E
+      isBlizzardAt field (2, 3) `shouldBe` True
 
-      pos' `shouldBe` (2, 3)
+      let field' = iterate (flip moveBlizzard' 0) field !! 5
+
+      let (pos, dir) = (field'.blizzards !! 0)
+      pos `shouldBe` (2, 3)
+      dir `shouldBe` E
+
       isBlizzardAt field' (2, 3) `shouldBe` True
-      isFloorAt field' (6, 3) `shouldBe` True
+      isBlizzardAt field' (6, 3) `shouldBe` False
 
   describe "moveBlizzards" $ do
     it "should move all blizzards (1 step)" $ do

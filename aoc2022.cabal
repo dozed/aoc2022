@@ -66,6 +66,8 @@ library
     , containers
     , extra
     , matrix
+    , optics-core
+    , optics-th
     , parallel
     , parsec
     , parsec-numbers

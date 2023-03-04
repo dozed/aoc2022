@@ -154,6 +154,6 @@ day23 = do
   -- part 2
   (maxRound, elves'') <- takeTurns elves dirs 1
   print maxRound
-  print $ showElves elves''
+  putStrLn $ showElves elves''
 
   return ()

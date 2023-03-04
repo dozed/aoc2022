@@ -71,6 +71,7 @@ library
     , parallel
     , parsec
     , parsec-numbers
+    , pqueue
     , raw-strings-qq
     , simple-logger
     , split

@@ -102,6 +102,15 @@ moveBlizzard field pos d =
       field'' = M.insert pos'' (Blizzard d) field'
   in (field'', pos'')
 
+moveBlizzard' :: Field -> Pos -> Direction -> Field
+moveBlizzard' field pos d = fst $ moveBlizzard field pos d
+
+moveBlizzards :: Field -> Field
+moveBlizzards field =
+  let blizzards = getBlizzards field
+      field' = foldl (\acc (p, d) -> moveBlizzard' acc p d) field blizzards
+  in field'
+
 day24 :: IO ()
 day24 = do
   let input = testInput

@@ -2,6 +2,7 @@
 
 module Day24Spec where
 
+import qualified Data.Map as M
 import qualified Data.Set as S
 
 import Test.Hspec
@@ -61,8 +62,7 @@ day24Spec = do
 
       field.startPos `shouldBe` (2, 1)
       field.endPos `shouldBe` (6, 7)
-      field.blizzards `shouldBe` [((2, 3), E), ((5, 5), S)]
-      field.blizzardsPos `shouldBe` S.fromList [(2, 3), (5, 5)]
+      field.blizzards `shouldBe` M.fromList [((2, 3), [E]), ((5, 5), [S])]
       S.size field.walls `shouldBe` 22
 
   describe "getAdjacentPos" $ do
@@ -86,11 +86,11 @@ day24Spec = do
       isWallAt field (1, 3) `shouldBe` True
       isWallAt field (3, 4) `shouldBe` False
 
-  describe "getBlizzards" $ do
-    it "should get all blizzards" $ do
+  describe "getBlizzardPositions" $ do
+    it "should get all blizzard positions" $ do
       let field = readField testInput
 
-      getBlizzards field `shouldBe` [((2, 3), E), ((5, 5), S)]
+      getBlizzardPositions field `shouldBe` [(2, 3), (5, 5)]
 
   describe "wrapPos" $ do
     it "should wrap a position around" $ do
@@ -99,16 +99,15 @@ day24Spec = do
       wrapPos field (6, 3) E `shouldBe` (2, 3)
       wrapPos field (5, 6) S `shouldBe` (5, 2)
 
-  describe "moveBlizzard" $ do
-    it "should move a blizzard" $ do
+  describe "moveBlizzardsAtPos" $ do
+    it "should move blizzards at position" $ do
       let field = readField testInput
 
       isBlizzardAt field (3, 3) `shouldBe` False
       isBlizzardAt field (2, 3) `shouldBe` True
 
-      let (field', pos') = moveBlizzard field 0
+      let field' = moveBlizzardsAtPos field (2, 3)
 
-      pos' `shouldBe` (3, 3)
       isBlizzardAt field' (3, 3) `shouldBe` True
       isBlizzardAt field' (2, 3) `shouldBe` False
 
@@ -117,14 +116,25 @@ day24Spec = do
 
       isBlizzardAt field (2, 3) `shouldBe` True
 
-      let field' = iterate (flip moveBlizzard' 0) field !! 5
+      let field1 = moveBlizzardsAtPos field (2, 3)
+      isBlizzardAt field1 (2, 3) `shouldBe` False
+      isBlizzardAt field1 (3, 3) `shouldBe` True
 
-      let (pos, dir) = (field'.blizzards !! 0)
-      pos `shouldBe` (2, 3)
-      dir `shouldBe` E
+      let field2 = moveBlizzardsAtPos field1 (3, 3)
+      isBlizzardAt field2 (3, 3) `shouldBe` False
+      isBlizzardAt field2 (4, 3) `shouldBe` True
 
-      isBlizzardAt field' (2, 3) `shouldBe` True
-      isBlizzardAt field' (6, 3) `shouldBe` False
+      let field3 = moveBlizzardsAtPos field2 (4, 3)
+      isBlizzardAt field3 (4, 3) `shouldBe` False
+      isBlizzardAt field3 (5, 3) `shouldBe` True
+
+      let field4 = moveBlizzardsAtPos field3 (5, 3)
+      isBlizzardAt field4 (5, 3) `shouldBe` False
+      isBlizzardAt field4 (6, 3) `shouldBe` True
+
+      let field5 = moveBlizzardsAtPos field4 (6, 3)
+      isBlizzardAt field5 (6, 3) `shouldBe` False
+      isBlizzardAt field5 (2, 3) `shouldBe` True
 
   describe "moveBlizzards" $ do
     it "should move all blizzards (1 step)" $ do
@@ -148,8 +158,7 @@ day24Spec = do
 
       let field' = iterate moveBlizzards field !! 3
 
-      field'.blizzards `shouldBe` [((5, 3), E), ((5, 3), S)]
-      field'.blizzardsPos `shouldBe` S.fromList [(5, 3)]
+      field'.blizzards `shouldBe` M.fromList [((5, 3), [S, E])]
 
     it "should move all blizzards (4 steps)" $ do
       let field = readField testInput

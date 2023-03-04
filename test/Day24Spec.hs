@@ -56,21 +56,21 @@ day24Spec = do
       let input = testInput
           field = readField input
 
-      isBlizzardAt field (2, 3) `shouldBe` True      
-      isFloorAt field (3, 3) `shouldBe` True      
+      isBlizzardAt field (2, 3) `shouldBe` True
+      isFloorAt field (3, 3) `shouldBe` True
 
       let (field', pos') = moveBlizzard field (2, 3) E
 
       pos' `shouldBe` (3, 3)
-      isFloorAt field' (2, 3) `shouldBe` True      
-      isBlizzardAt field' (3, 3) `shouldBe` True      
+      isBlizzardAt field' (3, 3) `shouldBe` True
+      isFloorAt field' (2, 3) `shouldBe` True
 
     it "should wrap a blizzard around" $ do
       let input = testInput
           field = readField input
 
-      let (field', pos') = moveBlizzard field (2, 3) E
+      let (field', pos') = moveBlizzard field (6, 3) E
 
-      pos' `shouldBe` (3, 3)
-      isFloorAt field' (2, 3) `shouldBe` True      
-      isBlizzardAt field' (3, 3) `shouldBe` True      
+      pos' `shouldBe` (2, 3)
+      isBlizzardAt field' (2, 3) `shouldBe` True
+      isFloorAt field' (6, 3) `shouldBe` True

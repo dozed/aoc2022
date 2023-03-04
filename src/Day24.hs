@@ -88,7 +88,7 @@ wrapPos field pos d = wrapPos' field pos (getOppositeDirection d)
 moveBlizzard :: Field -> Pos -> Direction -> (Field, Pos)
 moveBlizzard field pos d =
   let pos' = getAdjacentPos pos d
-      pos'' = if isWallAt field pos then wrapPos field pos d
+      pos'' = if isWallAt field pos' then wrapPos field pos d
               else pos'
       field' = M.insert pos Floor field
       field'' = M.insert pos'' (Blizzard d) field'

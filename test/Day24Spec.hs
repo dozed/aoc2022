@@ -143,6 +143,14 @@ day24Spec = do
 
       field' `shouldBe` expected
 
+    it "should move all blizzards (3 steps)" $ do
+      let field = readField testInput
+
+      let field' = iterate moveBlizzards field !! 3
+
+      field'.blizzards `shouldBe` [((5, 3), E), ((5, 3), S)]
+      field'.blizzardsPos `shouldBe` S.fromList [(5, 3)]
+
     it "should move all blizzards (4 steps)" $ do
       let field = readField testInput
           expected = readField testInputState4

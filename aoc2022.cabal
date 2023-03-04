@@ -65,13 +65,13 @@ library
     , combinatorial
     , containers
     , extra
+    , heaps
     , matrix
     , optics-core
     , optics-th
     , parallel
     , parsec
     , parsec-numbers
-    , pqueue
     , raw-strings-qq
     , simple-logger
     , split

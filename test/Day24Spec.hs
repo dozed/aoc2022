@@ -1,10 +1,19 @@
 module Day24Spec where
 
-import qualified Data.Map as M
-
 import Test.Hspec
 
 import Day24
+
+testInputState5 :: [String]
+testInputState5 = [
+    "#.#####",
+    "#.....#",
+    "#>....#",
+    "#.....#",
+    "#...v.#",
+    "#.....#",
+    "#####.#"
+  ]
 
 day24Spec :: Spec
 day24Spec = do
@@ -42,6 +51,13 @@ day24Spec = do
       isFloorAt field (6, 7) `shouldBe` True
       isFloorAt field (1, 3) `shouldBe` False
       isFloorAt field (2, 3) `shouldBe` False
+
+  describe "getBlizzards" $ do
+    it "should get all blizzards" $ do
+      let input = testInput
+          field = readField input
+
+      getBlizzards field `shouldBe` [((2, 3), E), ((5, 5), S)]
 
   describe "wrapPos" $ do
     it "should wrap a position around" $ do

@@ -2,6 +2,7 @@ module Day24 where
 
 import Data.Map (Map)
 import qualified Data.Map as M
+import Data.Maybe (mapMaybe)
 
 testInput :: [String]
 testInput = [
@@ -75,6 +76,13 @@ isFloorAt field pos =
   case M.lookup pos field of
     Just Floor -> True
     _ -> False
+
+toBlizzard :: Pos -> Tile -> Maybe (Pos, Direction)
+toBlizzard pos (Blizzard d) = Just (pos, d)
+toBlizzard _ _ = Nothing
+
+getBlizzards :: Field -> [(Pos, Direction)]
+getBlizzards field = mapMaybe (uncurry toBlizzard) . M.toList $ field
 
 wrapPos' :: Field -> Pos -> Direction -> Pos
 wrapPos' field pos d =

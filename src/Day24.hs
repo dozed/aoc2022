@@ -16,9 +16,7 @@ import qualified Data.Heap as H
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (catMaybes, fromJust)
-import Data.Set (Set)
-import qualified Data.Set as S
+import Data.Maybe (catMaybes)
 import Optics.Core (set)
 import Optics.TH
 

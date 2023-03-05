@@ -63,7 +63,6 @@ day24Spec = do
       field.startPos `shouldBe` (2, 1)
       field.endPos `shouldBe` (6, 7)
       field.blizzards `shouldBe` M.fromList [((2, 3), [E]), ((5, 5), [S])]
-      S.size field.walls `shouldBe` 22
 
   describe "getAdjacentPos" $ do
     it "should get an adjacent position" $ do
@@ -84,6 +83,14 @@ day24Spec = do
       let field = readField testInput
 
       isWallAt field (1, 3) `shouldBe` True
+      isWallAt field (7, 1) `shouldBe` True
+      isWallAt field (7, 3) `shouldBe` True
+      isWallAt field (2, 7) `shouldBe` True
+      isWallAt field (7, 7) `shouldBe` True
+
+      isWallAt field (2, 1) `shouldBe` False
+      isWallAt field (6, 7) `shouldBe` False
+
       isWallAt field (3, 4) `shouldBe` False
 
   describe "getBlizzardPositions" $ do

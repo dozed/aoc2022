@@ -74,9 +74,10 @@ getOppositeDirection E = W
 getOppositeDirection W = E
 
 data Field = Field {
-  walls :: Set Pos,
   startPos :: Pos,
   endPos :: Pos,
+  width :: Int,
+  height :: Int,
   blizzards :: Map Pos [Direction]
 } deriving (Eq, Show)
 
@@ -86,16 +87,12 @@ readField :: [String] -> Field
 readField fieldLines = field
   where
     field = Field {
-      walls = walls,
       startPos = startPos,
       endPos = endPos,
+      width = maxX,
+      height = maxY,
       blizzards = blizzards
     }
-    walls = S.fromList . catMaybes $ [
-        if c == '#' then Just (x, y) else Nothing
-        | (line, y) <- fieldLines `zip` [1..maxY],
-          (c, x) <- line `zip` [1..maxX]
-      ]
     blizzards = M.fromList $ catMaybes [
         fmap (\d -> ((x, y), [d])) (getDirection c)
         | (line, y) <- fieldLines `zip` [1..maxY],
@@ -115,7 +112,10 @@ isBlizzardAt :: Field -> Pos -> Bool
 isBlizzardAt field pos = M.member pos field.blizzards
 
 isWallAt :: Field -> Pos -> Bool
-isWallAt field pos = S.member pos field.walls
+isWallAt field pos@(x, y) =    x == 1
+                            || x == field.width
+                            || (y == 1 && pos /= field.startPos)
+                            || (y == field.height && pos /= field.endPos)
 
 getBlizzardPositions :: Field -> [Pos]
 getBlizzardPositions field = map fst . M.toList $ field.blizzards
@@ -207,7 +207,8 @@ go searchNodes minMinuteRef minPathLengthRef =
 
           -- putStrLn $ "end: " <> show minute
           -- print $ map getPathLength (H.toUnsortedList searchNodes)
-          return $ H.filter (\s -> getPathLength s <= pathLength) searchNodes'
+          -- return $ H.filter (\s -> getPathLength s <= pathLength) searchNodes'
+          return searchNodes'
         else
           return searchNodes'
 

@@ -160,7 +160,7 @@ data SearchNode = SearchNode Field Pos PathLength Minute deriving Eq
 getPathLength :: SearchNode -> Int
 getPathLength (SearchNode _ _ pathLength _) = pathLength
 
--- Takes ~2 minutes for the test input
+-- Takes 5 seconds for the test input
 instance Ord SearchNode where
  a <= b = getPathLength a <= getPathLength b
 

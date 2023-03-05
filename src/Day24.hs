@@ -65,12 +65,6 @@ applyMove :: Move -> Pos -> Pos
 applyMove (Move d) pos = getAdjacentPos pos d
 applyMove Wait pos = pos
 
-getOppositeDirection :: Direction -> Direction
-getOppositeDirection N = S
-getOppositeDirection S = N
-getOppositeDirection E = W
-getOppositeDirection W = E
-
 data Field = Field {
   startPos :: Pos,
   endPos :: Pos,
@@ -118,14 +112,11 @@ isWallAt field pos@(x, y) =    x == 1
 getBlizzardPositions :: Field -> [Pos]
 getBlizzardPositions field = map fst . M.toList $ field.blizzards
 
-wrapPos' :: Field -> Pos -> Direction -> Pos
-wrapPos' field pos d =
-  let pos' = getAdjacentPos pos d
-  in if isWallAt field pos' then pos
-     else wrapPos' field pos' d
-
 wrapPos :: Field -> Pos -> Direction -> Pos
-wrapPos field pos d = wrapPos' field pos (getOppositeDirection d)
+wrapPos field (x, _) N = (x, field.height - 1)
+wrapPos _ (x, _) S = (x, 2)
+wrapPos _ (_, y) E = (2, y)
+wrapPos field (_, y) W = (field.width - 1, y)
 
 moveBlizzard :: Field -> Pos -> Direction -> Pos
 moveBlizzard field pos d = let

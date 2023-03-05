@@ -104,7 +104,9 @@ day24Spec = do
       let field = readField testInput
 
       wrapPos field (6, 3) E `shouldBe` (2, 3)
+      wrapPos field (2, 3) W `shouldBe` (6, 3)
       wrapPos field (5, 6) S `shouldBe` (5, 2)
+      wrapPos field (5, 2) N `shouldBe` (5, 6)
 
   describe "moveBlizzardsAtPos" $ do
     it "should move blizzards at position" $ do

@@ -10,13 +10,11 @@
 
 module Day24 where
 
-import Control.Monad (when)
-import Data.Heap (Heap)
-import qualified Data.Heap as H
-import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (catMaybes)
+import Data.Set (Set)
+import qualified Data.Set as S
 import Optics.Core (set)
 import Optics.TH
 
@@ -155,19 +153,6 @@ type PathLength = Int
 isOutside :: Pos -> Bool
 isOutside (x, y) = y < 1
 
-data SearchNode = SearchNode Pos PathLength Minute deriving Eq
-
-getPathLength :: SearchNode -> Int
-getPathLength (SearchNode _ pathLength _) = pathLength
-
--- Takes 1.5 seconds for the test input
-instance Ord SearchNode where
- a <= b = getPathLength a <= getPathLength b
-
--- Does not finish in acceptable time
--- instance Ord SearchNode where
---   a <= b = getPathLength a > getPathLength b
-
 getValidNextPositions :: Field -> Pos -> [Pos]
 getValidNextPositions field pos = let
     moves = possibleMoves
@@ -177,43 +162,12 @@ getValidNextPositions field pos = let
     nextPositions4 = filterNot (\p -> isBlizzardAt field p) nextPositions3
   in nextPositions4
 
-go :: Heap SearchNode -> IORef Minute -> IORef PathLength -> Map Minute Field -> IO ()
-go searchNodes minMinuteRef minPathLengthRef fields =
-  case H.viewMin searchNodes of
-    Nothing -> putStrLn "empty"
-    Just ((SearchNode pos pathLength minute), searchNodes') -> do
-      let field = fields M.! (minute+1)
-
-      searchNodes'' <-
-        if field.endPos == pos then do
-          minPathLength <- readIORef minPathLengthRef
-          when (pathLength < minPathLength) $ do
-            writeIORef minPathLengthRef pathLength
-            putStrLn $ "pathLength: " <> show pathLength
-
-          minMinute <- readIORef minMinuteRef
-          when (minute < minMinute) $ do
-            writeIORef minMinuteRef minute
-            putStrLn $ "minMinute: " <> show minute
-
-          -- putStrLn $ "end: " <> show minute
-          -- print $ map getPathLength (H.toUnsortedList searchNodes)
-          -- return $ H.filter (\s -> getPathLength s <= pathLength) searchNodes'
-          return searchNodes'
-        else
-          return searchNodes'
-
-      -- putStrLn $ show pos <> " - " <> show pathLength <> " - " <> show path
-      -- putStrLn $ show pos <> " - " <> show pathLength
-      minPathLength <- readIORef minPathLengthRef
-      let
-        searchNodes''' =
-          if pathLength + 1 <= minPathLength then
-            let nextPositions = getValidNextPositions field pos
-            in foldl (\acc p -> H.insert (SearchNode p (pathLength + 1) (minute + 1)) acc) searchNodes'' nextPositions
-          else
-            searchNodes''
-      go searchNodes''' minMinuteRef minPathLengthRef fields
+go :: Set Pos -> Minute -> Field -> IO ()
+go waveFront minute field | S.member field.endPos waveFront = putStrLn $ "end: " <> show minute
+go waveFront minute field = do
+  let field' = moveBlizzards field
+  let waveFront' = S.unions . S.map (\pos -> S.fromList $ getValidNextPositions field' pos) $ waveFront
+  go waveFront' (minute+1) field'
 
 day24 :: IO ()
 day24 = do
@@ -226,18 +180,6 @@ day24 = do
   let field = readField input
   print field
 
-  minMinuteRef <- newIORef 1000000
-  minPathLengthRef <- newIORef 1000000
-
-  let searchNodes = H.singleton (SearchNode field.startPos 0 1)
-      fields = M.fromList $ scanl (\(_, acc) i -> (i, moveBlizzards acc)) (1, field) [2..100]
-
-  go searchNodes minMinuteRef minPathLengthRef fields
-
-  minPathLength <- readIORef minPathLengthRef
-  minMinute <- readIORef minMinuteRef
-
-  putStrLn $ "minPathLength: " <> show minPathLength
-  putStrLn $ "minMinute: " <> show minMinute
+  go (S.singleton field.startPos) 1 field
 
   return ()

@@ -177,27 +177,12 @@ getValidNextPositions field pos = let
     nextPositions4 = filterNot (\p -> isBlizzardAt field p) nextPositions3
   in nextPositions4
 
-getOrCreateField :: Minute -> IORef (Map Minute Field) -> IO Field
-getOrCreateField minute fieldsRef = do
-  fields <- readIORef fieldsRef
-
-  field <- case M.lookup (minute+1) fields of
-    Nothing -> do
-      let field = fields M.! minute
-          field' = moveBlizzards field
-          fields' = M.insert (minute+1) field' fields
-      writeIORef fieldsRef fields'
-      return field'
-    Just field -> return field
-
-  return field
-
-go :: Heap SearchNode -> IORef Minute -> IORef PathLength -> IORef (Map Minute Field) -> IO ()
-go searchNodes minMinuteRef minPathLengthRef fieldsRef =
+go :: Heap SearchNode -> IORef Minute -> IORef PathLength -> Map Minute Field -> IO ()
+go searchNodes minMinuteRef minPathLengthRef fields =
   case H.viewMin searchNodes of
     Nothing -> putStrLn "empty"
     Just ((SearchNode pos pathLength minute), searchNodes') -> do
-      field <- getOrCreateField minute fieldsRef
+      let field = fields M.! (minute+1)
 
       searchNodes'' <-
         if field.endPos == pos then do
@@ -224,12 +209,11 @@ go searchNodes minMinuteRef minPathLengthRef fieldsRef =
       let
         searchNodes''' =
           if pathLength + 1 <= minPathLength then
-            -- let field' = moveBlizzards field
             let nextPositions = getValidNextPositions field pos
             in foldl (\acc p -> H.insert (SearchNode p (pathLength + 1) (minute + 1)) acc) searchNodes'' nextPositions
           else
             searchNodes''
-      go searchNodes''' minMinuteRef minPathLengthRef fieldsRef
+      go searchNodes''' minMinuteRef minPathLengthRef fields
 
 day24 :: IO ()
 day24 = do
@@ -246,9 +230,9 @@ day24 = do
   minPathLengthRef <- newIORef 1000000
 
   let searchNodes = H.singleton (SearchNode field.startPos 0 1)
-  fieldsRef <- newIORef $ M.singleton 1 field
+      fields = M.fromList $ scanl (\(_, acc) i -> (i, moveBlizzards acc)) (1, field) [2..100]
 
-  go searchNodes minMinuteRef minPathLengthRef fieldsRef
+  go searchNodes minMinuteRef minPathLengthRef fields
 
   minPathLength <- readIORef minPathLengthRef
   minMinute <- readIORef minMinuteRef

@@ -155,12 +155,12 @@ type PathLength = Int
 isOutside :: Pos -> Bool
 isOutside (x, y) = y < 1
 
-data SearchNode = SearchNode Field Pos PathLength Minute deriving Eq
+data SearchNode = SearchNode Pos PathLength Minute deriving Eq
 
 getPathLength :: SearchNode -> Int
-getPathLength (SearchNode _ _ pathLength _) = pathLength
+getPathLength (SearchNode _ pathLength _) = pathLength
 
--- Takes 5 seconds for the test input
+-- Takes 1.5 seconds for the test input
 instance Ord SearchNode where
  a <= b = getPathLength a <= getPathLength b
 
@@ -177,11 +177,22 @@ getValidNextPositions field pos = let
     nextPositions4 = filterNot (\p -> isBlizzardAt field p) nextPositions3
   in nextPositions4
 
-go :: Heap SearchNode -> IORef Minute -> IORef PathLength -> IO ()
-go searchNodes minMinuteRef minPathLengthRef =
+go :: Heap SearchNode -> IORef Minute -> IORef PathLength -> IORef (Map Minute Field) -> IO ()
+go searchNodes minMinuteRef minPathLengthRef fieldsRef =
   case H.viewMin searchNodes of
     Nothing -> putStrLn "empty"
-    Just ((SearchNode field pos pathLength minute), searchNodes') -> do
+    Just ((SearchNode pos pathLength minute), searchNodes') -> do
+      fields <- readIORef fieldsRef
+
+      field <- case M.lookup (minute+1) fields of
+        Nothing -> do
+          let field = fields M.! minute
+              field' = moveBlizzards field
+              fields' = M.insert (minute+1) field' fields
+          writeIORef fieldsRef fields'
+          return field'
+        Just field -> return field
+
       searchNodes'' <-
         if field.endPos == pos then do
           minPathLength <- readIORef minPathLengthRef
@@ -207,12 +218,12 @@ go searchNodes minMinuteRef minPathLengthRef =
       let
         searchNodes''' =
           if pathLength + 1 <= minPathLength then
-            let field' = moveBlizzards field
-                nextPositions = getValidNextPositions field' pos
-            in foldl (\acc p -> H.insert (SearchNode field' p (pathLength + 1) (minute + 1)) acc) searchNodes'' nextPositions
+            -- let field' = moveBlizzards field
+            let nextPositions = getValidNextPositions field pos
+            in foldl (\acc p -> H.insert (SearchNode p (pathLength + 1) (minute + 1)) acc) searchNodes'' nextPositions
           else
             searchNodes''
-      go searchNodes''' minMinuteRef minPathLengthRef
+      go searchNodes''' minMinuteRef minPathLengthRef fieldsRef
 
 day24 :: IO ()
 day24 = do
@@ -228,9 +239,10 @@ day24 = do
   minMinuteRef <- newIORef 1000000
   minPathLengthRef <- newIORef 1000000
 
-  let searchNodes = H.singleton (SearchNode field field.startPos 0 1)
+  let searchNodes = H.singleton (SearchNode field.startPos 0 1)
+  fieldsRef <- newIORef $ M.singleton 1 field
 
-  go searchNodes minMinuteRef minPathLengthRef
+  go searchNodes minMinuteRef minPathLengthRef fieldsRef
 
   minPathLength <- readIORef minPathLengthRef
   minMinute <- readIORef minMinuteRef

@@ -108,7 +108,8 @@ directionToChar E = '>'
 directionToChar W = '<'
 
 intToChar :: Int -> Char
-intToChar x = chr (ord '0' + x)
+intToChar x = if 0 < x && x < 10 then chr (ord '0' + x)
+              else '@'
 
 showField :: Field -> Set Pos -> String
 showField field waveFront = unlines xs
@@ -195,7 +196,7 @@ go waveFront minute field = do
   let field' = moveBlizzards field
   let waveFront' = S.unions . S.map (\pos -> S.fromList $ getValidNextPositions field' pos) $ waveFront
   printField field' waveFront'
-  threadDelay 1000000
+  threadDelay 300000
   go waveFront' (minute+1) field'
 
 day24 :: IO ()

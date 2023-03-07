@@ -70,6 +70,7 @@ tests:
       - hspec
       - hspec-checkers
       - matrix
+      - optics-core
       - QuickCheck
       - raw-strings-qq
       - vector

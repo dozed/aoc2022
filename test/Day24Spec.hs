@@ -1,9 +1,11 @@
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 
 module Day24Spec where
 
 import qualified Data.Map as M
 import qualified Data.Set as S
+import Optics.Core (set)
 
 import Test.Hspec
 
@@ -52,6 +54,15 @@ testInputState5 = [
     "#.....#",
     "#####.#"
   ]
+
+moveBlizzardsAtPos' :: Field -> Pos -> Field
+moveBlizzardsAtPos' field blizzardPosition =
+  case M.lookup blizzardPosition field.blizzards of
+    Nothing -> field
+    Just blizzardDirections ->
+      let blizzards' = moveBlizzardsAtPos field blizzardPosition blizzardDirections
+          field' = set #blizzards blizzards' field
+      in field'
 
 day24Spec :: Spec
 day24Spec = do
@@ -115,7 +126,7 @@ day24Spec = do
       isBlizzardAt field (3, 3) `shouldBe` False
       isBlizzardAt field (2, 3) `shouldBe` True
 
-      let field' = moveBlizzardsAtPos field (2, 3)
+      let field' = moveBlizzardsAtPos' field (2, 3)
 
       isBlizzardAt field' (3, 3) `shouldBe` True
       isBlizzardAt field' (2, 3) `shouldBe` False
@@ -125,23 +136,23 @@ day24Spec = do
 
       isBlizzardAt field (2, 3) `shouldBe` True
 
-      let field1 = moveBlizzardsAtPos field (2, 3)
+      let field1 = moveBlizzardsAtPos' field (2, 3)
       isBlizzardAt field1 (2, 3) `shouldBe` False
       isBlizzardAt field1 (3, 3) `shouldBe` True
 
-      let field2 = moveBlizzardsAtPos field1 (3, 3)
+      let field2 = moveBlizzardsAtPos' field1 (3, 3)
       isBlizzardAt field2 (3, 3) `shouldBe` False
       isBlizzardAt field2 (4, 3) `shouldBe` True
 
-      let field3 = moveBlizzardsAtPos field2 (4, 3)
+      let field3 = moveBlizzardsAtPos' field2 (4, 3)
       isBlizzardAt field3 (4, 3) `shouldBe` False
       isBlizzardAt field3 (5, 3) `shouldBe` True
 
-      let field4 = moveBlizzardsAtPos field3 (5, 3)
+      let field4 = moveBlizzardsAtPos' field3 (5, 3)
       isBlizzardAt field4 (5, 3) `shouldBe` False
       isBlizzardAt field4 (6, 3) `shouldBe` True
 
-      let field5 = moveBlizzardsAtPos field4 (6, 3)
+      let field5 = moveBlizzardsAtPos' field4 (6, 3)
       isBlizzardAt field5 (6, 3) `shouldBe` False
       isBlizzardAt field5 (2, 3) `shouldBe` True
 

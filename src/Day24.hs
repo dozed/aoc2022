@@ -79,6 +79,23 @@ applyMove :: Move -> Pos -> Pos
 applyMove (Move d) pos = getAdjacentPos pos d
 applyMove Wait pos = pos
 
+insertOne :: Ord k => Map k [v] -> k -> v -> Map k [v]
+insertOne values k v =
+  case M.lookup k values of
+    Nothing -> M.insert k [v] values
+    Just vs -> M.insert k (v:vs) values
+
+insertAll :: Ord k => Map k [v] -> k -> [v] -> Map k [v]
+insertAll values k vs = foldl (\acc v -> insertOne acc k v) values vs
+
+glueTwo :: Ord k => Map k [v] -> Map k [v] -> Map k [v]
+glueTwo a b = foldl (\acc (k, vs) -> insertAll acc k vs) a (M.toList b)
+
+glueAll :: Ord k => [Map k [v]] -> Map k [v]
+glueAll [] = M.empty
+glueAll [x] = x
+glueAll (x:y:zs) = glueAll ((glueTwo x y):zs)
+
 data Field = Field {
   startPos :: Pos,
   endPos :: Pos,
@@ -151,28 +168,17 @@ moveBlizzard field pos d = let
             else pos'
   in pos''
 
-insertBlizzard :: Map Pos [Direction] -> Pos -> Direction -> Map Pos [Direction]
-insertBlizzard blizzards pos d =
-  case M.lookup pos blizzards of
-    Nothing -> M.insert pos [d] blizzards
-    Just ds -> M.insert pos (d:ds) blizzards
-
-moveBlizzardsAtPos :: Field -> Pos -> Field
-moveBlizzardsAtPos field pos =
-  case M.lookup pos field.blizzards of
-    Nothing -> field
-    Just blizzardDirections ->
-      let
-          blizzardPositions = map (\d -> moveBlizzard field pos d) blizzardDirections
-          blizzards' = M.delete pos field.blizzards
-          blizzards'' = foldl (\acc (p, d) -> insertBlizzard acc p d) blizzards' (blizzardPositions `zip` blizzardDirections)
-          field' = set #blizzards blizzards'' field
-      in field'
+moveBlizzardsAtPos :: Field -> Pos -> [Direction] -> Map Pos [Direction]
+moveBlizzardsAtPos field blizzardPosition blizzardDirections =
+  let blizzardPositions' = map (\d -> moveBlizzard field blizzardPosition d) blizzardDirections
+      blizzards = foldl (\acc (p, d) -> insertOne acc p d) M.empty (blizzardPositions' `zip` blizzardDirections)
+  in blizzards
 
 moveBlizzards :: Field -> Field
 moveBlizzards field =
-  let blizzards = getBlizzardPositions field
-      field' = foldl (\acc p -> moveBlizzardsAtPos acc p) field blizzards
+  let blizzardMaps = map (\(p, ds) -> moveBlizzardsAtPos field p ds) $ M.toList field.blizzards
+      blizzards = glueAll blizzardMaps
+      field' = set #blizzards blizzards field
   in field'
 
 type Minute = Int
@@ -196,20 +202,20 @@ go waveFront minute field = do
   let field' = moveBlizzards field
   let waveFront' = S.unions . S.map (\pos -> S.fromList $ getValidNextPositions field' pos) $ waveFront
   printField field' waveFront'
-  threadDelay 300000
+  threadDelay 30000
   go waveFront' (minute+1) field'
 
 day24 :: IO ()
 day24 = do
   -- let input = testInput
-  let input = testInput2
-  -- input <- lines <$> readFile "input/Day24.txt"
+  -- let input = testInput2
+  input <- lines <$> readFile "input/Day24.txt"
 
   putStrLn "day24"
 
   let field = readField input
   print field
 
-  go (S.singleton field.startPos) 1 field
+  go (S.singleton field.startPos) 0 field
 
   return ()

@@ -10,6 +10,8 @@
 
 module Day24 where
 
+import Control.Concurrent (threadDelay)
+import Data.Char (chr, ord)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (catMaybes)
@@ -17,6 +19,7 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Optics.Core (set)
 import Optics.TH
+import System.Posix.Internals (puts)
 
 import Util (filterNot)
 
@@ -98,6 +101,30 @@ readField fieldLines = field
     maxY = length fieldLines
     maxX = length (head fieldLines)
 
+directionToChar :: Direction -> Char
+directionToChar N = '^'
+directionToChar S = 'v'
+directionToChar E = '>'
+directionToChar W = '<'
+
+intToChar :: Int -> Char
+intToChar x = chr (ord '0' + x)
+
+showField :: Field -> Set Pos -> String
+showField field waveFront = unlines xs
+  where
+    xs = [[getCh x y | x <- [1..field.width]] | y <- [1..field.height]]
+    getCh x y = if isWallAt field (x, y) then '#'
+                else if S.member (x, y) waveFront then 'o'
+                else
+                  case M.lookup (x, y) field.blizzards of
+                    Nothing -> '.'
+                    Just [d] -> directionToChar d
+                    Just ds -> intToChar $ length ds
+
+printField :: Field -> Set Pos -> IO ()
+printField field waveFront = puts $ "\^[c\n" <> showField field waveFront
+
 isBlizzardAt :: Field -> Pos -> Bool
 isBlizzardAt field pos = M.member pos field.blizzards
 
@@ -167,6 +194,8 @@ go waveFront minute field | S.member field.endPos waveFront = putStrLn $ "end: "
 go waveFront minute field = do
   let field' = moveBlizzards field
   let waveFront' = S.unions . S.map (\pos -> S.fromList $ getValidNextPositions field' pos) $ waveFront
+  printField field' waveFront'
+  threadDelay 1000000
   go waveFront' (minute+1) field'
 
 day24 :: IO ()

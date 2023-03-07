@@ -51,6 +51,19 @@ type Pos = (X, Y)
 data Direction = N | S | E | W
   deriving (Eq, Ord, Show)
 
+directionFromChar :: Char -> Maybe Direction
+directionFromChar '^' = Just N
+directionFromChar 'v' = Just S
+directionFromChar '>' = Just E
+directionFromChar '<' = Just W
+directionFromChar _ = Nothing
+
+directionToChar :: Direction -> Char
+directionToChar N = '^'
+directionToChar S = 'v'
+directionToChar E = '>'
+directionToChar W = '<'
+
 getAdjacentPos :: Pos -> Direction -> Pos
 getAdjacentPos (x, y) N = (x, y - 1)
 getAdjacentPos (x, y) S = (x, y + 1)
@@ -87,29 +100,14 @@ readField fieldLines = field
       blizzards = blizzards
     }
     blizzards = M.fromList $ catMaybes [
-        fmap (\d -> ((x, y), [d])) (getDirection c)
+        fmap (\d -> ((x, y), [d])) (directionFromChar c)
         | (line, y) <- fieldLines `zip` [1..maxY],
           (c, x) <- line `zip` [1..maxX]
       ]
     startPos = head . catMaybes $ [if (fieldLines !! 0) !! (x - 1) == '.' then Just (x, 1) else Nothing | x <- [1..maxX]]
     endPos = head . catMaybes $ [if (fieldLines !! (maxY - 1)) !! (x - 1) == '.' then Just (x, maxY) else Nothing | x <- [1..maxX]]
-    getDirection '^' = Just N
-    getDirection 'v' = Just S
-    getDirection '>' = Just E
-    getDirection '<' = Just W
-    getDirection _ = Nothing
     maxY = length fieldLines
     maxX = length (head fieldLines)
-
-directionToChar :: Direction -> Char
-directionToChar N = '^'
-directionToChar S = 'v'
-directionToChar E = '>'
-directionToChar W = '<'
-
-intToChar :: Int -> Char
-intToChar x = if 0 < x && x < 10 then chr (ord '0' + x)
-              else '@'
 
 showField :: Field -> Set Pos -> String
 showField field waveFront = unlines xs
@@ -122,6 +120,8 @@ showField field waveFront = unlines xs
                     Nothing -> '.'
                     Just [d] -> directionToChar d
                     Just ds -> intToChar $ length ds
+    intToChar x = if 0 < x && x < 10 then chr (ord '0' + x)
+                  else '@'
 
 printField :: Field -> Set Pos -> IO ()
 printField field waveFront = puts $ "\^[c\n" <> showField field waveFront

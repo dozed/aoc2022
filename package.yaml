@@ -32,7 +32,6 @@ library:
   - combinatorial
   - containers
   - extra
-  - heaps
   - matrix
   - optics-core
   - optics-th

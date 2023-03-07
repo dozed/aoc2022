@@ -196,14 +196,14 @@ getValidNextPositions field pos = let
     nextPositions4 = filterNot (\p -> isBlizzardAt field p) nextPositions3
   in nextPositions4
 
-go :: Set Pos -> Minute -> Field -> IO ()
-go waveFront minute field | S.member field.endPos waveFront = putStrLn $ "end: " <> show minute
-go waveFront minute field = do
+go :: Set Pos -> Minute -> Field -> Pos -> IO (Field, Minute)
+go waveFront minute field endPos | S.member endPos waveFront = return (field, minute)
+go waveFront minute field endPos = do
   let field' = moveBlizzards field
   let waveFront' = S.unions . S.map (\pos -> S.fromList $ getValidNextPositions field' pos) $ waveFront
   printField field' waveFront'
   threadDelay 30000
-  go waveFront' (minute+1) field'
+  go waveFront' (minute+1) field' endPos
 
 day24 :: IO ()
 day24 = do
@@ -216,6 +216,13 @@ day24 = do
   let field = readField input
   print field
 
-  go (S.singleton field.startPos) 0 field
+  -- part 1
+  (field', minute) <- go (S.singleton field.startPos) 0 field field.endPos
+  putStrLn $ "part 1: " <> show minute
+  
+  -- part 2
+  (field'', minute') <- go (S.singleton field.endPos) minute field' field.startPos
+  (_, minute'') <- go (S.singleton field.startPos) minute' field'' field.endPos
+  putStrLn $ "part 2: " <> show minute''
 
   return ()

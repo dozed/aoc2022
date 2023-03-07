@@ -217,12 +217,12 @@ day24 = do
   print field
 
   -- part 1
-  (field', minute) <- go (S.singleton field.startPos) 0 field field.endPos
-  putStrLn $ "part 1: " <> show minute
-  
+  (field', minute') <- go (S.singleton field.startPos) 0 field field.endPos
+  putStrLn $ "part 1: " <> show minute'
+
   -- part 2
-  (field'', minute') <- go (S.singleton field.endPos) minute field' field.startPos
-  (_, minute'') <- go (S.singleton field.startPos) minute' field'' field.endPos
-  putStrLn $ "part 2: " <> show minute''
+  (field'', minute'') <- go (S.singleton field.endPos) minute' field' field.startPos
+  (_, minute''') <- go (S.singleton field.startPos) minute'' field'' field.endPos
+  putStrLn $ "part 2: " <> show minute'''
 
   return ()

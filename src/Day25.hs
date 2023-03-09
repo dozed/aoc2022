@@ -44,14 +44,22 @@ getReducedBase5 xs =
                     in getReducedBase5 (b ++ [a']) ++ [l']
 
 showReducedBase5 :: [Integer] -> String
-showReducedBase5 [] = ""
-showReducedBase5 (x:xs) = getCh x : showReducedBase5 xs
+showReducedBase5 xs = map getCh xs
   where getCh 0 = '0'
         getCh 1 = '1'
         getCh 2 = '2'
         getCh (-1) = '-'
         getCh (-2) = '='
         getCh _ = undefined
+
+readReducedBase5 :: String -> [Integer]
+readReducedBase5 xs = map getNum xs
+  where getNum '0' = 0
+        getNum '1' = 1
+        getNum '2' = 2
+        getNum '-' = -1
+        getNum '=' = -2
+        getNum _ = undefined
 
 getDecimal' :: Integer -> [Integer] -> Integer
 getDecimal' _ [] = 0

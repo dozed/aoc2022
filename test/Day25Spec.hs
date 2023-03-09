@@ -29,5 +29,12 @@ day25Spec :: Spec
 day25Spec = do
 
   describe "getReducedBase5" $ do
-    it "should read a base-10 integer to a reduced base-5 form" $ do
-      forM_ check $ \(i,s) -> (showReducedBase5 . getReducedBase5 . getBase5) i `shouldBe` s
+    it "should read a decimal to a reduced base-5 form" $ do
+      forM_ check $ \(i, s) -> (showReducedBase5 . getReducedBase5 . getBase5) i `shouldBe` s
+
+  describe "getDecimal" $ do
+    it "should roundtrip" $ do
+      forM_ check $ \(i, _) ->
+        let r = getReducedBase5 . getBase5 $ i
+            i' = getDecimal r
+        in i' `shouldBe` i

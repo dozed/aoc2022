@@ -55,10 +55,7 @@ showReducedBase5 (x:xs) = getCh x : showReducedBase5 xs
 
 getDecimal' :: Integer -> [Integer] -> Integer
 getDecimal' _ [] = 0
-getDecimal' p [x] = x * (5^p)
-getDecimal' p xs = let x = last xs
-                       xs' = init xs
-                   in x * (5^p) + getDecimal' (p+1) xs'
+getDecimal' p xs = getDecimal' (p+1) (init xs) + last xs * (5^p)
 
 getDecimal :: [Integer] -> Integer
 getDecimal xs = getDecimal' 0 xs

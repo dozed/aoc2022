@@ -29,19 +29,22 @@ getBase5 x =
   in if d == 0 then [m]
      else getBase5 d ++ [m]
 
-getReducedBase5 :: [Integer] -> [Integer]
-getReducedBase5 [] = []
-getReducedBase5 xs =
+getReducedBase5' :: [Integer] -> [Integer]
+getReducedBase5' [] = []
+getReducedBase5' xs =
   let l = last xs
       rs = init xs
-  in if l <= 2 then getReducedBase5 rs ++ [l]
+  in if l <= 2 then getReducedBase5' rs ++ [l]
      else let l' = l - 5
           in case rs of
              [] -> 1 : [l']
              rs' -> let a = last rs'
                         b = init rs'
                         a' = a + 1
-                    in getReducedBase5 (b ++ [a']) ++ [l']
+                    in getReducedBase5' (b ++ [a']) ++ [l']
+
+getReducedBase5 :: Integer -> [Integer]
+getReducedBase5 = getReducedBase5' . getBase5
 
 showReducedBase5 :: [Integer] -> String
 showReducedBase5 xs = map getCh xs
@@ -70,13 +73,14 @@ getDecimal xs = getDecimal' 0 xs
 
 day25 :: IO ()
 day25 = do
+  -- let input = lines testInput
+  input <- lines <$> readFile "input/Day25.txt"
+
   putStrLn "day25"
 
-  print $ getBase5 8
-  print $ getBase5 10
-  print $ getBase5 15
-  print $ getBase5 20
-  putStrLn $ showReducedBase5 . getReducedBase5 . getBase5 $ 8
-  putStrLn $ showReducedBase5 . getReducedBase5 . getBase5 $ 10
-  putStrLn $ showReducedBase5 . getReducedBase5 . getBase5 $ 15
-  putStrLn $ showReducedBase5 . getReducedBase5 . getBase5 $ 20
+  let total = sum . map (getDecimal . readReducedBase5) $ input
+      totalSnafu = showReducedBase5 . getReducedBase5 $ total
+  print total
+  putStrLn totalSnafu
+
+  return ()
